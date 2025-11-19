@@ -166,8 +166,10 @@ export class SubsonicService {
         }
 
         if (type === 'newest') sorted.sort((a, b) => b.created.localeCompare(a.created));
+        if (type === 'recent') sorted.sort((a, b) => b.created.localeCompare(a.created));
         if (type === 'random') sorted.sort(() => 0.5 - Math.random());
         if (type === 'alphabeticalByName') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        // frequent matches default mock behavior roughly
         
         return sorted.slice(offset, offset + size);
      }
@@ -387,14 +389,35 @@ export class SubsonicService {
     }
   }
 
-  async getLyrics(artist: string, title: string): Promise<string> {
+  async getLyrics(artist: string, title: string, album?: string, duration?: number): Promise<string> {
     if (this.isDemo) {
       return `(Verse 1)\nStanding on the edge of the neon light\nWatching code flow through the night...`;
     }
+    
+    // Try LRCLIB first
+    try {
+      const url = new URL('https://lrclib.net/api/get');
+      url.searchParams.append('artist_name', artist);
+      url.searchParams.append('track_name', title);
+      if (album) url.searchParams.append('album_name', album);
+      if (duration) url.searchParams.append('duration', duration.toString());
+
+      const res = await fetch(url.toString());
+      if (res.ok) {
+          const data = await res.json();
+          if (data.plainLyrics || data.syncedLyrics) {
+              return data.plainLyrics || data.syncedLyrics;
+          }
+      }
+    } catch (e) {
+      console.warn("LRCLIB fetch failed, falling back to Subsonic", e);
+    }
+
+    // Fallback to Subsonic
     try {
       const res = await fetch(this.buildUrl('getLyrics.view', { artist, title }));
       const data = await res.json();
-      return data['subsonic-response'].lyrics?.content || "No lyrics found for this track.";
+      return data['subsonic-response'].lyrics?.content || "No lyrics found.";
     } catch (e) {
       return "Could not fetch lyrics.";
     }

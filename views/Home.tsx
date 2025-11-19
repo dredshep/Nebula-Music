@@ -1,27 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
 import { ISong, IAlbum } from '../types';
-import { Play, Plus, Clock, Flame, Compass, Music, ListPlus } from 'lucide-react';
+import { Play, Plus, Clock, Flame, Compass, Music, ListPlus, ArrowRight } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
-  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs, history } = useStore();
+  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs } = useStore();
   const [randomSongs, setRandomSongs] = useState<ISong[]>([]);
-  const [recentAlbums, setRecentAlbums] = useState<IAlbum[]>([]);
-  const [newestAlbums, setNewestAlbums] = useState<IAlbum[]>([]);
-  const [randomAlbums, setRandomAlbums] = useState<IAlbum[]>([]);
+  const [recentAddedAlbums, setRecentAddedAlbums] = useState<IAlbum[]>([]);
+  const [recentPlayedAlbums, setRecentPlayedAlbums] = useState<IAlbum[]>([]);
+  const [exploreAlbums, setExploreAlbums] = useState<IAlbum[]>([]);
   
-  // Get most played directly from store (real tracking)
+  // Get most played songs for the sidebar "Most Played" widget (local tracking still useful for quick access)
   const mostPlayedReal = getMostPlayedSongs().slice(0, 10);
-  // If empty, we'll fetch random ones to act as "Suggested"
   const [suggestedMostPlayed, setSuggestedMostPlayed] = useState<ISong[]>([]);
 
   // Initial Data Load
   useEffect(() => {
     const load = async () => {
       setRandomSongs(await service.getRandomSongs(20)); // Fetch more to rotate and show picks
-      setRecentAlbums(await service.getAlbumList('recent', 5)); // Server "Recent" is usually "Recently Added"
-      setNewestAlbums(await service.getAlbumList('newest', 5));
-      setRandomAlbums(await service.getAlbumList('random', 10));
+      
+      // Sync with Server for main sections
+      setRecentAddedAlbums(await service.getAlbumList('recent', 5)); // "Recently Added"
+      setRecentPlayedAlbums(await service.getAlbumList('frequent', 5)); // "Recently Played" (Server 'frequent' is best proxy for usage history)
+      setExploreAlbums(await service.getAlbumList('random', 10)); // "Explore"
       
       const real = getMostPlayedSongs();
       if (real.length === 0) {
@@ -29,28 +30,10 @@ export const HomeView: React.FC = () => {
       }
     };
     load();
-    // Removed mostPlayedReal.length dependency to prevent infinite reload loops during playback
   }, [service]);
 
   const displayMostPlayed = mostPlayedReal.length > 0 ? mostPlayedReal : suggestedMostPlayed;
   const mostPlayedTitle = mostPlayedReal.length > 0 ? "Most Played" : "Suggested For You";
-
-  // Derive Recently Played Albums from Local History
-  const recentlyPlayedAlbums: IAlbum[] = history.reduce((acc, song) => {
-      if (!acc.find(a => a.id === (song.albumId || song.album))) {
-          acc.push({
-              id: song.albumId || 'unknown',
-              name: song.album,
-              artist: song.artist,
-              artistId: song.artistId,
-              coverArt: song.coverArt,
-              songCount: 0, 
-              duration: 0, 
-              created: ''
-          } as IAlbum);
-      }
-      return acc;
-  }, [] as IAlbum[]).slice(0, 10);
 
   const HeroSection = () => {
     // Use first 5 songs for Hero rotation
@@ -126,10 +109,20 @@ export const HomeView: React.FC = () => {
     );
   };
 
-  const SectionHeader = ({ title, icon: Icon }: any) => (
-    <div className="flex items-center mb-6 mt-12">
-        <div className="p-2 bg-white/5 rounded-lg mr-3 shadow-inner border border-white/5"><Icon className="w-5 h-5 text-primary" /></div>
-        <h3 className="text-2xl font-bold text-white tracking-tight">{title}</h3>
+  const SectionHeader = ({ title, icon: Icon, onShowMore }: { title: string, icon: any, onShowMore?: () => void }) => (
+    <div className="flex items-center justify-between mb-6 mt-12">
+        <div className="flex items-center">
+            <div className="p-2 bg-white/5 rounded-lg mr-3 shadow-inner border border-white/5"><Icon className="w-5 h-5 text-primary" /></div>
+            <h3 className="text-2xl font-bold text-white tracking-tight">{title}</h3>
+        </div>
+        {onShowMore && (
+            <button 
+                onClick={onShowMore} 
+                className="flex items-center text-xs font-bold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full transition"
+            >
+                Show More <ArrowRight className="w-3 h-3 ml-1" />
+            </button>
+        )}
     </div>
   );
 
@@ -230,12 +223,12 @@ export const HomeView: React.FC = () => {
       </div>
 
       {/* Explore Bar (Random Albums) */}
-      <SectionHeader title="Explore" icon={Compass} />
+      <SectionHeader title="Explore" icon={Compass} onShowMore={() => setView('ALBUMS', { sort: 'random' })} />
       <div className="relative group">
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition duration-1000"></div>
           <div className="relative bg-neutral-900/80 border border-white/5 rounded-2xl p-6 overflow-hidden">
              <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x">
-                 {randomAlbums.map((album) => (
+                 {exploreAlbums.map((album) => (
                      <div 
                         key={album.id} 
                         className="flex-shrink-0 w-40 snap-start cursor-pointer group/card"
@@ -253,16 +246,13 @@ export const HomeView: React.FC = () => {
           </div>
       </div>
       
-      {/* Recently Played (Local History) */}
-      {recentlyPlayedAlbums.length > 0 && (
-          <>
-            <SectionHeader title="Recently Played" icon={Clock} />
-            <AlbumRow albums={recentlyPlayedAlbums} />
-          </>
-      )}
+      {/* Recently Played (Server Synced) */}
+      <SectionHeader title="Recently Played" icon={Clock} onShowMore={() => setView('ALBUMS', { sort: 'frequent' })} />
+      <AlbumRow albums={recentPlayedAlbums} />
 
-      <SectionHeader title="Recently Added" icon={Plus} />
-      <AlbumRow albums={recentAlbums} />
+      {/* Recently Added (Server Synced) */}
+      <SectionHeader title="Recently Added" icon={Plus} onShowMore={() => setView('ALBUMS', { sort: 'recent' })} />
+      <AlbumRow albums={recentAddedAlbums} />
     </div>
   );
 };

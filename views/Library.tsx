@@ -1,12 +1,129 @@
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum, ISong, IArtist, View } from '../types';
-import { Play, Music, Mic2, MoreVertical, Plus, ListPlus, Search, Disc, ChevronLeft, ChevronRight, ArrowUp, Filter, X, Calendar, Tag } from 'lucide-react';
+import { Play, Music, Mic2, MoreVertical, Plus, ListPlus, Search, Disc, ChevronLeft, ChevronRight, ArrowUp, Filter, X, Calendar, Tag, ArrowDownUp, ChevronDown } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 60; 
 
+const YearPicker: React.FC<{ value: string, onChange: (val: string) => void }> = ({ value, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [viewYear, setViewYear] = useState(new Date().getFullYear());
+    const pickerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({ top: '100%', left: 0, marginTop: '0.5rem' });
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (pickerRef.current && !pickerRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    useEffect(() => {
+        if (value && !isNaN(parseInt(value))) {
+            setViewYear(parseInt(value));
+        }
+    }, [value]);
+
+    useLayoutEffect(() => {
+        if (isOpen && pickerRef.current) {
+            const rect = pickerRef.current.getBoundingClientRect();
+            const dropdownWidth = 224; // w-56 (14rem)
+            const dropdownHeight = 220; // Approx height
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            let style: React.CSSProperties = {};
+
+            // Horizontal Positioning: Flip to right alignment if close to right edge
+            if (rect.left + dropdownWidth > viewportWidth - 16) {
+                style.right = 0;
+                style.left = 'auto';
+            } else {
+                style.left = 0;
+                style.right = 'auto';
+            }
+
+            // Vertical Positioning: Flip to top if close to bottom edge
+            if (rect.bottom + dropdownHeight > viewportHeight - 16) {
+                style.bottom = '100%';
+                style.top = 'auto';
+                style.marginBottom = '0.5rem';
+                style.marginTop = 0;
+            } else {
+                style.top = '100%';
+                style.bottom = 'auto';
+                style.marginTop = '0.5rem';
+                style.marginBottom = 0;
+            }
+
+            setDropdownStyle(style);
+        }
+    }, [isOpen]);
+
+    const currentYear = new Date().getFullYear();
+    // Display 12 years per grid (3x4)
+    const startYear = Math.floor(viewYear / 12) * 12;
+    const years = Array.from({length: 12}, (_, i) => startYear + i);
+
+    const handlePrev = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setViewYear(y => y - 12); };
+    const handleNext = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setViewYear(y => y + 12); };
+
+    return (
+        <div className="relative w-[120px]" ref={pickerRef}>
+            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+            <input 
+                ref={inputRef}
+                type="text" 
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                onFocus={() => setIsOpen(true)}
+                placeholder="Year"
+                className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm focus:border-primary focus:outline-none text-neutral-300"
+            />
+            <button 
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-white z-10"
+                onClick={() => {
+                    if (!isOpen) inputRef.current?.focus();
+                    setIsOpen(!isOpen);
+                }}
+            >
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div 
+                    className="absolute w-56 bg-neutral-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-fade-in"
+                    style={dropdownStyle}
+                >
+                    <div className="flex items-center justify-between p-2 bg-white/5 border-b border-white/5">
+                        <button onClick={handlePrev} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /></button>
+                        <span className="text-xs font-bold text-neutral-300">{startYear} - {startYear + 11}</span>
+                        <button onClick={handleNext} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition"><ChevronRight className="w-4 h-4" /></button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1 p-2">
+                        {years.map(y => (
+                            <button
+                                key={y}
+                                onClick={() => { onChange(y.toString()); setIsOpen(false); }}
+                                disabled={y > currentYear + 5}
+                                className={`py-2.5 rounded-lg text-xs font-medium transition-colors ${y === parseInt(value) ? 'bg-primary text-black font-bold' : 'text-neutral-400 hover:bg-white/10 hover:text-white'} ${y > currentYear + 5 ? 'opacity-20 cursor-not-allowed' : ''}`}
+                            >
+                                {y}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const LibraryView: React.FC = () => {
-  const { currentView, setView, service, playSong, openPlaylistModal, playlists, createPlaylist } = useStore();
+  const { currentView, setView, viewData, service, playSong, openPlaylistModal, playlists, createPlaylist } = useStore();
   
   const [items, setItems] = useState<any[]>([]);
   const [newPlName, setNewPlName] = useState('');
@@ -18,6 +135,7 @@ export const LibraryView: React.FC = () => {
   const [selectedGenre, setSelectedGenre] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [genres, setGenres] = useState<string[]>([]);
+  const [sortType, setSortType] = useState<string>('alphabeticalByName');
 
   // Pagination State
   const [page, setPage] = useState(0);
@@ -25,7 +143,7 @@ export const LibraryView: React.FC = () => {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Reset state on view change
+  // Reset state on view change, but check viewData for sort override
   useEffect(() => {
     setPage(0);
     setFilter('');
@@ -33,7 +151,18 @@ export const LibraryView: React.FC = () => {
     setSelectedYear('');
     setItems([]);
     setAllItemsCached(null);
-  }, [currentView]);
+    
+    // Handle Sort from viewData if navigating from "Show More"
+    if (currentView === 'ALBUMS') {
+         if (viewData && typeof viewData === 'object' && viewData.sort) {
+             setSortType(viewData.sort);
+         } else if (!viewData) {
+             setSortType('alphabeticalByName');
+         }
+    } else {
+         setSortType('alphabeticalByName');
+    }
+  }, [currentView, viewData]);
 
   // Fetch Genres on mount
   useEffect(() => {
@@ -73,12 +202,12 @@ export const LibraryView: React.FC = () => {
             const res = await service.getAlbumList('byGenre', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { genre: selectedGenre });
             setItems(res);
         } else if (selectedYear) {
-            // Year Filter (Range, but we use single year for both to target specific year)
+            // Year Filter
             const res = await service.getAlbumList('byYear', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { fromYear: selectedYear, toYear: selectedYear });
             setItems(res);
         } else {
-            // Default
-            const res = await service.getAlbumList('alphabeticalByName', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+            // Default (Sorted)
+            const res = await service.getAlbumList(sortType, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
             setItems(res);
             setAllItemsCached(null);
         }
@@ -104,7 +233,7 @@ export const LibraryView: React.FC = () => {
       if (scrollRef.current) scrollRef.current.scrollTop = 0;
     };
     load();
-  }, [currentView, service, playlists, page, filter, selectedGenre, selectedYear]); 
+  }, [currentView, service, playlists, page, filter, selectedGenre, selectedYear, sortType]); 
 
   // Derived Items for Display
   const displayItems = useMemo(() => {
@@ -142,6 +271,7 @@ export const LibraryView: React.FC = () => {
       setFilter('');
       setSelectedGenre('');
       setSelectedYear('');
+      setSortType('alphabeticalByName');
       setPage(0);
   };
 
@@ -187,6 +317,25 @@ export const LibraryView: React.FC = () => {
                     </button>
                 )}
             </div>
+
+            {/* Sorting for Albums */}
+            {currentView === 'ALBUMS' && !filter && !selectedGenre && !selectedYear && (
+                <div className="relative min-w-[140px]">
+                    <ArrowDownUp className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+                    <select
+                        value={sortType}
+                        onChange={(e) => { setSortType(e.target.value); setPage(0); }}
+                        className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
+                    >
+                        <option value="alphabeticalByName">A-Z</option>
+                        <option value="recent">Recently Added</option>
+                        <option value="frequent">Most Played</option>
+                        <option value="random">Random</option>
+                        <option value="byYear">By Year</option>
+                    </select>
+                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
+                </div>
+            )}
             
             {/* Advanced Filters for Albums/Songs */}
             {(currentView === 'ALBUMS' || currentView === 'SONGS') && (
@@ -205,19 +354,11 @@ export const LibraryView: React.FC = () => {
                         <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
                     </div>
 
-                    {/* Year Input */}
-                    <div className="relative w-[100px]">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
-                        <input 
-                            type="number" 
-                            min="1900"
-                            max={new Date().getFullYear()}
-                            value={selectedYear}
-                            onChange={(e) => { setSelectedYear(e.target.value); setPage(0); }}
-                            placeholder="Year"
-                            className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-3 text-sm focus:border-primary focus:outline-none text-neutral-300"
-                        />
-                    </div>
+                    {/* Year Picker */}
+                    <YearPicker 
+                        value={selectedYear} 
+                        onChange={(val) => { setSelectedYear(val); setPage(0); }} 
+                    />
 
                     {(selectedGenre || selectedYear) && (
                         <button 

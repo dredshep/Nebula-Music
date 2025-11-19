@@ -26,7 +26,7 @@ export const Player: React.FC = () => {
     const fetchLyrics = async () => {
         if (activeTab === 'lyrics' && currentSong) {
             setLoadingLyrics(true);
-            const text = await service.getLyrics(currentSong.artist, currentSong.title);
+            const text = await service.getLyrics(currentSong.artist, currentSong.title, currentSong.album, currentSong.duration);
             setLyrics(text);
             setLoadingLyrics(false);
         }

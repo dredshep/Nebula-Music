@@ -26,6 +26,7 @@ interface StoreContextType extends AppState {
   openPlaylistModal: (song: ISong) => void;
   closePlaylistModal: () => void;
   createPlaylist: (name: string) => void;
+  savePlaylist: (playlist: IPlaylist) => void;
   addSongToPlaylist: (playlistId: string, song: ISong) => void;
   deletePlaylist: (id: string) => void;
   reorderPlaylist: (playlistId: string, fromIndex: number, toIndex: number) => void;
@@ -410,6 +411,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setPlaylists(prev => [...prev, newPl]);
   };
 
+  const savePlaylist = (playlist: IPlaylist) => {
+    const newPl: IPlaylist = {
+      ...playlist,
+      id: `local-${Date.now()}-${Math.floor(Math.random() * 1000)}`, // Generate new ID to allow duplicate saves or re-saves
+      created: new Date().toISOString()
+    };
+    setPlaylists(prev => [...prev, newPl]);
+  };
+
   const deletePlaylist = (id: string) => {
       setPlaylists(prev => prev.filter(p => p.id !== id));
       if (currentView === 'PLAYLIST_DETAIL' && viewData === id) {
@@ -459,7 +469,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       playlists, modalOpen, songToAddToPlaylist,
       playSong, togglePlay, nextSong, prevSong, setVolume, setPlaybackRate, setPitchCorrection, setVisualizerMode, toggleRepeat, toggleLike,
       connectToSubsonic, disconnect, enableDemoMode, addToQueue, updateSettings,
-      openPlaylistModal, closePlaylistModal, createPlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
+      openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
       getMostPlayedSongs, history,
       service, audioRef, analyser, currentTime, duration
