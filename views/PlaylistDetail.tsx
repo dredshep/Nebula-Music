@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
 import { IPlaylist, ISong } from '../types';
@@ -49,10 +48,6 @@ export const PlaylistDetailView: React.FC = () => {
     if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
 
   }, [viewData, playlists, service, isDemoMode]);
-
-  const hasMultiDisc = useMemo(() => {
-    return (playlist?.songs || []).some(s => (s.discNumber || 1) > 1);
-  }, [playlist]);
 
   if (!playlist) return <div className="p-10 text-white">Loading Playlist...</div>;
 
@@ -230,21 +225,9 @@ export const PlaylistDetailView: React.FC = () => {
                     {playlist.songs?.map((song, idx) => {
                         const isCurrent = currentSong?.id === song.id;
                         const isDragging = draggedItemIndex === idx;
-                        const discNumber = song.discNumber || 1;
-                        const prevDisc = idx > 0 ? (playlist.songs![idx-1].discNumber || 1) : 0;
-                        const showDiscHeader = hasMultiDisc && discNumber !== prevDisc;
 
                         return (
                             <React.Fragment key={`${song.id}-${idx}`}>
-                                {showDiscHeader && (
-                                     <tr className="bg-white/5 border-b border-white/5">
-                                        <td colSpan={7} className="px-4 py-2 text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                                            <div className="flex items-center">
-                                                <Disc className="w-3 h-3 mr-2" /> Disc {discNumber}
-                                            </div>
-                                        </td>
-                                     </tr>
-                                )}
                                 <tr 
                                     draggable={isSavedPlaylist}
                                     onDragStart={(e) => onDragStart(e, idx)}
@@ -308,9 +291,6 @@ export const PlaylistDetailView: React.FC = () => {
                                             title="Add to Playlist"
                                         >
                                             <ListPlus className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white transition opacity-0 group-hover:opacity-100">
-                                            <MoreVertical className="w-4 h-4" />
                                         </button>
                                     </td>
                                 </tr>

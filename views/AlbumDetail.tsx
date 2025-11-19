@@ -1,5 +1,4 @@
 
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum } from '../types';
@@ -236,12 +235,6 @@ export const AlbumDetailView: React.FC = () => {
                                             title="Add to Playlist"
                                         >
                                             <ListPlus className="w-4 h-4" />
-                                        </button>
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white transition"
-                                        >
-                                            <MoreVertical className="w-4 h-4" />
                                         </button>
                                     </td>
                                 </tr>

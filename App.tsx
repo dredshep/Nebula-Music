@@ -49,7 +49,7 @@ const AppContent: React.FC = () => {
       } else if (key === shortcuts.zen) {
           setZenMode(!isZenMode);
       } else if (key === shortcuts.visualizer) {
-          const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR'];
+          const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON'];
           const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
           setVisualizerMode(modes[nextIndex]);
       }

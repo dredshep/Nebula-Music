@@ -329,7 +329,8 @@ export const LibraryView: React.FC = () => {
                         className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
                     >
                         <option value="alphabeticalByName">A-Z</option>
-                        <option value="recent">Recently Added</option>
+                        <option value="newest">Recently Added</option>
+                        <option value="recent">Recently Played</option>
                         <option value="frequent">Most Played</option>
                         <option value="random">Random</option>
                         <option value="byYear">By Year</option>
@@ -490,9 +491,6 @@ export const LibraryView: React.FC = () => {
                                         title="Add to Playlist"
                                     >
                                         <ListPlus className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }} className="text-neutral-500 hover:text-white p-2 hover:bg-white/10 rounded-full ml-1">
-                                        <MoreVertical className="w-4 h-4" />
                                     </button>
                                 </td>
                             </tr>

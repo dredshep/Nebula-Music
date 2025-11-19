@@ -1,5 +1,4 @@
 
-
 import { SubsonicCredentials, ISong, IAlbum, IArtist, IPlaylist } from '../types';
 import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_SONGS, MOCK_PLAYLISTS } from '../constants';
 import { db } from './db';
@@ -55,6 +54,19 @@ export class SubsonicService {
         console.error("Failed to build URL:", e);
         return '';
     }
+  }
+
+  private stripHtml(html: string): string {
+      if (!html) return '';
+      // Create a temporary DOM element to parse HTML entities and strip tags
+      const tmp = document.createElement("DIV");
+      tmp.innerHTML = html;
+      let text = tmp.textContent || tmp.innerText || "";
+      // Remove any leftover looking tags or specific last.fm junk if plain text still has them
+      text = text.replace(/<[^>]*>?/gm, ''); 
+      // Remove common "Read more on Last.fm" suffix
+      text = text.replace(/\s*Read more on Last\.fm.*/i, '');
+      return text.trim();
   }
 
   async getPing(): Promise<boolean> {
@@ -137,14 +149,21 @@ export class SubsonicService {
     }
   }
 
-  async getRandomSongs(size: number = 10): Promise<ISong[]> {
+  async getRandomSongs(size: number = 10, params: { fromYear?: number, toYear?: number, genre?: string } = {}): Promise<ISong[]> {
     if (this.isDemo) {
       // Return a larger list if requested for demo
       const pool = [...MOCK_SONGS, ...MOCK_SONGS, ...MOCK_SONGS]; 
-      return pool.sort(() => 0.5 - Math.random()).slice(0, size);
+      let filtered = pool.sort(() => 0.5 - Math.random());
+      if (params.toYear) filtered = filtered.filter(s => (s.year || 2024) <= params.toYear!);
+      return filtered.slice(0, size);
     }
     try {
-      const res = await fetch(this.buildUrl('getRandomSongs.view', { size: size.toString() }));
+      const queryParams: Record<string, string> = { size: size.toString() };
+      if (params.fromYear) queryParams.fromYear = params.fromYear.toString();
+      if (params.toYear) queryParams.toYear = params.toYear.toString();
+      if (params.genre) queryParams.genre = params.genre;
+
+      const res = await fetch(this.buildUrl('getRandomSongs.view', queryParams));
       const data = await res.json();
       const songs = data['subsonic-response'].randomSongs?.song || [];
       return songs.map((s: any) => this.mapSong(s));
@@ -162,7 +181,7 @@ export class SubsonicService {
         }
 
         if (params.genre) {
-             // Mock genre filter - assumes Mocks have generic genre or matches everything for demo
+             // Mock genre filter
         }
         if (params.fromYear && params.toYear) {
             const from = parseInt(params.fromYear);
@@ -174,7 +193,6 @@ export class SubsonicService {
         if (type === 'recent') sorted.sort((a, b) => b.created.localeCompare(a.created));
         if (type === 'random') sorted.sort(() => 0.5 - Math.random());
         if (type === 'alphabeticalByName') sorted.sort((a, b) => a.name.localeCompare(b.name));
-        // frequent matches default mock behavior roughly
         
         return sorted.slice(offset, offset + size);
      }
@@ -189,7 +207,6 @@ export class SubsonicService {
      }
 
      try {
-       // Subsonic getAlbumList supports 'type', 'size', 'offset', and dynamic params for byGenre/byYear
        const res = await fetch(this.buildUrl('getAlbumList.view', { type, size: size.toString(), offset: offset.toString(), ...params }));
        const data = await res.json();
        const result = data['subsonic-response'].albumList?.album || [];
@@ -224,7 +241,7 @@ export class SubsonicService {
          const ai = infoData['subsonic-response'].albumInfo;
          if (ai) {
              info = {
-                 notes: ai.notes,
+                 notes: this.stripHtml(ai.notes),
                  lastFmUrl: ai.lastFmUrl,
                  musicBrainzId: ai.musicBrainzId
              };
@@ -245,7 +262,6 @@ export class SubsonicService {
   async getArtists(): Promise<IArtist[]> {
     if (this.isDemo) return MOCK_ARTISTS;
     
-    // Cache Artists for 24 hours as it's heavy
     const cacheKey = 'all_artists';
     const cached = await db.getCachedResponse(cacheKey, 1440);
     if (cached) return cached;
@@ -277,7 +293,7 @@ export class SubsonicService {
         const data = await res.json();
         const artistData = data['subsonic-response'].artist;
         
-        // Normalize albums to array (Subsonic API returns a single object if only 1 album exists)
+        // Normalize albums
         let albums: IAlbum[] = [];
         if (artistData.album) {
             albums = Array.isArray(artistData.album) ? artistData.album : [artistData.album];
@@ -313,13 +329,12 @@ export class SubsonicService {
           const data = await res.json();
           const info = data['subsonic-response'].artistInfo2;
           if (info) {
-              bio = info.biography;
+              bio = this.stripHtml(info.biography);
               image = info.largeImageUrl || info.mediumImageUrl || info.smallImageUrl;
           }
       } catch (e) {}
 
-      // Strategy 2: Fallback to broad Name-based lookup if bio/image missing
-      // This often helps when the internal server ID doesn't map to Last.fm/MusicBrainz correctly
+      // Strategy 2: Fallback to broad Name-based lookup
       if ((!bio || !image) && name) {
           try {
               const res = await fetch(this.buildUrl('getArtistInfo.view', { artist: name }));
@@ -327,7 +342,7 @@ export class SubsonicService {
               const info = data['subsonic-response'].artistInfo;
               
               if (info) {
-                  if (!bio) bio = info.biography;
+                  if (!bio) bio = this.stripHtml(info.biography);
                   if (!image) image = info.largeImageUrl || info.mediumImageUrl || info.smallImageUrl;
               }
           } catch (e) {}
@@ -378,13 +393,11 @@ export class SubsonicService {
     if (cached) return cached;
 
     try {
-        // search3 uses 'songOffset'
         const res = await fetch(this.buildUrl('search3.view', { query, songCount: size.toString(), songOffset: offset.toString() }));
         const data = await res.json();
         const songs = data['subsonic-response'].searchResult3?.song || [];
         const mapped = songs.map((s: any) => this.mapSong(s));
         
-        // Cache results
         await db.cacheResponse(cacheKey, mapped);
         return mapped;
     } catch (e) {

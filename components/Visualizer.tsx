@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { useStore } from '../context/Store';
 
@@ -15,6 +16,17 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
+    const particles: {x: number, y: number, v: number, size: number}[] = [];
+
+    // Initialize particles
+    for(let i=0; i<50; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            v: Math.random() * 2 + 1,
+            size: Math.random() * 3
+        });
+    }
 
     const renderFrame = () => {
       animationIdRef.current = requestAnimationFrame(renderFrame);
@@ -29,10 +41,8 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
       if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
           canvas.width = displayWidth * dpr;
           canvas.height = displayHeight * dpr;
-          // Set scale for high DPI
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       } else {
-          // Ensure the transform is correct and clear the canvas
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           ctx.clearRect(0, 0, displayWidth, displayHeight);
       }
@@ -46,6 +56,8 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
       gradient.addColorStop(1, '#8b5cf6'); // violet
       ctx.fillStyle = gradient;
       ctx.strokeStyle = gradient;
+
+      analyser.getByteFrequencyData(dataArray);
 
       if (visualizerMode === 'WAVE') {
           analyser.getByteTimeDomainData(dataArray);
@@ -66,7 +78,6 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
           ctx.stroke();
       }
       else if (visualizerMode === 'CIRCLE') {
-          analyser.getByteFrequencyData(dataArray);
           const cx = width / 2;
           const cy = height / 2;
           const radius = Math.min(width, height) / 3;
@@ -95,7 +106,6 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
           }
       }
       else if (visualizerMode === 'MIRROR') {
-          analyser.getByteFrequencyData(dataArray);
           const bars = 40;
           const step = Math.floor(bufferLength / bars) || 1;
           const barWidth = (width / 2) / bars;
@@ -113,9 +123,80 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
              ctx.fillRect(xLeft, y, barWidth - 1, barHeight);
           }
       }
+      else if (visualizerMode === 'SPECTRUM') {
+          const bars = 64;
+          const step = Math.floor(bufferLength / bars) || 1;
+          const barWidth = width / bars;
+          
+          for(let i=0; i<bars; i++) {
+             const value = dataArray[i * step];
+             const percent = value / 255;
+             const barHeight = percent * height;
+             
+             // Rainbow hue
+             const hue = (i / bars) * 360;
+             ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+             
+             ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+          }
+      }
+      else if (visualizerMode === 'PARTICLES') {
+          // Calculate average volume
+          let sum = 0;
+          for(let i=0; i<bufferLength; i++) sum += dataArray[i];
+          const avg = sum / bufferLength;
+          const intensity = avg / 255;
+
+          particles.forEach((p, i) => {
+              p.y -= p.v + (intensity * 5);
+              if (p.y < 0) {
+                  p.y = height;
+                  p.x = Math.random() * width;
+              }
+              
+              const radius = p.size + (dataArray[i % 20] / 255) * 10;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+              ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + intensity * 0.5})`;
+              ctx.fill();
+          });
+      }
+      else if (visualizerMode === 'HEXAGON') {
+          const cx = width / 2;
+          const cy = height / 2;
+          // Use low freq for bass pulse
+          const bass = dataArray[10] / 255; 
+          const radius = (Math.min(width, height) / 4) * (1 + bass * 0.5);
+          
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+              const angle = (i * 2 * Math.PI) / 6;
+              const x = cx + radius * Math.cos(angle);
+              const y = cy + radius * Math.sin(angle);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.lineWidth = 5 + bass * 10;
+          ctx.strokeStyle = gradient;
+          ctx.stroke();
+          
+          // Inner ripple
+          ctx.beginPath();
+          for (let i = 0; i < 6; i++) {
+              const angle = (i * 2 * Math.PI) / 6;
+              const r2 = radius * 0.6;
+              const x = cx + r2 * Math.cos(angle);
+              const y = cy + r2 * Math.sin(angle);
+              if (i === 0) ctx.moveTo(x, y);
+              else ctx.lineTo(x, y);
+          }
+          ctx.closePath();
+          ctx.fillStyle = `rgba(139, 92, 246, ${bass})`;
+          ctx.fill();
+      }
       else {
           // BARS (Default)
-          analyser.getByteFrequencyData(dataArray);
           const bars = 50; 
           const step = Math.floor((bufferLength * 0.6) / bars) || 1; 
           const barWidth = width / bars;
@@ -125,6 +206,8 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
              const percent = value / 255;
              const barHeight = Math.max(4, percent * height);
              
+             // Revert to standard gradient
+             ctx.fillStyle = gradient;
              ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
           }
       }

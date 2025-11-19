@@ -1,5 +1,4 @@
 
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
 import { useStore } from '../context/Store';
@@ -133,7 +132,7 @@ export const Player: React.FC = () => {
   }, [activeLineIndex, activeTab]);
 
   const cycleVisualizerMode = useCallback(() => {
-    const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR'];
+    const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON'];
     const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
     setVisualizerMode(modes[nextIndex]);
   }, [visualizerMode, setVisualizerMode]);
@@ -508,20 +507,16 @@ export const Player: React.FC = () => {
                          <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}>
                               {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                          </button>
-                         <div className="relative group">
-                             <button className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition">
-                                  <Volume2 className="w-5 h-5" />
-                             </button>
-                             {/* Volume Slider Popup */}
-                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-8 h-32 bg-neutral-800 rounded-full border border-white/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition pointer-events-none group-hover:pointer-events-auto">
-                                 <input 
-                                    type="range" 
-                                    min="0" max="1" step="0.01"
-                                    value={volume}
-                                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                    className="w-24 h-1 bg-white/20 rounded-full appearance-none cursor-pointer -rotate-90 accent-white"
-                                 />
-                             </div>
+                         {/* Permanent Volume Slider for Expanded View */}
+                         <div className="flex items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 border border-white/5">
+                             <Volume2 className="w-4 h-4 text-neutral-400" />
+                             <input 
+                                type="range" 
+                                min="0" max="1" step="0.01"
+                                value={volume}
+                                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
+                             />
                          </div>
                      </div>
                  </div>

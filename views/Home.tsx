@@ -2,18 +2,20 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '../context/Store';
 import { ISong, IAlbum } from '../types';
-import { Play, Plus, Clock, Flame, Compass, Music, ListPlus, ArrowRight, RefreshCw, Disc } from 'lucide-react';
+import { Play, Plus, Clock, Flame, Compass, Music, ListPlus, ArrowRight, RefreshCw, Disc, ListMusic, BarChart2, Star } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
   const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs } = useStore();
   const [randomSongs, setRandomSongs] = useState<ISong[]>([]);
-  const [recentAddedAlbums, setRecentAddedAlbums] = useState<IAlbum[]>([]);
-  const [recentPlayedAlbums, setRecentPlayedAlbums] = useState<IAlbum[]>([]);
+  const [recentlyAddedAlbums, setRecentlyAddedAlbums] = useState<IAlbum[]>([]);
+  const [recentlyPlayedAlbums, setRecentlyPlayedAlbums] = useState<IAlbum[]>([]);
   const [exploreAlbums, setExploreAlbums] = useState<IAlbum[]>([]);
   const [loadingExplore, setLoadingExplore] = useState(false);
   
-  const mostPlayedReal = getMostPlayedSongs().slice(0, 10);
-  const [suggestedMostPlayed, setSuggestedMostPlayed] = useState<ISong[]>([]);
+  // Tabbed Box State
+  const [activeTab, setActiveTab] = useState<'played' | 'recommended'>('played');
+  const [recommendedTracks, setRecommendedTracks] = useState<ISong[]>([]);
+  const mostPlayedTracks = getMostPlayedSongs().slice(0, 50);
 
   const loadExplore = useCallback(async (force = false) => {
       setLoadingExplore(true);
@@ -45,36 +47,62 @@ export const HomeView: React.FC = () => {
           }
       }
 
-      let results = await service.getAlbumList(strategy, 10, 0, params);
+      // If forcing refresh and using genre, vary offset to get new results
+      const offset = (force && strategy !== 'random') ? Math.floor(Math.random() * 50) : 0;
+
+      let results = await service.getAlbumList(strategy, 10, offset, params);
       
+      // Fallback if empty
       if (results.length < 5) {
           const fill = await service.getAlbumList('random', 10 - results.length);
           results = [...results, ...fill];
       }
       
       setExploreAlbums(results);
-      localStorage.setItem('nebula_explore_date', today);
-      localStorage.setItem('nebula_explore_data', JSON.stringify(results));
+      // Only store if not forced refresh to keep daily consistency unless requested
+      if (!force) {
+          localStorage.setItem('nebula_explore_date', today);
+          localStorage.setItem('nebula_explore_data', JSON.stringify(results));
+      }
       setLoadingExplore(false);
   }, [service, getMostPlayedSongs]);
 
-  useEffect(() => {
-    const load = async () => {
-      setRandomSongs(await service.getRandomSongs(20));
-      setRecentAddedAlbums(await service.getAlbumList('recent', 5));
-      setRecentPlayedAlbums(await service.getAlbumList('frequent', 5)); 
-      await loadExplore();
-      
-      const real = getMostPlayedSongs();
-      if (real.length === 0) {
-          setSuggestedMostPlayed(await service.getRandomSongs(5));
+  const loadRecommended = async () => {
+      const topSongs = getMostPlayedSongs();
+      let topGenre = '';
+      if (topSongs.length > 0) {
+          const genreCounts: Record<string, number> = {};
+          topSongs.forEach(s => {
+              if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
+          });
+          topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
       }
-    };
-    load();
+      
+      // Fetch recommended tracks based on genre or random
+      const recs = await service.getRandomSongs(50, topGenre ? { genre: topGenre } : {});
+      setRecommendedTracks(recs);
+  };
+
+  const loadData = async () => {
+      setRandomSongs(await service.getRandomSongs(20));
+      setRecentlyAddedAlbums(await service.getAlbumList('newest', 5)); // Recently Added
+      setRecentlyPlayedAlbums(await service.getAlbumList('recent', 5)); // Recently Played
+      await loadExplore();
+      await loadRecommended();
+  };
+
+  useEffect(() => {
+    loadData();
+    
+    // Poll for updates every hour (3600000 ms)
+    const interval = setInterval(() => {
+        loadData();
+    }, 3600000);
+
+    return () => clearInterval(interval);
   }, []);
 
-  const displayMostPlayed = mostPlayedReal.length > 0 ? mostPlayedReal : suggestedMostPlayed;
-  const mostPlayedTitle = mostPlayedReal.length > 0 ? "Most Played" : "Suggested For You";
+  const displaySongs = activeTab === 'played' ? mostPlayedTracks : recommendedTracks;
 
   const HeroSection = () => {
     const heroSongs = randomSongs.slice(0, 5);
@@ -188,7 +216,7 @@ export const HomeView: React.FC = () => {
                 <button 
                     onClick={onRefresh}
                     className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition border border-white/5"
-                    title="Refresh Daily Picks"
+                    title="Refresh"
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -240,7 +268,7 @@ export const HomeView: React.FC = () => {
       <HeroSection />
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          {/* Quick Picks */}
+          {/* Quick Picks (Top Left) */}
           <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
@@ -278,26 +306,55 @@ export const HomeView: React.FC = () => {
               </div>
           </div>
 
-          {/* Most Played */}
-          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm">
-               <h3 className="text-lg font-bold flex items-center text-white mb-4"><Music className="w-5 h-5 mr-2 text-primary" /> {mostPlayedTitle}</h3>
-               <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                   {displayMostPlayed.map((song, i) => (
-                       <div key={song.id} className="flex items-center group cursor-pointer hover:bg-white/5 p-2 rounded-lg transition" onClick={() => playSong(song, displayMostPlayed)}>
-                           <span className="w-6 text-xs font-bold text-neutral-500 mr-2 text-center">{i+1}</span>
-                           <div className="flex-1 min-w-0">
-                               <div className="text-sm font-medium text-white truncate group-hover:text-primary transition">{song.title}</div>
-                               <div className="text-xs text-neutral-500 truncate">{song.artist}</div>
+          {/* Tabbed Box: Most Played / Recommended (Top Right) */}
+          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col h-[500px]">
+               <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-around">
+                   <button 
+                        onClick={() => setActiveTab('played')}
+                        className={`flex-1 text-center py-2 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'played' ? 'text-primary border-b-2 border-primary' : 'text-neutral-500 hover:text-white'}`}
+                   >
+                       Most Played
+                   </button>
+                   <button 
+                        onClick={() => setActiveTab('recommended')}
+                        className={`flex-1 text-center py-2 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'recommended' ? 'text-primary border-b-2 border-primary' : 'text-neutral-500 hover:text-white'}`}
+                   >
+                       Recommended
+                   </button>
+               </div>
+               <div className="overflow-y-auto custom-scrollbar flex-1">
+                   <div className="p-2">
+                       {displaySongs.length > 0 ? displaySongs.map((song, i) => (
+                           <div key={`${song.id}-${i}`} className="flex items-center group cursor-pointer hover:bg-white/5 p-2 rounded-lg transition" onClick={() => playSong(song, displaySongs)}>
+                               <span className="w-8 text-xs font-bold text-neutral-500 mr-2 text-center">{i+1}</span>
+                               <img src={service.getCoverArtUrl(song.coverArt || song.id, 40)} className="w-10 h-10 rounded mr-3 object-cover bg-neutral-800" alt="" />
+                               <div className="flex-1 min-w-0">
+                                   <div className="text-sm font-medium text-white truncate group-hover:text-primary transition">{song.title}</div>
+                                   <div className="text-xs text-neutral-500 truncate">{song.artist}</div>
+                               </div>
+                               
+                               {/* Play Count for Most Played Tab */}
+                               {activeTab === 'played' && (
+                                   <div className="hidden sm:flex items-center text-[10px] text-neutral-500 mr-3 font-mono">
+                                       <BarChart2 className="w-3 h-3 mr-1" /> {song.playCount || 0}
+                                   </div>
+                               )}
+                               
+                               <button 
+                                    onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                    className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white opacity-0 group-hover:opacity-100 transition"
+                                    title="Add to Playlist"
+                               >
+                                    <ListPlus className="w-4 h-4" />
+                               </button>
                            </div>
-                           <button 
-                                onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white opacity-0 group-hover:opacity-100 transition"
-                                title="Add to Playlist"
-                           >
-                                <ListPlus className="w-4 h-4" />
-                           </button>
-                       </div>
-                   ))}
+                       )) : (
+                           <div className="p-8 text-center text-neutral-500">
+                               <Music className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                               {activeTab === 'played' ? 'Start listening to build your history.' : 'No recommendations available right now.'}
+                           </div>
+                       )}
+                   </div>
                </div>
           </div>
       </div>
@@ -326,7 +383,7 @@ export const HomeView: React.FC = () => {
                              </div>
                          </div>
                          <h4 className="font-bold text-white text-xs truncate group-hover/card:text-primary transition">{album.name}</h4>
-                         <p className="text-[10px] text-neutral-400 truncate">{album.artist}</p>
+                         <p className="text-xs text-neutral-400 truncate">{album.artist}</p>
                      </div>
                  ))}
                  {exploreAlbums.length === 0 && !loadingExplore && (
@@ -336,11 +393,11 @@ export const HomeView: React.FC = () => {
           </div>
       </div>
       
-      <SectionHeader title="Recently Played" icon={Clock} onShowMore={() => setView('ALBUMS', { sort: 'frequent' })} />
-      <AlbumRow albums={recentPlayedAlbums} />
+      <SectionHeader title="Recently Played" icon={Clock} onShowMore={() => setView('ALBUMS', { sort: 'recent' })} />
+      <AlbumRow albums={recentlyPlayedAlbums} />
 
-      <SectionHeader title="Recently Added" icon={Plus} onShowMore={() => setView('ALBUMS', { sort: 'recent' })} />
-      <AlbumRow albums={recentAddedAlbums} />
+      <SectionHeader title="Recently Added" icon={Plus} onShowMore={() => setView('ALBUMS', { sort: 'newest' })} />
+      <AlbumRow albums={recentlyAddedAlbums} />
     </div>
   );
 };
