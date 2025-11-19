@@ -1,13 +1,7 @@
 
 <div align="center">
   <br />
-  <svg viewBox="0 0 24 24" width="80" height="80" stroke="#06b6d4" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M4 10v4" opacity="0.5" />
-    <path d="M8 7v10" opacity="0.75" />
-    <path d="M12 3v18" opacity="1" />
-    <path d="M16 7v10" opacity="0.75" />
-    <path d="M20 10v4" opacity="0.5" />
-  </svg>
+  <img src="./logo.svg" alt="Nebula Stream Logo" width="120" height="120" />
   <h1>Nebula Stream</h1>
   <p>A high-fidelity, glassmorphic music client for the modern web.</p>
 </div>

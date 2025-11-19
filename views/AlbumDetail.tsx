@@ -34,7 +34,6 @@ export const AlbumDetailView: React.FC = () => {
 
   const currentSong = queue[currentSongIndex];
   const isAlbumPlaying = currentSong?.albumId === album.id || currentSong?.album === album.name;
-  const shouldSpin = isPlaying && isAlbumPlaying;
 
   return (
     <div className="flex flex-col h-full pb-24">
@@ -47,32 +46,21 @@ export const AlbumDetailView: React.FC = () => {
              <div className="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/90 to-dark"></div>
         </div>
 
-        {/* Vinyl & Visualizer Container */}
-        <div className="relative z-10 group">
+        {/* Cover Art Container */}
+        <div className="relative z-10 group shrink-0">
             {/* Visualizer Background */}
-            <div className="absolute -inset-4 rounded-full opacity-60 blur-xl bg-primary/20 transition-opacity duration-1000">
-                {isPlaying && <Visualizer className="w-full h-full opacity-50 scale-110" />}
+            <div className="absolute -inset-4 rounded-3xl opacity-40 blur-xl bg-primary/20 transition-opacity duration-1000">
+                {isPlaying && isAlbumPlaying && <Visualizer className="w-full h-full opacity-50 scale-110" />}
             </div>
             
-            {/* The Record */}
-            <div 
-                className={`relative w-64 h-64 md:w-72 md:h-72 rounded-full shadow-2xl flex items-center justify-center transition-all duration-1000 ${shouldSpin ? 'animate-spin-slow' : 'animate-wobble'}`}
-                style={{
-                    background: 'repeating-radial-gradient(#111 0, #111 2px, #222 3px, #111 4px)',
-                    boxShadow: '0 10px 30px -10px rgba(0,0,0,0.8)'
-                }}
-            >
-                {/* Vinyl Grooves Shine */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/10 via-transparent to-white/5 pointer-events-none z-10 mix-blend-overlay"></div>
-                <div className="absolute inset-0 rounded-full bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0deg,rgba(255,255,255,0.1)_45deg,transparent_90deg)] opacity-40 pointer-events-none z-10"></div>
-                
-                {/* Album Art Label */}
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-neutral-900 relative z-20 shadow-[inset_0_0_20px_rgba(0,0,0,0.5)]">
-                    <img src={service.getCoverArtUrl(album.coverArt || album.id, 300)} alt={album.name} className="w-full h-full object-cover" />
-                </div>
-                
-                {/* Center Hole */}
-                <div className="absolute w-4 h-4 bg-black rounded-full z-30 border border-neutral-800 shadow-inner"></div>
+            {/* The Cover Art */}
+            <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900">
+                <img 
+                    src={service.getCoverArtUrl(album.coverArt || album.id, 600)} 
+                    alt={album.name} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
             </div>
         </div>
 

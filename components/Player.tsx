@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, ListMusic, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { Visualizer } from './Visualizer';
 import { ISong, VisualizerMode } from '../types';
@@ -96,7 +96,7 @@ export const Player: React.FC = () => {
         )}
 
         {!immersive && (
-            <div className="relative z-10 flex items-center justify-between p-6 md:p-8">
+            <div className="relative z-10 flex-none flex items-center justify-between p-4 md:p-8">
                 <button onClick={() => setIsExpanded(false)} className="p-2 rounded-full hover:bg-white/10 transition text-neutral-400 hover:text-white">
                     <ChevronDown className="w-8 h-8" />
                 </button>
@@ -118,7 +118,7 @@ export const Player: React.FC = () => {
                         onClick={() => setActiveTab('queue')}
                         className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition-colors ${activeTab === 'queue' ? 'bg-white text-black' : 'text-neutral-400 hover:text-white'}`}
                     >
-                        Up Next
+                        Queue
                     </button>
                 </div>
 
@@ -157,60 +157,64 @@ export const Player: React.FC = () => {
             </div>
         )}
 
-        <div className={`relative z-10 flex-1 flex flex-col items-center justify-center px-8 w-full max-w-7xl mx-auto ${immersive ? 'hidden' : ''}`}>
+        <div className={`relative z-10 flex-1 flex flex-col items-center px-4 md:px-8 w-full max-w-7xl mx-auto min-h-0 ${immersive ? 'hidden' : ''}`}>
             
             {activeTab === 'queue' && (
-                <div className="w-full max-w-3xl h-[60vh] overflow-y-auto custom-scrollbar bg-black/20 rounded-3xl p-6 border border-white/5 backdrop-blur-md">
-                    <h3 className="text-xl font-bold text-white mb-6 sticky top-0">Queue</h3>
-                    <div className="space-y-2">
-                        {queue.map((song, idx) => (
-                            <div 
-                                key={`${song.id}-${idx}`} 
-                                onClick={() => playSong(song, queue)}
-                                className={`flex items-center p-3 rounded-xl transition cursor-pointer group ${idx === currentSongIndex ? 'bg-primary/20 border border-primary/30' : 'hover:bg-white/5 border border-transparent'}`}
-                            >
-                                <div className="w-8 text-center text-sm font-mono mr-4">
-                                    {idx === currentSongIndex && isPlaying ? (
-                                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto" />
-                                    ) : (
-                                        <span className="text-neutral-500 group-hover:text-white">{idx + 1}</span>
-                                    )}
+                <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                        <h3 className="text-xl font-bold text-white mb-4 sticky top-0 bg-neutral-900/90 backdrop-blur p-2 -mx-2 rounded-lg z-20 shadow-lg">Queue</h3>
+                        <div className="space-y-2 pb-4">
+                            {queue.map((song, idx) => (
+                                <div 
+                                    key={`${song.id}-${idx}`} 
+                                    onClick={() => playSong(song, queue)}
+                                    className={`flex items-center p-3 rounded-xl transition cursor-pointer group ${idx === currentSongIndex ? 'bg-primary/20 border border-primary/30' : 'hover:bg-white/5 border border-transparent'}`}
+                                >
+                                    <div className="w-8 text-center text-sm font-mono mr-4">
+                                        {idx === currentSongIndex && isPlaying ? (
+                                            <div className="w-2 h-2 bg-primary rounded-full animate-pulse mx-auto" />
+                                        ) : (
+                                            <span className="text-neutral-500 group-hover:text-white">{idx + 1}</span>
+                                        )}
+                                    </div>
+                                    <img src={service.getCoverArtUrl(song.id, 100)} className="w-10 h-10 rounded bg-neutral-800 object-cover mr-4" loading="lazy" alt="" />
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className={`text-sm font-bold truncate ${idx === currentSongIndex ? 'text-primary' : 'text-white'}`}>{song.title}</h4>
+                                        <p className="text-xs text-neutral-400 truncate">{song.artist}</p>
+                                    </div>
+                                    <span className="text-xs text-neutral-500 font-mono">
+                                        {Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}
+                                    </span>
                                 </div>
-                                <img src={service.getCoverArtUrl(song.id, 100)} className="w-10 h-10 rounded bg-neutral-800 object-cover mr-4" loading="lazy" alt="" />
-                                <div className="flex-1 min-w-0">
-                                    <h4 className={`text-sm font-bold truncate ${idx === currentSongIndex ? 'text-primary' : 'text-white'}`}>{song.title}</h4>
-                                    <p className="text-xs text-neutral-400 truncate">{song.artist}</p>
-                                </div>
-                                <span className="text-xs text-neutral-500 font-mono">
-                                    {Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}
-                                </span>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
 
             {activeTab === 'lyrics' && (
-                <div className="w-full max-w-3xl h-[60vh] overflow-y-auto custom-scrollbar bg-black/20 rounded-3xl p-8 border border-white/5 backdrop-blur-md flex flex-col items-center">
-                    <h3 className="text-xl font-bold text-white mb-6 sticky top-0 flex items-center gap-2">
-                        <Mic2 className="w-5 h-5 text-secondary" /> Lyrics
-                    </h3>
-                    {loadingLyrics ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-                        </div>
-                    ) : (
-                        <div className="text-center text-lg md:text-2xl font-medium text-neutral-300 whitespace-pre-line leading-relaxed opacity-90">
-                            {lyrics || "No lyrics available for this track."}
-                        </div>
-                    )}
+                <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 flex flex-col items-center">
+                        <h3 className="text-xl font-bold text-white mb-6 sticky top-0 flex items-center gap-2 bg-neutral-900/80 p-2 rounded-lg z-20">
+                            <Mic2 className="w-5 h-5 text-secondary" /> Lyrics
+                        </h3>
+                        {loadingLyrics ? (
+                            <div className="flex-1 flex items-center justify-center min-h-[200px]">
+                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                        ) : (
+                            <div className="text-center text-lg md:text-2xl font-medium text-neutral-300 whitespace-pre-line leading-relaxed opacity-90 pb-8">
+                                {lyrics || "No lyrics available for this track."}
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 
             {activeTab === 'playing' && (
-                <div className="flex flex-col lg:flex-row items-center gap-12 w-full">
+                <div className="flex flex-col lg:flex-row items-center justify-center w-full h-full overflow-y-auto lg:overflow-visible scrollbar-hide pb-8 gap-6 lg:gap-12">
                     {/* Art / Vinyl Display */}
-                    <div className="w-full max-w-md aspect-square relative group flex-shrink-0 flex items-center justify-center">
+                    <div className="w-[260px] sm:w-[320px] lg:w-full lg:max-w-md aspect-square relative group flex-shrink-0 flex items-center justify-center mb-2 lg:mb-0">
                         {isVinyl ? (
                            /* Vinyl Mode UI */
                            <div className={`relative w-full h-full rounded-full bg-black border-8 border-neutral-900 shadow-2xl flex items-center justify-center ${isPlaying ? 'animate-spin-slow' : 'animate-wobble'}`}>
@@ -238,16 +242,16 @@ export const Player: React.FC = () => {
                     </div>
 
                     {/* Info & Controls */}
-                    <div className="flex flex-col w-full space-y-8">
+                    <div className="flex flex-col w-full max-w-2xl space-y-6 lg:space-y-8">
                         <div className="space-y-2 text-center lg:text-left flex flex-col lg:items-start items-center">
                             <h2 
-                                className="text-4xl md:text-5xl font-bold text-white truncate leading-tight cursor-pointer hover:text-primary transition"
+                                className="text-3xl md:text-5xl font-bold text-white truncate w-full leading-tight cursor-pointer hover:text-primary transition"
                                 onClick={() => { setIsExpanded(false); if(currentSong.albumId) setView('ALBUM_DETAIL', currentSong.albumId); }}
                             >
                                 {currentSong.title}
                             </h2>
                             <p 
-                                className="text-2xl text-neutral-400 truncate cursor-pointer hover:text-white transition"
+                                className="text-xl md:text-2xl text-neutral-400 truncate w-full cursor-pointer hover:text-white transition"
                                 onClick={() => { setIsExpanded(false); if(currentSong.artistId) setView('ARTIST_DETAIL', currentSong.artistId); }}
                             >
                                 {currentSong.artist}
@@ -263,12 +267,12 @@ export const Player: React.FC = () => {
                         </div>
 
                         {/* Waveform */}
-                        <div className="h-20 w-full bg-black/20 rounded-xl overflow-hidden border border-white/5 relative">
+                        <div className="h-16 md:h-20 w-full bg-black/20 rounded-xl overflow-hidden border border-white/5 relative shrink-0">
                             <Visualizer className="opacity-60" />
                         </div>
 
                         {/* Progress */}
-                        <div className="space-y-2">
+                        <div className="space-y-2 shrink-0">
                             <input 
                                 type="range" 
                                 min="0" max="100" step="0.1"
@@ -283,7 +287,7 @@ export const Player: React.FC = () => {
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex items-center justify-center lg:justify-start gap-8">
+                        <div className="flex items-center justify-center lg:justify-start gap-6 md:gap-8 shrink-0">
                             <button 
                                 onClick={toggleRepeat} 
                                 className={`transition hover:scale-110 relative ${repeatMode === 'OFF' ? 'text-neutral-500 hover:text-white' : 'text-primary'}`}
@@ -298,9 +302,9 @@ export const Player: React.FC = () => {
                             
                             <button 
                                 onClick={togglePlay} 
-                                className="w-20 h-20 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition shadow-lg shadow-primary/20"
+                                className="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center rounded-full bg-white text-black hover:scale-105 transition shadow-lg shadow-primary/20"
                             >
-                                {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                                {isPlaying ? <Pause className="w-6 h-6 md:w-8 md:h-8 fill-current" /> : <Play className="w-6 h-6 md:w-8 md:h-8 fill-current ml-1" />}
                             </button>
                             
                             <button onClick={nextSong} className="text-neutral-400 hover:text-white transition hover:scale-110">
@@ -332,7 +336,7 @@ export const Player: React.FC = () => {
                         </div>
                         
                         {/* Volume, Speed & Vinyl Toggle */}
-                        <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-white/5 rounded-xl border border-white/5 w-full self-start">
+                        <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-white/5 rounded-xl border border-white/5 w-full self-start shrink-0">
                              {/* Volume */}
                              <div className="w-full md:flex-1 min-w-[120px]">
                                  <div className="flex justify-between text-xs uppercase text-neutral-400 tracking-wider mb-2">
