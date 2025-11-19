@@ -1,3 +1,4 @@
+
 export interface ISong {
   id: string;
   parent?: string;
@@ -63,6 +64,15 @@ export interface SubsonicCredentials {
   salt: string;
 }
 
+export interface ShortcutBindings {
+  playPause: string;
+  prev: string;
+  next: string;
+  loop: string;
+  visualizer: string;
+  zen: string;
+}
+
 export interface AppSettings {
   theme: {
     primaryColor: string; // hex
@@ -76,6 +86,7 @@ export interface AppSettings {
     showSongs: boolean;
     showPlaylists: boolean;
   };
+  shortcuts: ShortcutBindings;
 }
 
 export type PlaybackMode = 'normal' | 'shuffle';
@@ -107,4 +118,8 @@ export interface AppState {
   searchResults: { artists: IArtist[], albums: IAlbum[], songs: ISong[] };
   isSearching: boolean;
   lastSearchQuery: string;
+  
+  // Zen Mode State (Global to allow shortcuts)
+  isZenMode: boolean;
+  setZenMode: (enabled: boolean) => void;
 }

@@ -1,6 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/Store';
-import { Save, Server, Palette, Layout, CheckCircle, AlertCircle, Activity, ShieldAlert, LogOut } from 'lucide-react';
+import { Save, Server, Palette, Layout, CheckCircle, AlertCircle, Activity, ShieldAlert, LogOut, Keyboard } from 'lucide-react';
 import { VisualizerMode } from '../types';
 
 export const SettingsView: React.FC = () => {
@@ -12,6 +13,7 @@ export const SettingsView: React.FC = () => {
   const [pass, setPass] = useState('');
   const [connStatus, setConnStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isInsecure, setIsInsecure] = useState(false);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (url && !url.startsWith('https://') && url.length > 7) {
@@ -38,6 +40,36 @@ export const SettingsView: React.FC = () => {
             <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${checked ? 'translate-x-6' : 'translate-x-0'}`}></div>
         </button>
     </div>
+  );
+
+  // Key Listener for binding
+  useEffect(() => {
+      if (!editingKey) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const newShortcuts = { ...settings.shortcuts, [editingKey]: e.key };
+          updateSettings({ shortcuts: newShortcuts });
+          setEditingKey(null);
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [editingKey, settings, updateSettings]);
+
+  const ShortcutRow = ({ id, label, value }: { id: string, label: string, value: string }) => (
+      <div className="flex items-center justify-between py-3 border-b border-white/5 last:border-0">
+          <span className="text-sm text-neutral-300">{label}</span>
+          <button 
+              onClick={() => setEditingKey(id)}
+              className={`px-3 py-1 rounded-md text-xs font-mono border transition-all min-w-[80px] text-center
+                ${editingKey === id ? 'bg-primary text-black border-primary animate-pulse' : 'bg-black/40 border-white/10 text-neutral-400 hover:border-white/30 hover:text-white'}`}
+          >
+              {editingKey === id ? 'Press Key...' : (value === ' ' ? 'Space' : value)}
+          </button>
+      </div>
   );
 
   return (
@@ -158,6 +190,21 @@ export const SettingsView: React.FC = () => {
                             />
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Keyboard Shortcuts */}
+            <div className="bg-neutral-900/50 border border-white/5 rounded-2xl p-6 backdrop-blur-sm">
+                 <h3 className="text-xl font-semibold mb-6 flex items-center text-white">
+                    <Keyboard className="w-5 h-5 mr-2 text-primary" /> Keyboard Shortcuts
+                </h3>
+                <div>
+                    <ShortcutRow id="playPause" label="Play / Pause" value={settings.shortcuts.playPause} />
+                    <ShortcutRow id="prev" label="Previous Song" value={settings.shortcuts.prev} />
+                    <ShortcutRow id="next" label="Next Song" value={settings.shortcuts.next} />
+                    <ShortcutRow id="loop" label="Toggle Loop" value={settings.shortcuts.loop} />
+                    <ShortcutRow id="zen" label="Toggle Zen Mode" value={settings.shortcuts.zen} />
+                    <ShortcutRow id="visualizer" label="Cycle Visualizer" value={settings.shortcuts.visualizer} />
                 </div>
             </div>
 

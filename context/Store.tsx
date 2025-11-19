@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode, IArtist, IAlbum } from '../types';
 import { SubsonicService } from '../services/subsonicService';
@@ -62,6 +63,14 @@ const DEFAULT_SETTINGS: AppSettings = {
     showAlbums: true,
     showSongs: true,
     showPlaylists: true,
+  },
+  shortcuts: {
+    playPause: ' ',
+    prev: 'ArrowLeft',
+    next: 'ArrowRight',
+    loop: 'l',
+    visualizer: 'v',
+    zen: 'z'
   }
 };
 
@@ -85,6 +94,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [pitchCorrection, setPitchCorrection] = useState(true); 
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('OFF');
   const [visualizerMode, setVisualizerMode] = useState<VisualizerMode>('BARS');
+  const [isZenMode, setZenMode] = useState(false);
 
   // Playlist State
   const [playlists, setPlaylists] = useState<IPlaylist[]>(MOCK_PLAYLISTS);
@@ -122,6 +132,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
              setCredentialsState(savedCreds);
              setIsDemoMode(false);
              service.getPing(); // Async check, don't await
+          }
+
+          const savedSettings = await db.get('settings', 'user_settings');
+          if (savedSettings) {
+              setSettings(prev => ({ ...prev, ...savedSettings, theme: { ...prev.theme, ...savedSettings.theme }, shortcuts: { ...prev.shortcuts, ...savedSettings.shortcuts } }));
           }
           
           // Load play history
@@ -343,12 +358,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const closeSearchModal = () => setIsSearchModalOpen(false);
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
-    setSettings(prev => ({
-      ...prev,
-      ...newSettings,
-      theme: { ...prev.theme, ...(newSettings.theme || {}) },
-      sidebar: { ...prev.sidebar, ...(newSettings.sidebar || {}) }
-    }));
+    setSettings(prev => {
+      const updated = {
+        ...prev,
+        ...newSettings,
+        theme: { ...prev.theme, ...(newSettings.theme || {}) },
+        sidebar: { ...prev.sidebar, ...(newSettings.sidebar || {}) },
+        shortcuts: { ...prev.shortcuts, ...(newSettings.shortcuts || {}) }
+      };
+      db.set('settings', 'user_settings', updated);
+      return updated;
+    });
   };
 
   const connectToSubsonic = async (url: string, user: string, pass: string) => {
@@ -472,7 +492,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
       getMostPlayedSongs, history,
-      service, audioRef, analyser, currentTime, duration
+      service, audioRef, analyser, currentTime, duration,
+      isZenMode, setZenMode
     }}>
       {children}
       <audio 

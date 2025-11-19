@@ -1,8 +1,14 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { Visualizer } from './Visualizer';
 import { ISong, VisualizerMode } from '../types';
+
+interface SyncedLine {
+    time: number;
+    text: string;
+}
 
 export const Player: React.FC = () => {
   const { 
@@ -11,46 +17,83 @@ export const Player: React.FC = () => {
     pitchCorrection, setPitchCorrection, playSong,
     currentTime, duration, service, setView,
     visualizerMode, setVisualizerMode,
-    repeatMode, toggleRepeat, toggleLike, openPlaylistModal
+    repeatMode, toggleRepeat, toggleLike, openPlaylistModal,
+    isZenMode, setZenMode
   } = useStore();
 
   const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'playing' | 'queue' | 'lyrics'>('playing');
   const [lyrics, setLyrics] = useState('');
+  const [syncedLyrics, setSyncedLyrics] = useState<SyncedLine[]>([]);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
-  const [immersive, setImmersive] = useState(false);
+
+  // Lyrics Auto-Scroll Refs
+  const lyricsContainerRef = useRef<HTMLDivElement>(null);
+  const activeLineRef = useRef<HTMLDivElement>(null);
 
   const currentSong = queue[currentSongIndex];
+
+  // Parse LRC Format
+  const parseLyrics = (lrc: string) => {
+      const lines = lrc.split('\n');
+      const result: SyncedLine[] = [];
+      const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+
+      for (const line of lines) {
+          const match = line.match(timeRegex);
+          if (match) {
+              const minutes = parseInt(match[1]);
+              const seconds = parseInt(match[2]);
+              const ms = parseInt(match[3].padEnd(3, '0')); // Ensure ms is 3 digits
+              const time = minutes * 60 + seconds + ms / 1000;
+              const text = line.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '').trim();
+              if (text) {
+                  result.push({ time, text });
+              }
+          }
+      }
+      return result;
+  };
 
   useEffect(() => {
     const fetchLyrics = async () => {
         if (activeTab === 'lyrics' && currentSong) {
             setLoadingLyrics(true);
             const text = await service.getLyrics(currentSong.artist, currentSong.title, currentSong.album, currentSong.duration);
-            setLyrics(text);
+            
+            // Check for LRC sync
+            const parsed = parseLyrics(text);
+            if (parsed.length > 0) {
+                setSyncedLyrics(parsed);
+                setLyrics(''); // Use synced mode
+            } else {
+                setSyncedLyrics([]);
+                setLyrics(text);
+            }
             setLoadingLyrics(false);
         }
     };
     fetchLyrics();
   }, [activeTab, currentSong, service]);
 
+  // Find active lyric line
+  const activeLineIndex = syncedLyrics.findIndex((line, index) => {
+      const nextLine = syncedLyrics[index + 1];
+      return currentTime >= line.time && (!nextLine || currentTime < nextLine.time);
+  });
+
+  // Auto-scroll synced lyrics
+  useEffect(() => {
+      if (activeLineRef.current && activeTab === 'lyrics') {
+          activeLineRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+  }, [activeLineIndex, activeTab]);
+
   const cycleVisualizerMode = useCallback(() => {
     const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR'];
     const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
     setVisualizerMode(modes[nextIndex]);
   }, [visualizerMode, setVisualizerMode]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-        if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
-        
-        if (e.key.toLowerCase() === 'v') {
-            cycleVisualizerMode();
-        }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [cycleVisualizerMode]);
 
   if (!currentSong) return null;
 
@@ -79,9 +122,9 @@ export const Player: React.FC = () => {
   return (
     <>
       {/* EXPANDED PLAYER OVERLAY */}
-      <div className={`fixed inset-0 z-50 flex flex-col bg-neutral-950 transition-transform duration-500 ease-in-out ${isExpanded ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`fixed inset-0 z-50 flex flex-col bg-neutral-950 transition-transform duration-500 ease-in-out ${isExpanded || isZenMode ? 'translate-y-0' : 'translate-y-full'}`}>
         
-        {!immersive && (
+        {!isZenMode && (
             <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
                  <img src={coverArt} className="absolute w-full h-full object-cover blur-3xl opacity-40 scale-110" alt="bg" />
                  <div className="absolute top-[-20%] left-[-20%] w-[800px] h-[800px] bg-primary rounded-full mix-blend-overlay filter blur-[120px] opacity-20 animate-blob"></div>
@@ -89,13 +132,13 @@ export const Player: React.FC = () => {
             </div>
         )}
 
-        {immersive && (
+        {isZenMode && (
             <div className="absolute inset-0 z-0">
                 <Visualizer className="w-full h-full opacity-60" />
             </div>
         )}
 
-        {!immersive && (
+        {!isZenMode && (
             <div className="relative z-10 flex-none flex items-center justify-between p-4 md:p-8">
                 <button onClick={() => setIsExpanded(false)} className="p-2 rounded-full hover:bg-white/10 transition text-neutral-400 hover:text-white">
                     <ChevronDown className="w-8 h-8" />
@@ -132,32 +175,91 @@ export const Player: React.FC = () => {
                             {visualizerMode} (V)
                         </span>
                     </button>
-                    <button onClick={() => setImmersive(true)} className="p-2 rounded-full hover:bg-white/10 transition text-neutral-400 hover:text-white group relative">
+                    <button onClick={() => setZenMode(true)} className="p-2 rounded-full hover:bg-white/10 transition text-neutral-400 hover:text-white group relative">
                         <Eye className="w-6 h-6" />
-                        <span className="absolute right-0 top-full mt-2 w-24 text-center text-[10px] bg-black/80 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">Zen Mode</span>
+                        <span className="absolute right-0 top-full mt-2 w-24 text-center text-[10px] bg-black/80 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">Zen Mode (Z)</span>
                     </button>
                 </div>
             </div>
         )}
 
-        {immersive && (
-            <div className="absolute top-6 right-6 z-30 flex items-center gap-4">
-                <button 
-                    onClick={cycleVisualizerMode}
-                    className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white backdrop-blur-md border border-white/10 transition group relative"
-                >
-                    <Activity className="w-6 h-6" />
-                    <span className="absolute right-0 top-full mt-2 w-max text-center text-[10px] bg-black/80 px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                        {visualizerMode} (V)
-                    </span>
-                </button>
-                <button onClick={() => setImmersive(false)} className="p-3 rounded-full bg-black/50 hover:bg-white/20 text-white backdrop-blur-md border border-white/10 transition">
-                    <EyeOff className="w-6 h-6" />
-                </button>
-            </div>
+        {isZenMode && (
+            <>
+                {/* Top Controls (Zen) - Always accessible but subtle */}
+                <div className="absolute top-6 right-6 z-50 flex items-center gap-4 transition-opacity duration-500 hover:opacity-100 opacity-40">
+                    <button 
+                        onClick={cycleVisualizerMode}
+                        className="p-3 rounded-full bg-black/40 hover:bg-black/80 text-white backdrop-blur-md border border-white/10 transition group relative"
+                        title="Change Visualizer (V)"
+                    >
+                        <Activity className="w-6 h-6" />
+                    </button>
+                    <button 
+                        onClick={() => setZenMode(false)} 
+                        className="p-3 rounded-full bg-black/40 hover:bg-red-500/20 hover:text-red-500 text-white backdrop-blur-md border border-white/10 transition"
+                        title="Exit Zen Mode (Z or ESC)"
+                    >
+                        <EyeOff className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* Bottom Media Controls (Zen) - Appear on Hover */}
+                <div className="absolute inset-0 z-40 flex flex-col justify-end pb-12 items-center group">
+                     {/* Hover Gradient Area to trigger controls */}
+                     <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+                     
+                     <div className="relative z-50 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-8 group-hover:translate-y-0">
+                          {/* Song Info */}
+                          <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-2xl text-center px-8">{currentSong.title}</h2>
+                          <p className="text-xl md:text-2xl text-neutral-300 mb-8 drop-shadow-lg">{currentSong.artist}</p>
+                          
+                          {/* Media Controls */}
+                          <div className="flex items-center gap-8 md:gap-12 p-4">
+                              <button 
+                                onClick={toggleRepeat} 
+                                className={`transition hover:scale-110 drop-shadow-md ${repeatMode === 'OFF' ? 'text-neutral-400 hover:text-white' : 'text-primary'}`}
+                              >
+                                 {repeatMode === 'ONE' ? <Repeat1 className="w-6 h-6" /> : <Repeat className="w-6 h-6" />}
+                              </button>
+                              
+                              <button onClick={prevSong} className="text-white hover:text-primary transition hover:scale-110 drop-shadow-md">
+                                  <SkipBack className="w-10 h-10 fill-current" />
+                              </button>
+                              
+                              <button 
+                                onClick={togglePlay} 
+                                className="w-20 h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-2xl shadow-white/20"
+                              >
+                                  {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                              </button>
+                              
+                              <button onClick={nextSong} className="text-white hover:text-primary transition hover:scale-110 drop-shadow-md">
+                                  <SkipForward className="w-10 h-10 fill-current" />
+                              </button>
+
+                              <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`transition hover:scale-110 drop-shadow-md ${currentSong.starred ? 'text-red-500' : 'text-neutral-400 hover:text-white'}`}>
+                                  <Heart className={`w-6 h-6 ${currentSong.starred ? 'fill-current' : ''}`} />
+                              </button>
+                          </div>
+                          
+                          {/* Scrub Bar */}
+                          <div className="w-[80vw] max-w-2xl mt-8 flex items-center gap-4 text-xs font-mono text-neutral-400">
+                              <span className="text-white drop-shadow">{formatTime(currentTime)}</span>
+                              <input 
+                                    type="range" 
+                                    min="0" max="100" step="0.1"
+                                    value={progress}
+                                    onChange={handleScrub}
+                                    className="flex-1 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary hover:h-2 transition-all shadow-lg"
+                               />
+                              <span className="text-white drop-shadow">{formatTime(duration)}</span>
+                          </div>
+                     </div>
+                </div>
+            </>
         )}
 
-        <div className={`relative z-10 flex-1 flex flex-col items-center px-4 md:px-8 w-full max-w-7xl mx-auto min-h-0 ${immersive ? 'hidden' : ''}`}>
+        <div className={`relative z-10 flex-1 flex flex-col items-center px-4 md:px-8 w-full max-w-7xl mx-auto min-h-0 ${isZenMode ? 'hidden' : ''}`}>
             
             {activeTab === 'queue' && (
                 <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
@@ -194,7 +296,7 @@ export const Player: React.FC = () => {
 
             {activeTab === 'lyrics' && (
                 <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 flex flex-col items-center">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 flex flex-col items-center" ref={lyricsContainerRef}>
                         <h3 className="text-xl font-bold text-white mb-6 sticky top-0 flex items-center gap-2 bg-neutral-900/80 p-2 rounded-lg z-20">
                             <Mic2 className="w-5 h-5 text-secondary" /> Lyrics
                         </h3>
@@ -203,8 +305,28 @@ export const Player: React.FC = () => {
                                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                             </div>
                         ) : (
-                            <div className="text-center text-lg md:text-2xl font-medium text-neutral-300 whitespace-pre-line leading-relaxed opacity-90 pb-8">
-                                {lyrics || "No lyrics available for this track."}
+                            <div className="w-full text-center pb-20">
+                                {syncedLyrics.length > 0 ? (
+                                    <div className="space-y-6">
+                                        {syncedLyrics.map((line, idx) => (
+                                            <p 
+                                                key={idx} 
+                                                ref={idx === activeLineIndex ? activeLineRef : null}
+                                                className={`text-xl md:text-3xl font-bold transition-all duration-500 cursor-pointer ${idx === activeLineIndex ? 'text-white scale-105 drop-shadow-lg opacity-100' : 'text-neutral-500 blur-[0.5px] opacity-40 hover:opacity-80'}`}
+                                                onClick={() => {
+                                                    const audio = document.querySelector('audio');
+                                                    if (audio) audio.currentTime = line.time;
+                                                }}
+                                            >
+                                                {line.text}
+                                            </p>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-lg md:text-2xl font-medium text-neutral-300 whitespace-pre-line leading-relaxed opacity-90">
+                                        {lyrics || "No lyrics available for this track."}
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

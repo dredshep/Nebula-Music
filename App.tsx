@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { StoreProvider, useStore } from './context/Store';
 import { Sidebar } from './components/Sidebar';
 import { Player } from './components/Player';
@@ -15,9 +15,46 @@ import { PlaylistModal } from './components/PlaylistModal';
 import { SearchModal } from './components/SearchModal';
 import { SetupScreen } from './components/SetupScreen';
 import { Settings } from 'lucide-react';
+import { VisualizerMode } from './types';
 
 const AppContent: React.FC = () => {
-  const { currentView, setView, credentials, isDemoMode, queue, currentSongIndex } = useStore();
+  const { 
+    currentView, setView, credentials, isDemoMode, queue, currentSongIndex, 
+    togglePlay, nextSong, prevSong, toggleRepeat, 
+    visualizerMode, setVisualizerMode, isZenMode, setZenMode,
+    settings
+  } = useStore();
+
+  const handleGlobalShortcuts = useCallback((e: KeyboardEvent) => {
+      // Ignore shortcuts if typing in an input
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return; // Ignore system combos
+
+      const { shortcuts } = settings;
+      const key = e.key;
+
+      if (key === shortcuts.playPause) {
+          e.preventDefault();
+          togglePlay();
+      } else if (key === shortcuts.next) {
+          nextSong();
+      } else if (key === shortcuts.prev) {
+          prevSong();
+      } else if (key === shortcuts.loop) {
+          toggleRepeat();
+      } else if (key === shortcuts.zen) {
+          setZenMode(!isZenMode);
+      } else if (key === shortcuts.visualizer) {
+          const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR'];
+          const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
+          setVisualizerMode(modes[nextIndex]);
+      }
+  }, [settings, togglePlay, nextSong, prevSong, toggleRepeat, visualizerMode, setVisualizerMode, isZenMode, setZenMode]);
+
+  useEffect(() => {
+      window.addEventListener('keydown', handleGlobalShortcuts);
+      return () => window.removeEventListener('keydown', handleGlobalShortcuts);
+  }, [handleGlobalShortcuts]);
 
   if (!credentials && !isDemoMode) {
       return <SetupScreen />;
@@ -83,7 +120,8 @@ const AppContent: React.FC = () => {
         {/* Top Bar Fade */}
         <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
         
-        <div className="min-h-full">
+        {/* Content Wrapper with dynamic padding for Player */}
+        <div className={`min-h-full transition-all duration-300 ${isPlayerVisible ? 'pb-32' : ''}`}>
             <ViewComponent />
         </div>
       </main>
