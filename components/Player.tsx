@@ -37,16 +37,20 @@ export const Player: React.FC = () => {
   const parseLyrics = (lrc: string) => {
       const lines = lrc.split('\n');
       const result: SyncedLine[] = [];
-      const timeRegex = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/;
+      // Support [mm:ss.xx] and [mm:ss]
+      const timeRegex = /\[(\d{2}):(\d{2})(?:\.(\d{2,3}))?\]/;
 
       for (const line of lines) {
           const match = line.match(timeRegex);
           if (match) {
               const minutes = parseInt(match[1]);
               const seconds = parseInt(match[2]);
-              const ms = parseInt(match[3].padEnd(3, '0')); // Ensure ms is 3 digits
+              const msStr = match[3];
+              const ms = msStr ? parseInt(msStr.padEnd(3, '0')) : 0;
               const time = minutes * 60 + seconds + ms / 1000;
-              const text = line.replace(/\[\d{2}:\d{2}\.\d{2,3}\]/g, '').trim();
+              
+              // Clean text
+              const text = line.replace(/\[.*?\]/g, '').trim();
               if (text) {
                   result.push({ time, text });
               }
@@ -295,24 +299,39 @@ export const Player: React.FC = () => {
             )}
 
             {activeTab === 'lyrics' && (
-                <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 flex flex-col items-center" ref={lyricsContainerRef}>
-                        <h3 className="text-xl font-bold text-white mb-6 sticky top-0 flex items-center gap-2 bg-neutral-900/80 p-2 rounded-lg z-20">
-                            <Mic2 className="w-5 h-5 text-secondary" /> Lyrics
-                        </h3>
+                <div className="w-full max-w-4xl flex-1 min-h-0 mb-8 bg-black/40 rounded-3xl border border-white/5 backdrop-blur-xl flex flex-col overflow-hidden relative shadow-2xl">
+                    {/* Header */}
+                    <div className="absolute top-0 left-0 right-0 z-30 p-6 bg-gradient-to-b from-black/80 to-transparent flex items-center justify-center pointer-events-none">
+                         <h3 className="text-xl font-bold text-white flex items-center gap-2 drop-shadow-md">
+                             <Mic2 className="w-5 h-5 text-primary" /> Lyrics
+                         </h3>
+                    </div>
+
+                    {/* Gradient Masks */}
+                    <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent z-20 pointer-events-none"></div>
+                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-20 pointer-events-none"></div>
+
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10 flex flex-col items-center text-center scroll-smooth relative" ref={lyricsContainerRef}>
                         {loadingLyrics ? (
-                            <div className="flex-1 flex items-center justify-center min-h-[200px]">
-                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            <div className="flex-1 flex items-center justify-center min-h-[400px]">
+                                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                             </div>
                         ) : (
-                            <div className="w-full text-center pb-20">
-                                {syncedLyrics.length > 0 ? (
-                                    <div className="space-y-6">
-                                        {syncedLyrics.map((line, idx) => (
+                            <div className="w-full py-[45vh] space-y-8">
+                                 {syncedLyrics.length > 0 ? (
+                                     syncedLyrics.map((line, idx) => {
+                                         const isActive = idx === activeLineIndex;
+                                         return (
                                             <p 
                                                 key={idx} 
-                                                ref={idx === activeLineIndex ? activeLineRef : null}
-                                                className={`text-xl md:text-3xl font-bold transition-all duration-500 cursor-pointer ${idx === activeLineIndex ? 'text-white scale-105 drop-shadow-lg opacity-100' : 'text-neutral-500 blur-[0.5px] opacity-40 hover:opacity-80'}`}
+                                                ref={isActive ? activeLineRef : null}
+                                                className={`
+                                                    transition-all duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] cursor-pointer origin-center max-w-3xl mx-auto px-4
+                                                    ${isActive 
+                                                        ? 'text-4xl md:text-6xl font-bold text-white scale-110 py-8 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)] opacity-100 tracking-tight' 
+                                                        : 'text-2xl md:text-3xl font-medium text-neutral-500 scale-100 py-2 opacity-30 blur-[1.5px] hover:opacity-60 hover:text-neutral-300 hover:blur-0'
+                                                    }
+                                                `}
                                                 onClick={() => {
                                                     const audio = document.querySelector('audio');
                                                     if (audio) audio.currentTime = line.time;
@@ -320,13 +339,13 @@ export const Player: React.FC = () => {
                                             >
                                                 {line.text}
                                             </p>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-lg md:text-2xl font-medium text-neutral-300 whitespace-pre-line leading-relaxed opacity-90">
-                                        {lyrics || "No lyrics available for this track."}
-                                    </div>
-                                )}
+                                         );
+                                     })
+                                 ) : (
+                                     <div className="text-lg md:text-2xl font-medium text-neutral-400 whitespace-pre-line leading-relaxed opacity-80 mt-12">
+                                         {lyrics || "No lyrics available for this track."}
+                                     </div>
+                                 )}
                             </div>
                         )}
                     </div>

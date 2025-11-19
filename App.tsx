@@ -33,6 +33,11 @@ const AppContent: React.FC = () => {
       const { shortcuts } = settings;
       const key = e.key;
 
+      if (key === 'Escape' && isZenMode) {
+          setZenMode(false);
+          return;
+      }
+
       if (key === shortcuts.playPause) {
           e.preventDefault();
           togglePlay();
