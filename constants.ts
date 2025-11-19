@@ -1,3 +1,4 @@
+
 import { IAlbum, IArtist, ISong, IPlaylist } from './types';
 
 export const MOCK_ARTISTS: IArtist[] = [
@@ -16,14 +17,14 @@ export const MOCK_ALBUMS: IAlbum[] = [
 ];
 
 export const MOCK_SONGS: ISong[] = [
-  { id: 's1', title: 'Neon Highway', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 245, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-10' },
-  { id: 's2', title: 'Cybernetic Heart', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 198, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-11' },
-  { id: 's3', title: 'Glitch in the Matrix', artist: 'Cyber Punkers', artistId: 'ar2', album: 'Digital Rain', albumId: 'al2', duration: 305, coverArt: 'https://picsum.photos/300/300?random=2', created: '2024-01-12' },
-  { id: 's4', title: 'Rainy Window', artist: 'Lo-Fi Dreams', artistId: 'ar3', album: 'Study Beats', albumId: 'al3', duration: 150, coverArt: 'https://picsum.photos/300/300?random=3', created: '2023-12-25' },
-  { id: 's5', title: 'Coffee Shop Noise', artist: 'Lo-Fi Dreams', artistId: 'ar3', album: 'Study Beats', albumId: 'al3', duration: 180, coverArt: 'https://picsum.photos/300/300?random=3', created: '2023-12-26' },
-  { id: 's6', title: 'Sorting Array', artist: 'The Algorithms', artistId: 'ar4', album: 'Binary Sunset', albumId: 'al4', duration: 420, coverArt: 'https://picsum.photos/300/300?random=4', created: '2024-02-01' },
-  { id: 's7', title: 'Nightcall', artist: 'Retro Wave', artistId: 'ar5', album: 'Drive OST', albumId: 'al5', duration: 250, coverArt: 'https://picsum.photos/300/300?random=5', created: '2024-02-02' },
-  { id: 's8', title: 'Synthesizer Love', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 210, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-10' },
+  { id: 's1', title: 'Neon Highway', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 245, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-10', bitRate: 320, playCount: 12, suffix: 'mp3' },
+  { id: 's2', title: 'Cybernetic Heart', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 198, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-11', bitRate: 320, playCount: 5, suffix: 'mp3' },
+  { id: 's3', title: 'Glitch in the Matrix', artist: 'Cyber Punkers', artistId: 'ar2', album: 'Digital Rain', albumId: 'al2', duration: 305, coverArt: 'https://picsum.photos/300/300?random=2', created: '2024-01-12', bitRate: 960, playCount: 3, suffix: 'flac' },
+  { id: 's4', title: 'Rainy Window', artist: 'Lo-Fi Dreams', artistId: 'ar3', album: 'Study Beats', albumId: 'al3', duration: 150, coverArt: 'https://picsum.photos/300/300?random=3', created: '2023-12-25', bitRate: 128, playCount: 45, suffix: 'mp3' },
+  { id: 's5', title: 'Coffee Shop Noise', artist: 'Lo-Fi Dreams', artistId: 'ar3', album: 'Study Beats', albumId: 'al3', duration: 180, coverArt: 'https://picsum.photos/300/300?random=3', created: '2023-12-26', bitRate: 256, playCount: 22, suffix: 'mp3' },
+  { id: 's6', title: 'Sorting Array', artist: 'The Algorithms', artistId: 'ar4', album: 'Binary Sunset', albumId: 'al4', duration: 420, coverArt: 'https://picsum.photos/300/300?random=4', created: '2024-02-01', bitRate: 320, playCount: 8, suffix: 'mp3' },
+  { id: 's7', title: 'Nightcall', artist: 'Retro Wave', artistId: 'ar5', album: 'Drive OST', albumId: 'al5', duration: 250, coverArt: 'https://picsum.photos/300/300?random=5', created: '2024-02-02', bitRate: 850, playCount: 15, suffix: 'flac' },
+  { id: 's8', title: 'Synthesizer Love', artist: 'Neon Void', artistId: 'ar1', album: 'Midnight City', albumId: 'al1', duration: 210, coverArt: 'https://picsum.photos/300/300?random=1', created: '2024-01-10', bitRate: 320, playCount: 1, suffix: 'mp3' },
 ];
 
 export const MOCK_PLAYLISTS: IPlaylist[] = [

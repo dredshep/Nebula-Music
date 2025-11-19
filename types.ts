@@ -1,4 +1,5 @@
 
+
 export interface ISong {
   id: string;
   parent?: string;
@@ -8,6 +9,7 @@ export interface ISong {
   coverArt?: string;
   duration: number; // seconds
   track?: number;
+  discNumber?: number;
   year?: number;
   genre?: string;
   size?: number;
@@ -19,6 +21,8 @@ export interface ISong {
   artistId?: string;
   created?: string; // ISO date
   starred?: boolean;
+  bitRate?: number;
+  playCount?: number;
 }
 
 export interface IAlbum {
@@ -33,6 +37,11 @@ export interface IAlbum {
   year?: number;
   genre?: string;
   songs?: ISong[]; // Extended for detail view
+  info?: {
+      notes?: string;
+      musicBrainzId?: string;
+      lastFmUrl?: string;
+  }
 }
 
 export interface IArtist {

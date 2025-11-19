@@ -1,5 +1,7 @@
-import { SubsonicCredentials, ISong, IAlbum, IArtist } from '../types';
-import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_SONGS } from '../constants';
+
+
+import { SubsonicCredentials, ISong, IAlbum, IArtist, IPlaylist } from '../types';
+import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_SONGS, MOCK_PLAYLISTS } from '../constants';
 import { db } from './db';
 import md5 from 'blueimp-md5';
 
@@ -79,6 +81,7 @@ export class SubsonicService {
         coverArt: s.coverArt || s.id, // Use ID if coverArt missing
         duration: s.duration,
         track: s.track,
+        discNumber: s.discNumber,
         year: s.year,
         genre: s.genre,
         size: s.size,
@@ -87,7 +90,9 @@ export class SubsonicService {
         isVideo: s.isVideo,
         path: s.path,
         created: s.created,
-        starred: s.starred !== undefined
+        starred: s.starred !== undefined,
+        bitRate: s.bitRate,
+        playCount: s.userPlayCount !== undefined ? s.userPlayCount : s.playCount
     };
   }
 
@@ -202,7 +207,7 @@ export class SubsonicService {
     if (this.isDemo) {
       const album = MOCK_ALBUMS.find(a => a.id === id) || MOCK_ALBUMS[0];
       const songs = MOCK_SONGS.filter(s => s.album === album.name || s.albumId === id);
-      return { ...album, songs };
+      return { ...album, songs, info: { notes: "A journey through digital soundscapes." } };
     }
     try {
       const res = await fetch(this.buildUrl('getAlbum.view', { id }));
@@ -210,9 +215,26 @@ export class SubsonicService {
       const albumData = data['subsonic-response'].album;
       if (!albumData) return null;
       const songs = (albumData.song || []).map((s: any) => this.mapSong(s));
+      
+      // Fetch Info for notes
+      let info = {};
+      try {
+         const infoRes = await fetch(this.buildUrl('getAlbumInfo2.view', { id }));
+         const infoData = await infoRes.json();
+         const ai = infoData['subsonic-response'].albumInfo;
+         if (ai) {
+             info = {
+                 notes: ai.notes,
+                 lastFmUrl: ai.lastFmUrl,
+                 musicBrainzId: ai.musicBrainzId
+             };
+         }
+      } catch(e) {}
+
       return {
         ...albumData,
-        songs
+        songs,
+        info
       };
     } catch (e) {
       console.error("Get Album failed", e);
@@ -254,6 +276,13 @@ export class SubsonicService {
         const res = await fetch(this.buildUrl('getArtist.view', { id }));
         const data = await res.json();
         const artistData = data['subsonic-response'].artist;
+        
+        // Normalize albums to array (Subsonic API returns a single object if only 1 album exists)
+        let albums: IAlbum[] = [];
+        if (artistData.album) {
+            albums = Array.isArray(artistData.album) ? artistData.album : [artistData.album];
+        }
+
         return {
             artist: {
                 id: artistData.id,
@@ -261,31 +290,50 @@ export class SubsonicService {
                 albumCount: artistData.albumCount,
                 coverArt: artistData.coverArt
             },
-            albums: artistData.album || []
+            albums
         };
     } catch(e) {
         return { artist: { id, name: 'Unknown' }, albums: [] };
     }
   }
 
-  async getArtistInfo(id: string): Promise<{ bio?: string, image?: string }> {
+  async getArtistInfo(id: string, name?: string): Promise<{ bio?: string, image?: string }> {
       if (this.isDemo) {
           return {
               bio: "A legendary entity formed in the digital void.",
               image: "https://picsum.photos/1200/600?grayscale"
           };
       }
+      
+      let bio, image;
+
+      // Strategy 1: Try strict ID-based lookup
       try {
           const res = await fetch(this.buildUrl('getArtistInfo2.view', { id }));
           const data = await res.json();
           const info = data['subsonic-response'].artistInfo2;
-          return {
-              bio: info?.biography,
-              image: info?.largeImageUrl || info?.mediumImageUrl || info?.smallImageUrl
-          };
-      } catch (e) {
-          return {};
+          if (info) {
+              bio = info.biography;
+              image = info.largeImageUrl || info.mediumImageUrl || info.smallImageUrl;
+          }
+      } catch (e) {}
+
+      // Strategy 2: Fallback to broad Name-based lookup if bio/image missing
+      // This often helps when the internal server ID doesn't map to Last.fm/MusicBrainz correctly
+      if ((!bio || !image) && name) {
+          try {
+              const res = await fetch(this.buildUrl('getArtistInfo.view', { artist: name }));
+              const data = await res.json();
+              const info = data['subsonic-response'].artistInfo;
+              
+              if (info) {
+                  if (!bio) bio = info.biography;
+                  if (!image) image = info.largeImageUrl || info.mediumImageUrl || info.smallImageUrl;
+              }
+          } catch (e) {}
       }
+
+      return { bio, image };
   }
 
   async getTopSongs(artistName: string, count: number = 10): Promise<ISong[]> {
@@ -389,12 +437,32 @@ export class SubsonicService {
     }
   }
 
+  // Helper to clean up titles for better search accuracy
+  private cleanMetadata(str: string): string {
+      return str
+          .replace(/\s*\(.*?\)\s*/g, ' ') // Remove (...)
+          .replace(/\s*\[.*?\]\s*/g, ' ') // Remove [...]
+          .replace(/\b(feat\.|ft\.|featuring|Live|Remix|Mix|Radio Edit)\b.*$/i, '') // Remove feat, live, remix, etc.
+          .replace(/\s+/g, ' ') // Collapse spaces
+          .trim();
+  }
+
   async getLyrics(artist: string, title: string, album?: string, duration?: number): Promise<string> {
     if (this.isDemo) {
-      return `(Verse 1)\nStanding on the edge of the neon light\nWatching code flow through the night...`;
+      return `[00:00.50] (Instrumental Intro)
+[00:04.00] Standing on the edge of the neon light
+[00:08.00] Watching code flow through the night
+[00:12.00] Digital dreams in a binary stream
+[00:16.00] Waking up from a silicon dream`;
     }
+
+    const cacheKey = `lyrics_${artist}_${title}_${duration || 0}`;
+    const cached = await db.getCachedResponse(cacheKey, 10080); // 7 days cache
+    if (cached) return cached;
     
-    // Try LRCLIB first
+    let lyrics = '';
+
+    // 1. Try LRCLIB (GET - Strict)
     try {
       const url = new URL('https://lrclib.net/api/get');
       url.searchParams.append('artist_name', artist);
@@ -405,22 +473,122 @@ export class SubsonicService {
       const res = await fetch(url.toString());
       if (res.ok) {
           const data = await res.json();
-          if (data.plainLyrics || data.syncedLyrics) {
-              return data.plainLyrics || data.syncedLyrics;
-          }
+          lyrics = data.syncedLyrics || data.plainLyrics;
       }
-    } catch (e) {
-      console.warn("LRCLIB fetch failed, falling back to Subsonic", e);
+    } catch (e) {}
+
+    // 2. Try LRCLIB (Search) - Robust matching
+    if (!lyrics) {
+        const searchAndMatch = async (qArtist: string, qTitle: string) => {
+            try {
+                const url = new URL('https://lrclib.net/api/search');
+                url.searchParams.append('q', `${qArtist} ${qTitle}`);
+                
+                const res = await fetch(url.toString());
+                if (res.ok) {
+                    const list = await res.json();
+                    if (Array.isArray(list) && list.length > 0) {
+                        // Robust Filtering
+                        const validMatches = list.filter((item: any) => {
+                            // 1. Duration Check (Crucial for wrong version issues)
+                            if (duration && Math.abs(item.duration - duration) > 2) return false;
+                            return true;
+                        });
+
+                        // Sort by best match: Prefer Synced lyrics
+                        validMatches.sort((a: any, b: any) => {
+                            if (a.syncedLyrics && !b.syncedLyrics) return -1;
+                            if (!a.syncedLyrics && b.syncedLyrics) return 1;
+                            return 0;
+                        });
+
+                        if (validMatches.length > 0) {
+                            return validMatches[0].syncedLyrics || validMatches[0].plainLyrics;
+                        }
+                    }
+                }
+            } catch (e) {}
+            return null;
+        };
+
+        // 2a. Search with raw metadata
+        lyrics = await searchAndMatch(artist, title) || '';
+
+        // 2b. Search with cleaned metadata (if raw failed)
+        if (!lyrics) {
+            const cleanT = this.cleanMetadata(title);
+            const cleanA = this.cleanMetadata(artist);
+            if (cleanT !== title || cleanA !== artist) {
+                lyrics = await searchAndMatch(cleanA, cleanT) || '';
+            }
+        }
     }
 
-    // Fallback to Subsonic
-    try {
-      const res = await fetch(this.buildUrl('getLyrics.view', { artist, title }));
-      const data = await res.json();
-      return data['subsonic-response'].lyrics?.content || "No lyrics found.";
-    } catch (e) {
-      return "Could not fetch lyrics.";
+    // 3. Fallback to Subsonic
+    if (!lyrics) {
+        try {
+          const res = await fetch(this.buildUrl('getLyrics.view', { artist, title }));
+          const data = await res.json();
+          lyrics = data['subsonic-response'].lyrics?.content;
+        } catch (e) {}
     }
+
+    if (lyrics) {
+        await db.cacheResponse(cacheKey, lyrics);
+        return lyrics;
+    }
+    
+    return ""; 
+  }
+
+  async getPlaylists(): Promise<IPlaylist[]> {
+    if (this.isDemo) return MOCK_PLAYLISTS;
+    try {
+        const res = await fetch(this.buildUrl('getPlaylists.view'));
+        const data = await res.json();
+        const raw = data['subsonic-response'].playlists?.playlist || [];
+        return raw.map((p: any) => ({
+            id: p.id,
+            name: p.name,
+            comment: p.comment,
+            owner: p.owner,
+            public: p.public,
+            songCount: p.songCount,
+            duration: p.duration,
+            created: p.created,
+            coverArt: p.coverArt
+        }));
+    } catch (e) {
+        return [];
+    }
+  }
+
+  async getPlaylist(id: string): Promise<IPlaylist | null> {
+      if (this.isDemo) {
+          return MOCK_PLAYLISTS.find(p => p.id === id) || null;
+      }
+      try {
+          const res = await fetch(this.buildUrl('getPlaylist.view', { id }));
+          const data = await res.json();
+          const p = data['subsonic-response'].playlist;
+          if (!p) return null;
+          
+          const songs = (p.entry || []).map((s: any) => this.mapSong(s));
+          return {
+              id: p.id,
+              name: p.name,
+              comment: p.comment,
+              owner: p.owner,
+              public: p.public,
+              songCount: p.songCount || songs.length,
+              duration: p.duration,
+              created: p.created,
+              coverArt: p.coverArt,
+              songs
+          };
+      } catch (e) {
+          return null;
+      }
   }
 
   getStreamUrl(songId: string): string {

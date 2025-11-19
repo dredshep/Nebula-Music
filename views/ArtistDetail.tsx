@@ -1,3 +1,5 @@
+
+
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
 import { IArtist, IAlbum, ISong } from '../types';
@@ -23,7 +25,8 @@ export const ArtistDetailView: React.FC = () => {
         setTopSongs(songs);
       }
 
-      const extraInfo = await service.getArtistInfo(viewData);
+      // Pass artist name to help with broader bio search if ID lookup fails
+      const extraInfo = await service.getArtistInfo(viewData, artistData.name);
       setInfo(extraInfo);
     };
     load();
@@ -78,7 +81,7 @@ export const ArtistDetailView: React.FC = () => {
                                 >
                                    <div className="flex items-center flex-1 cursor-pointer" onClick={() => playSong(song, topSongs)}>
                                        <span className="w-8 text-center text-neutral-500 font-mono text-sm group-hover:hidden">{i + 1}</span>
-                                       <Play className="w-8 text-center hidden group-hover:block text-primary w-4 h-4" />
+                                       <Play className="w-8 text-center hidden group-hover:block text-primary w-4 h-4 pointer-events-none" />
                                        
                                        <img src={service.getCoverArtUrl(song.id, 100)} className="w-12 h-12 rounded object-cover mx-4 bg-neutral-800" loading="lazy" alt="" />
                                        
@@ -125,8 +128,8 @@ export const ArtistDetailView: React.FC = () => {
                        {albums.map(album => (
                            <div key={album.id} className="group cursor-pointer bg-neutral-900 p-3 rounded-xl border border-white/5 hover:bg-white/5 transition" onClick={() => setView('ALBUM_DETAIL', album.id)}>
                                <div className="aspect-square rounded-lg overflow-hidden mb-3 relative shadow-lg">
-                                   <img src={service.getCoverArtUrl(album.coverArt || album.id)} className="w-full h-full object-cover transition duration-500 group-hover:scale-110" loading="lazy" alt={album.name} />
-                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                   <img src={service.getCoverArtUrl(album.coverArt || album.id)} className="w-full h-full object-cover transition-opacity" loading="lazy" alt={album.name} />
+                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                        <Play className="w-8 h-8 text-white fill-white" />
                                    </div>
                                </div>

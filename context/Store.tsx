@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode, IArtist, IAlbum } from '../types';
 import { SubsonicService } from '../services/subsonicService';
 import { MOCK_PLAYLISTS } from '../constants';
@@ -45,8 +45,6 @@ interface StoreContextType extends AppState {
   service: SubsonicService;
   audioRef: React.RefObject<HTMLAudioElement>;
   analyser: AnalyserNode | null;
-  currentTime: number;
-  duration: number;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -97,7 +95,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isZenMode, setZenMode] = useState(false);
 
   // Playlist State
-  const [playlists, setPlaylists] = useState<IPlaylist[]>(MOCK_PLAYLISTS);
+  const [playlists, setPlaylists] = useState<IPlaylist[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState<ISong | null>(null);
   
@@ -115,9 +113,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Audio Element State
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-
+  
   // Audio Analysis State
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -132,6 +128,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
              setCredentialsState(savedCreds);
              setIsDemoMode(false);
              service.getPing(); // Async check, don't await
+             // Fetch server playlists on load if credentials exist
+             service.getPlaylists().then(setPlaylists);
           }
 
           const savedSettings = await db.get('settings', 'user_settings');
@@ -185,30 +183,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   }, [currentSongIndex, isPlaying, queue]);
 
-  // Scrobble Check
-  useEffect(() => {
-      if (isPlaying && duration > 0 && currentTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
-           // Scrobble if played more than 30s or 50% of duration
-           if (currentTime > 30 || currentTime > duration / 2) {
-               service.scrobble(queue[currentSongIndex].id);
-               hasScrobbledRef.current = true;
-           }
-      }
-  }, [currentTime, duration, isPlaying, currentSongIndex, queue, service]);
-
-  // Apply Theme
-  useEffect(() => {
-    const hexToRgb = (hex: string) => {
-      const r = parseInt(hex.slice(1, 3), 16);
-      const g = parseInt(hex.slice(3, 5), 16);
-      const b = parseInt(hex.slice(5, 7), 16);
-      return `${r} ${g} ${b}`;
-    };
-
-    document.documentElement.style.setProperty('--color-primary', hexToRgb(settings.theme.primaryColor));
-    document.documentElement.style.setProperty('--color-secondary', hexToRgb(settings.theme.secondaryColor));
-  }, [settings.theme]);
-
   // Audio Setup & Logic
   useEffect(() => {
     const audio = audioRef.current;
@@ -232,20 +206,42 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
 
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration || 0);
+    // Use event listener for Scrobbling to avoid re-rendering the whole app via state
+    const handleTimeUpdate = () => {
+        const cTime = audio.currentTime;
+        const dur = audio.duration || 0;
+        
+        if (isPlaying && dur > 0 && cTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
+           if (cTime > 30 || cTime > dur / 2) {
+               service.scrobble(queue[currentSongIndex].id);
+               hasScrobbledRef.current = true;
+           }
+        }
+    };
+    
+    // Re-apply playback rate when metadata loads (prevents reset on song change)
+    const handleMetadata = () => {
+         if(audio) {
+             audio.playbackRate = playbackRate;
+             const a = audio as any;
+             if (a.preservesPitch !== undefined) a.preservesPitch = pitchCorrection;
+             else if (a.mozPreservesPitch !== undefined) a.mozPreservesPitch = pitchCorrection;
+             else if (a.webkitPreservesPitch !== undefined) a.webkitPreservesPitch = pitchCorrection;
+         }
+    };
+
     const onEnded = () => handleSongEnd();
 
-    audio.addEventListener('timeupdate', updateTime);
-    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleMetadata); // Ensure settings persist
     audio.addEventListener('ended', onEnded);
 
     return () => {
-      audio.removeEventListener('timeupdate', updateTime);
-      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleMetadata);
       audio.removeEventListener('ended', onEnded);
     };
-  });
+  }); // Effect runs on mount and when deps change, but ref is stable
 
   const handleSongEnd = () => {
       if (repeatMode === 'ONE') {
@@ -258,12 +254,26 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   };
 
+  // Apply Theme
+  useEffect(() => {
+    const hexToRgb = (hex: string) => {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      return `${r} ${g} ${b}`;
+    };
+
+    document.documentElement.style.setProperty('--color-primary', hexToRgb(settings.theme.primaryColor));
+    document.documentElement.style.setProperty('--color-secondary', hexToRgb(settings.theme.secondaryColor));
+  }, [settings.theme]);
+
   useEffect(() => {
     if (isPlaying && audioContextRef.current?.state === 'suspended') {
       audioContextRef.current.resume();
     }
   }, [isPlaying]);
 
+  // Sync Audio Settings State with Element
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -273,7 +283,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       else if (audio.mozPreservesPitch !== undefined) audio.mozPreservesPitch = pitchCorrection;
       else if (audio.webkitPreservesPitch !== undefined) audio.webkitPreservesPitch = pitchCorrection;
     }
-  }, [volume, playbackRate, pitchCorrection]);
+  }, [volume, playbackRate, pitchCorrection, currentSongIndex]); // Depend on SongIndex to re-apply after src change
 
   useEffect(() => {
     if (audioRef.current) {
@@ -313,8 +323,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const prevSong = () => {
-    if (currentTime > 3) {
-        if(audioRef.current) audioRef.current.currentTime = 0;
+    if (audioRef.current && audioRef.current.currentTime > 3) {
+        audioRef.current.currentTime = 0;
         return;
     }
     if (currentSongIndex > 0) {
@@ -387,6 +397,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCredentialsState(creds);
       setIsDemoMode(false);
       db.saveCredentials(creds); // Save to DB
+      // Fetch playlists from server
+      service.getPlaylists().then(setPlaylists);
       return true;
     } else {
       service.setCredentials(null as any);
@@ -400,6 +412,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       await db.clear('settings');
       await db.clear('api_cache');
       setQueue([]);
+      setPlaylists([]); // Clear playlists
       setCurrentSongIndex(-1);
       setIsPlaying(false);
       setIsDemoMode(false); 
@@ -407,6 +420,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const enableDemoMode = () => {
       setIsDemoMode(true);
+      setPlaylists(MOCK_PLAYLISTS); // Load mocks for demo
   };
 
   const openPlaylistModal = (song: ISong) => {
@@ -475,11 +489,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }));
   };
 
-  const getMostPlayedSongs = () => {
+  // Stabilize reference to avoid unnecessary re-fetches in Home
+  const getMostPlayedSongs = useCallback(() => {
       const historyItems = Object.values(playHistory) as { count: number, song: ISong }[];
       const sorted = historyItems.sort((a, b) => b.count - a.count);
       return sorted.map(item => item.song);
-  };
+  }, [playHistory]);
 
   return (
     <StoreContext.Provider value={{
@@ -492,7 +507,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
       getMostPlayedSongs, history,
-      service, audioRef, analyser, currentTime, duration,
+      service, audioRef, analyser,
       isZenMode, setZenMode
     }}>
       {children}

@@ -84,11 +84,11 @@ export const Sidebar: React.FC = () => {
               <NavItem icon={ListMusic} label="My Playlists" view="PLAYLISTS" />
           </div>
         )}
-      </div>
 
-      {/* Fixed Settings at Bottom */}
-      <div className="px-3 mt-auto pt-4 border-t border-white/5">
-        <NavItem icon={Settings} label="Settings" view="SETTINGS" />
+        <div>
+             <h3 className="px-4 mb-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">System</h3>
+             <NavItem icon={Settings} label="Settings" view="SETTINGS" />
+        </div>
       </div>
     </div>
   );

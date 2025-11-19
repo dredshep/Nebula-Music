@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum, ISong, IArtist, View } from '../types';
@@ -433,7 +434,6 @@ export const LibraryView: React.FC = () => {
   }
 
   const showPagination = !filter && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
-  // Show pagination for filtered albums/songs if they are paginated (which they are now)
   const showPaginationAlways = currentView !== 'PLAYLISTS' && currentView !== 'ARTISTS' && (displayItems.length > 0 || page > 0);
   const showPaginationArtists = currentView === 'ARTISTS' && !filter && (displayItems.length > 0 || page > 0);
   const shouldShowPagination = showPaginationAlways || showPaginationArtists;
@@ -463,9 +463,13 @@ export const LibraryView: React.FC = () => {
                     <tbody className="divide-y divide-white/5">
                         {displayItems.map((song: ISong, idx) => (
                             <tr key={song.id} className="hover:bg-white/5 group transition-colors">
-                                <td className="p-4 text-center cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>
-                                    <span className="group-hover:hidden font-mono text-neutral-600">{(page * ITEMS_PER_PAGE) + idx + 1}</span>
-                                    <Play className="w-4 h-4 hidden group-hover:block text-primary mx-auto" />
+                                <td className="p-4 text-center cursor-pointer relative" onClick={() => playSong(song, displayItems as ISong[])}>
+                                    <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
+                                        <span className="font-mono text-neutral-600 text-sm absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
+                                            {(page * ITEMS_PER_PAGE) + idx + 1}
+                                        </span>
+                                        <Play className="w-4 h-4 text-primary absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
+                                    </div>
                                 </td>
                                 <td className="p-4 font-medium text-white cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>
                                     <div className="flex items-center">
@@ -525,7 +529,7 @@ export const LibraryView: React.FC = () => {
                     <img 
                         src={currentView === 'ARTISTS' ? service.getCoverArtUrl(item.coverArt || item.id, 300) : service.getCoverArtUrl(item.coverArt || item.id, 300)} 
                         alt={item.name} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                        className="w-full h-full object-cover transition-opacity" 
                         loading="lazy"
                     />
                   ) : (
@@ -535,7 +539,7 @@ export const LibraryView: React.FC = () => {
                   )}
                   
                   {/* Hover Play Overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
                        {currentView === 'ARTISTS' ? (
                            <span className="px-4 py-1.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-wider transform scale-90 group-hover:scale-100 transition-transform">View</span>
                        ) : (

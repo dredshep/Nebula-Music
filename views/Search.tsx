@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useStore } from '../context/Store';
 import { Mic2, Disc, Music, Play, MoreVertical, ListPlus } from 'lucide-react';
@@ -78,7 +79,7 @@ export const SearchView: React.FC = () => {
                         >
                             <div className="aspect-square rounded-lg overflow-hidden mb-4 relative shadow-lg bg-neutral-800">
                                 <img src={service.getCoverArtUrl(album.coverArt || album.id, 200)} alt={album.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                     <Play className="w-8 h-8 text-white fill-white" />
                                 </div>
                             </div>
@@ -99,8 +100,8 @@ export const SearchView: React.FC = () => {
                         <tbody className="divide-y divide-white/5">
                             {searchResults.songs.map((song, idx) => (
                                 <tr key={song.id} className="hover:bg-white/5 group transition-colors">
-                                    <td className="p-4 w-12 text-center cursor-pointer" onClick={() => playSong(song, searchResults.songs)}>
-                                        <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <td className="p-4 w-12 text-center cursor-pointer relative" onClick={() => playSong(song, searchResults.songs)}>
+                                        <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity absolute inset-0 m-auto pointer-events-none" />
                                     </td>
                                     <td className="p-4 font-medium text-white cursor-pointer" onClick={() => playSong(song, searchResults.songs)}>
                                         <div className="flex items-center">

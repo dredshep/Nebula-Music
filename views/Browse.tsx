@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '../context/Store';
 import { ISong, IAlbum, IPlaylist } from '../types';
-import { Play, Music, RefreshCw, Heart, Radio, Zap } from 'lucide-react';
+import { Play, Music, RefreshCw, Heart, Radio, Zap, Calendar, Sparkles } from 'lucide-react';
 
 interface PlaylistCardProps {
   mix: IPlaylist & { icon: any, desc: string };
@@ -55,18 +56,69 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({ mix, onOpen, onPlay }) => {
 };
 
 export const BrowseView: React.FC = () => {
-  const { service, playSong, setView } = useStore();
+  const { service, playSong, setView, getMostPlayedSongs } = useStore();
   // Extended type to include the Icon for display
   const [generatedMixes, setGeneratedMixes] = useState<(IPlaylist & { icon: any, desc: string })[]>([]);
+  const [dailyAlbums, setDailyAlbums] = useState<IAlbum[]>([]);
   const [recommendedAlbums, setRecommendedAlbums] = useState<IAlbum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const generateDaily = useCallback(async (force = false) => {
+      const today = new Date().toDateString();
+      const storedDate = localStorage.getItem('nebula_browse_daily_date');
+      const storedData = localStorage.getItem('nebula_browse_daily_data');
+
+      if (!force && storedDate === today && storedData) {
+          try {
+              setDailyAlbums(JSON.parse(storedData));
+              return;
+          } catch(e) {}
+      }
+
+      // Analyze habits
+      const mostPlayed = getMostPlayedSongs();
+      let params = {};
+      let strategy = 'random';
+
+      if (mostPlayed.length > 0) {
+          // Find top genre
+          const genreCounts: Record<string, number> = {};
+          mostPlayed.forEach(s => {
+              if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
+          });
+          const topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
+          
+          if (topGenre && Math.random() > 0.3) {
+              strategy = 'byGenre';
+              params = { genre: topGenre };
+          } else {
+              // Sometimes just pick similar artists logic (simulated by random for now or different sort)
+              strategy = 'frequent'; 
+          }
+      }
+
+      let results = await service.getAlbumList(strategy, 5, Math.floor(Math.random() * 20), params);
+      
+      // Fallback if empty
+      if (results.length < 5) {
+          const fill = await service.getAlbumList('random', 5 - results.length);
+          results = [...results, ...fill];
+      }
+      
+      // Shuffle results for variety
+      results = results.sort(() => 0.5 - Math.random());
+
+      setDailyAlbums(results);
+      localStorage.setItem('nebula_browse_daily_date', today);
+      localStorage.setItem('nebula_browse_daily_data', JSON.stringify(results));
+
+  }, [service, getMostPlayedSongs]);
 
   const loadData = async () => {
     setIsLoading(true);
     // Increase fetch to populate larger mixes
     const random = await service.getRandomSongs(60);
-    const recent = await service.getAlbumList('recent', 8);
-    const frequent = await service.getAlbumList('frequent', 8);
+    const recent = await service.getAlbumList('recent', 10);
     
     // Create 3 mixes of 20 songs each
     const mix1Songs = random.slice(0, 20);
@@ -91,7 +143,8 @@ export const BrowseView: React.FC = () => {
         createMix('daily', 'Daily Mix', 'Fresh tracks for today', Music, mix3Songs),
     ]);
 
-    setRecommendedAlbums(frequent.length > 0 ? frequent : recent);
+    await generateDaily();
+    setRecommendedAlbums(recent);
     setIsLoading(false);
   };
 
@@ -109,7 +162,7 @@ export const BrowseView: React.FC = () => {
       </div>
 
       <div className="mb-12">
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center"><Zap className="w-5 h-5 text-yellow-500 mr-2" /> Generated For You</h3>
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center"><Sparkles className="w-5 h-5 text-yellow-500 mr-2" /> Generated For You</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {generatedMixes.map((mix) => (
               <PlaylistCard 
@@ -126,8 +179,43 @@ export const BrowseView: React.FC = () => {
         </div>
       </div>
 
+      {/* Daily Recommendations */}
+      <div className="mb-12">
+         <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-semibold text-white flex items-center">
+                <Calendar className="w-5 h-5 text-primary mr-2" /> Daily Recommendations
+            </h3>
+            <button 
+                onClick={() => generateDaily(true)}
+                className="text-xs font-bold text-neutral-400 hover:text-white flex items-center bg-white/5 px-3 py-1.5 rounded-full transition"
+            >
+                <RefreshCw className="w-3 h-3 mr-1.5" /> Refresh Picks
+            </button>
+         </div>
+         
+         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {dailyAlbums.map((album) => (
+                <div 
+                  key={album.id} 
+                  className="group cursor-pointer bg-neutral-900/50 border border-white/5 rounded-xl p-3 hover:bg-white/10 transition duration-300"
+                  onClick={() => setView('ALBUM_DETAIL', album.id)}
+                >
+                    <div className="aspect-square rounded-lg overflow-hidden mb-3 relative shadow-lg bg-neutral-800">
+                        <img src={service.getCoverArtUrl(album.coverArt || album.id, 300)} alt={album.name} className="w-full h-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                             <Play className="w-8 h-8 text-white fill-white drop-shadow-lg" />
+                        </div>
+                        <div className="absolute top-2 right-2 bg-primary text-black text-[10px] font-bold px-2 py-0.5 rounded shadow-lg">PICK</div>
+                    </div>
+                    <h4 className="text-sm font-bold text-white truncate">{album.name}</h4>
+                    <p className="text-xs text-neutral-400 truncate">{album.artist}</p>
+                </div>
+            ))}
+         </div>
+      </div>
+
       <div>
-        <h3 className="text-xl font-semibold text-white mb-6 flex items-center"><Heart className="w-5 h-5 text-red-500 mr-2" /> Recommended Albums</h3>
+        <h3 className="text-xl font-semibold text-white mb-6 flex items-center"><Heart className="w-5 h-5 text-red-500 mr-2" /> New & Recommended</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
             {recommendedAlbums.map((album) => (
                 <div 
@@ -136,7 +224,6 @@ export const BrowseView: React.FC = () => {
                   onClick={() => setView('ALBUM_DETAIL', album.id)}
                 >
                     <div className="aspect-square rounded-lg overflow-hidden mb-3 relative">
-                        {/* Fixed: Use service to get correct cover art URL */}
                         <img src={service.getCoverArtUrl(album.coverArt || album.id, 300)} alt={album.name} className="w-full h-full object-cover transition group-hover:scale-105" loading="lazy" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                              <Play className="w-8 h-8 text-white fill-white" />

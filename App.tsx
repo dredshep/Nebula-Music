@@ -14,7 +14,6 @@ import { SearchView } from './views/Search';
 import { PlaylistModal } from './components/PlaylistModal';
 import { SearchModal } from './components/SearchModal';
 import { SetupScreen } from './components/SetupScreen';
-import { Settings } from 'lucide-react';
 import { VisualizerMode } from './types';
 
 const AppContent: React.FC = () => {
@@ -112,16 +111,6 @@ const AppContent: React.FC = () => {
       <Sidebar />
       
       <main className="flex-1 h-full overflow-y-auto relative z-10 scroll-smooth">
-        {/* Floating Settings Button */}
-        <button 
-            onClick={() => setView('SETTINGS')}
-            className={`fixed right-8 z-50 p-3 rounded-full bg-black/40 hover:bg-white/10 text-neutral-400 hover:text-white transition-all duration-300 backdrop-blur-md border border-white/5 shadow-lg group
-                ${isPlayerVisible ? 'bottom-32' : 'bottom-8'}`}
-            aria-label="Settings"
-        >
-            <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
-        </button>
-
         {/* Top Bar Fade */}
         <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
         

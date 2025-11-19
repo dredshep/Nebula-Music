@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
+
+
+import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum } from '../types';
-import { Play, Shuffle, Clock, Heart, ListMusic, ArrowLeft, MoreVertical, ListPlus } from 'lucide-react';
+import { Play, Shuffle, Clock, Heart, ListMusic, ArrowLeft, MoreVertical, ListPlus, Info, Disc, BarChart2 } from 'lucide-react';
 import { Visualizer } from '../components/Visualizer';
 
 export const AlbumDetailView: React.FC = () => {
   const { viewData, setView, service, playSong, isPlaying, queue, currentSongIndex, openPlaylistModal } = useStore();
   const [album, setAlbum] = useState<IAlbum | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -17,6 +20,10 @@ export const AlbumDetailView: React.FC = () => {
     };
     load();
   }, [viewData, service]);
+
+  const hasMultiDisc = useMemo(() => {
+    return (album?.songs || []).some(s => (s.discNumber || 1) > 1);
+  }, [album]);
 
   if (!album) return <div className="p-10 text-white flex items-center"><div className="animate-spin mr-2"></div> Loading Album...</div>;
 
@@ -32,11 +39,28 @@ export const AlbumDetailView: React.FC = () => {
       return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
   };
 
+  const getQualityBadge = (suffix?: string, bitrate?: number) => {
+      if (!suffix) return null;
+      const s = suffix.toUpperCase();
+      const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
+      
+      return (
+          <div className="flex items-center gap-2">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${isLossless ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : 'border-neutral-600 text-neutral-400 bg-neutral-800'}`}>
+                  {s}
+              </span>
+              {bitrate && (
+                  <span className="text-[10px] text-neutral-500 font-mono">{bitrate}kbps</span>
+              )}
+          </div>
+      );
+  };
+
   const currentSong = queue[currentSongIndex];
   const isAlbumPlaying = currentSong?.albumId === album.id || currentSong?.album === album.name;
 
   return (
-    <div className="flex flex-col h-full pb-24">
+    <div className="flex flex-col min-h-full pb-10">
       {/* Header / Top Section */}
       <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden">
         
@@ -58,7 +82,7 @@ export const AlbumDetailView: React.FC = () => {
                 <img 
                     src={service.getCoverArtUrl(album.coverArt || album.id, 600)} 
                     alt={album.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 transform-gpu" 
                 />
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
             </div>
@@ -93,9 +117,6 @@ export const AlbumDetailView: React.FC = () => {
                 <button className="px-4 py-3 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center">
                     <Shuffle className="w-5 h-5 mr-2" /> Shuffle
                 </button>
-                <button className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-red-500 transition">
-                    <Heart className="w-5 h-5" />
-                </button>
             </div>
             
             <div className="mt-6 flex items-center justify-center md:justify-start gap-6 text-xs font-mono text-neutral-500 uppercase tracking-widest">
@@ -105,8 +126,36 @@ export const AlbumDetailView: React.FC = () => {
         </div>
       </div>
 
+      {/* Album Information Box (Notes) */}
+      {album.info?.notes && (
+          <div className="px-4 md:px-12 mb-8 animate-fade-in">
+              <div className="bg-neutral-900/40 border border-white/5 p-6 rounded-2xl backdrop-blur-md relative">
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center">
+                      About
+                      {album.info.musicBrainzId && <span className="ml-2 text-[10px] bg-white/10 px-2 py-0.5 rounded text-neutral-400">MB</span>}
+                  </h3>
+                  <div className={`text-neutral-300 leading-relaxed text-sm whitespace-pre-line transition-all duration-300 ${!showInfo ? 'line-clamp-3 max-h-24 overflow-hidden' : ''}`}>
+                      {album.info.notes}
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                      <button 
+                        onClick={() => setShowInfo(!showInfo)}
+                        className="text-xs font-bold text-primary hover:text-white transition"
+                      >
+                        {showInfo ? 'Read Less' : 'Read More'}
+                      </button>
+                      {album.info.lastFmUrl && (
+                        <a href={album.info.lastFmUrl} target="_blank" rel="noreferrer" className="text-xs text-neutral-500 hover:text-white transition flex items-center">
+                            Last.fm &rarr;
+                        </a>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
+
       {/* Tracklist */}
-      <div className="px-4 md:px-12">
+      <div className="px-4 md:px-12 flex-1">
           <div className="bg-neutral-900/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md">
             <table className="w-full text-left text-sm text-neutral-400">
                 <thead className="bg-black/20 text-neutral-500 uppercase tracking-wider text-xs border-b border-white/5">
@@ -114,6 +163,8 @@ export const AlbumDetailView: React.FC = () => {
                         <th className="p-4 font-medium w-12 text-center">#</th>
                         <th className="p-4 font-medium">Title</th>
                         <th className="p-4 font-medium">Artist</th>
+                        <th className="p-4 font-medium hidden lg:table-cell">Quality</th>
+                        <th className="p-4 font-medium hidden lg:table-cell text-right">Plays</th>
                         <th className="p-4 font-medium text-right">Duration</th>
                         <th className="p-4 w-12"></th>
                     </tr>
@@ -121,51 +172,80 @@ export const AlbumDetailView: React.FC = () => {
                 <tbody className="divide-y divide-white/5">
                     {album.songs?.map((song, idx) => {
                         const isCurrent = currentSong?.id === song.id;
+                        const discNumber = song.discNumber || 1;
+                        const prevDisc = idx > 0 ? (album.songs![idx-1].discNumber || 1) : 0;
+                        const showDiscHeader = hasMultiDisc && discNumber !== prevDisc;
+
                         return (
-                            <tr 
-                                key={song.id} 
-                                className={`group transition-colors hover:bg-white/5 ${isCurrent ? 'bg-white/10' : ''}`}
-                            >
-                                <td className="p-4 text-center cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
-                                    {isCurrent && isPlaying ? (
-                                        <div className="w-3 h-3 mx-auto bg-primary rounded-full animate-pulse"></div>
-                                    ) : (
-                                        <>
-                                            <span className="group-hover:hidden font-mono">{idx + 1}</span>
-                                            <Play className="w-4 h-4 hidden group-hover:block text-white mx-auto" />
-                                        </>
-                                    )}
-                                </td>
-                                <td className="p-4 cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
-                                    <div className={`font-medium text-base ${isCurrent ? 'text-primary' : 'text-white'}`}>{song.title}</div>
-                                </td>
-                                <td className="p-4 text-neutral-500">
-                                    <span 
-                                        className="cursor-pointer hover:text-white hover:underline"
-                                        onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}
-                                    >
-                                        {song.artist}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-right font-mono cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
-                                    {formatTime(song.duration)}
-                                </td>
-                                <td className="p-4 text-right flex items-center justify-end">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                        className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"
-                                        title="Add to Playlist"
-                                    >
-                                        <ListPlus className="w-4 h-4" />
-                                    </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                        className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white transition"
-                                    >
-                                        <MoreVertical className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
+                            <React.Fragment key={song.id}>
+                                {showDiscHeader && (
+                                     <tr className="bg-white/5 border-b border-white/5">
+                                        <td colSpan={7} className="px-4 py-2 text-xs font-bold text-neutral-300 uppercase tracking-wider">
+                                            <div className="flex items-center">
+                                                <Disc className="w-3 h-3 mr-2" /> Disc {discNumber}
+                                            </div>
+                                        </td>
+                                     </tr>
+                                )}
+                                <tr 
+                                    className={`group transition-colors hover:bg-white/5 ${isCurrent ? 'bg-white/10' : ''}`}
+                                >
+                                    <td className="p-4 text-center cursor-pointer relative" onClick={() => album.songs && playSong(song, album.songs)}>
+                                        <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
+                                            {isCurrent && isPlaying ? (
+                                                <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                                            ) : (
+                                                <>
+                                                    <span className="font-mono text-neutral-600 text-sm absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <Play className="w-4 h-4 text-white absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
+                                                </>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-4 cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
+                                        <div className="flex items-center">
+                                            <span className={`font-medium text-base ${isCurrent ? 'text-primary' : 'text-white'}`}>{song.title}</span>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-neutral-500">
+                                        <span 
+                                            className="cursor-pointer hover:text-white hover:underline"
+                                            onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}
+                                        >
+                                            {song.artist}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 hidden lg:table-cell">
+                                        {getQualityBadge(song.suffix, song.bitRate)}
+                                    </td>
+                                    <td className="p-4 hidden lg:table-cell text-right text-neutral-500 text-xs">
+                                        <div className="flex items-center justify-end gap-1" title="Play Count">
+                                            <BarChart2 className="w-3 h-3" />
+                                            {song.playCount || 0}
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-right font-mono cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
+                                        {formatTime(song.duration)}
+                                    </td>
+                                    <td className="p-4 text-right flex items-center justify-end">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"
+                                            title="Add to Playlist"
+                                        >
+                                            <ListPlus className="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white transition"
+                                        >
+                                            <MoreVertical className="w-4 h-4" />
+                                        </button>
+                                    </td>
+                                </tr>
+                            </React.Fragment>
                         );
                     })}
                 </tbody>
