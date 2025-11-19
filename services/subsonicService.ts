@@ -112,6 +112,26 @@ export class SubsonicService {
     }
   }
 
+  async getGenres(): Promise<string[]> {
+    if (this.isDemo) return ['Electronic', 'Rock', 'Jazz', 'Synthwave', 'Pop', 'Classical'];
+    
+    const cacheKey = 'genres_list';
+    const cached = await db.getCachedResponse(cacheKey, 1440); // 24h
+    if (cached) return cached;
+
+    try {
+        const res = await fetch(this.buildUrl('getGenres.view'));
+        const data = await res.json();
+        const genres = data['subsonic-response'].genres?.genre || [];
+        // Extract names and sort
+        const genreNames = genres.map((g: any) => g.value || g.name).sort();
+        await db.cacheResponse(cacheKey, genreNames);
+        return genreNames;
+    } catch (e) {
+        return [];
+    }
+  }
+
   async getRandomSongs(size: number = 10): Promise<ISong[]> {
     if (this.isDemo) {
       // Return a larger list if requested for demo
@@ -128,27 +148,46 @@ export class SubsonicService {
     }
   }
 
-  async getAlbumList(type: 'newest' | 'frequent' | 'recent' | 'random', size: number = 10): Promise<IAlbum[]> {
+  async getAlbumList(type: string, size: number = 20, offset: number = 0, params: Record<string, string> = {}): Promise<IAlbum[]> {
      if (this.isDemo) {
         let sorted = [...MOCK_ALBUMS];
+        // Generate more mock albums if needed to test pagination
+        if (sorted.length < 20) {
+            for(let i=0; i<50; i++) sorted.push({...MOCK_ALBUMS[i % MOCK_ALBUMS.length], id: `mock-al-${i}`, name: `Mock Album ${i}`, year: 2020 + (i % 5)});
+        }
+
+        if (params.genre) {
+             // Mock genre filter - assumes Mocks have generic genre or matches everything for demo
+        }
+        if (params.fromYear && params.toYear) {
+            const from = parseInt(params.fromYear);
+            const to = parseInt(params.toYear);
+            sorted = sorted.filter(a => (a.year || 0) >= from && (a.year || 0) <= to);
+        }
+
         if (type === 'newest') sorted.sort((a, b) => b.created.localeCompare(a.created));
         if (type === 'random') sorted.sort(() => 0.5 - Math.random());
-        return sorted.slice(0, size);
+        if (type === 'alphabeticalByName') sorted.sort((a, b) => a.name.localeCompare(b.name));
+        
+        return sorted.slice(offset, offset + size);
      }
      
-     // Try cache first for non-random lists
-     const cacheKey = `albumList_${type}_${size}`;
+     // Build cache key including all params
+     const paramString = Object.entries(params).map(([k,v]) => `${k}-${v}`).join('_');
+     const cacheKey = `albumList_${type}_${size}_${offset}_${paramString}`;
+     
      if (type !== 'random') {
          const cached = await db.getCachedResponse(cacheKey, 30); // 30 mins cache
          if (cached) return cached;
      }
 
      try {
-       const res = await fetch(this.buildUrl('getAlbumList.view', { type, size: size.toString() }));
+       // Subsonic getAlbumList supports 'type', 'size', 'offset', and dynamic params for byGenre/byYear
+       const res = await fetch(this.buildUrl('getAlbumList.view', { type, size: size.toString(), offset: offset.toString(), ...params }));
        const data = await res.json();
        const result = data['subsonic-response'].albumList?.album || [];
        
-       if (type !== 'random') {
+       if (type !== 'random' && result.length > 0) {
            await db.cacheResponse(cacheKey, result);
        }
        return result;
@@ -159,8 +198,7 @@ export class SubsonicService {
 
   async getAlbum(id: string): Promise<IAlbum | null> {
     if (this.isDemo) {
-      const album = MOCK_ALBUMS.find(a => a.id === id);
-      if (!album) return null;
+      const album = MOCK_ALBUMS.find(a => a.id === id) || MOCK_ALBUMS[0];
       const songs = MOCK_SONGS.filter(s => s.album === album.name || s.albumId === id);
       return { ...album, songs };
     }
@@ -197,7 +235,9 @@ export class SubsonicService {
             if (idx.artist) allArtists = [...allArtists, ...idx.artist];
         });
         
-        await db.cacheResponse(cacheKey, allArtists);
+        if (allArtists.length > 0) {
+            await db.cacheResponse(cacheKey, allArtists);
+        }
         return allArtists;
     } catch (e) { return [] }
   }
@@ -260,9 +300,62 @@ export class SubsonicService {
       }
   }
   
-  async getAllSongs(): Promise<ISong[]> {
-    if (this.isDemo) return MOCK_SONGS;
-    return this.getRandomSongs(50);
+  async getAllSongs(size: number = 100, offset: number = 0): Promise<ISong[]> {
+     return this.searchSongs('', size, offset);
+  }
+
+  async searchSongs(query: string, size: number = 50, offset: number = 0): Promise<ISong[]> {
+    if (this.isDemo) {
+        let allMockSongs = [...MOCK_SONGS];
+        // duplicate for volume testing
+        for(let i=0; i<5; i++) allMockSongs = [...allMockSongs, ...MOCK_SONGS];
+        
+        if (query) {
+            const q = query.toLowerCase();
+            allMockSongs = allMockSongs.filter(s => 
+                s.title.toLowerCase().includes(q) || 
+                s.artist.toLowerCase().includes(q) || 
+                s.album.toLowerCase().includes(q) ||
+                (s.genre && s.genre.toLowerCase().includes(q)) ||
+                (s.year && s.year.toString().includes(q))
+            );
+        }
+        return allMockSongs.slice(offset, offset + size);
+    }
+
+    const cacheKey = `searchSongs_${query}_${size}_${offset}`;
+    const cached = await db.getCachedResponse(cacheKey, 60);
+    if (cached) return cached;
+
+    try {
+        // search3 uses 'songOffset'
+        const res = await fetch(this.buildUrl('search3.view', { query, songCount: size.toString(), songOffset: offset.toString() }));
+        const data = await res.json();
+        const songs = data['subsonic-response'].searchResult3?.song || [];
+        const mapped = songs.map((s: any) => this.mapSong(s));
+        
+        // Cache results
+        await db.cacheResponse(cacheKey, mapped);
+        return mapped;
+    } catch (e) {
+        return [];
+    }
+  }
+
+  async searchAlbums(query: string, size: number = 50, offset: number = 0): Promise<IAlbum[]> {
+     if (this.isDemo) {
+         const q = query.toLowerCase();
+         const filtered = MOCK_ALBUMS.filter(a => a.name.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q));
+         return filtered.slice(offset, offset + size);
+     }
+     
+     try {
+         const res = await fetch(this.buildUrl('search3.view', { query, albumCount: size.toString(), albumOffset: offset.toString() }));
+         const data = await res.json();
+         return data['subsonic-response'].searchResult3?.album || [];
+     } catch (e) {
+         return [];
+     }
   }
 
   async search(query: string): Promise<{ artists: IArtist[], albums: IAlbum[], songs: ISong[] }> {
@@ -278,7 +371,7 @@ export class SubsonicService {
     }
     
     try {
-        const res = await fetch(this.buildUrl('search3.view', { query, artistCount: '6', albumCount: '10', songCount: '20' }));
+        const res = await fetch(this.buildUrl('search3.view', { query, artistCount: '20', albumCount: '20', songCount: '40' }));
         const data = await res.json();
         const r = data['subsonic-response'].searchResult3;
         if (!r) return { artists: [], albums: [], songs: [] };
@@ -296,27 +389,7 @@ export class SubsonicService {
 
   async getLyrics(artist: string, title: string): Promise<string> {
     if (this.isDemo) {
-      return `(Verse 1)
-Standing on the edge of the neon light
-Watching code flow through the night
-Digital dreams in a binary stream
-Nothing is ever quite what it seems
-
-(Chorus)
-Oh, ${title}
-Resonating through the void
-By ${artist}
-A melody that can't be destroyed
-
-(Verse 2)
-Pixels dancing on the screen
-The crispest sound you've ever seen
-Nebula Stream taking us high
-Underneath the electric sky
-
-(Outro)
-Fade out...
-Fade out...`;
+      return `(Verse 1)\nStanding on the edge of the neon light\nWatching code flow through the night...`;
     }
     try {
       const res = await fetch(this.buildUrl('getLyrics.view', { artist, title }));
@@ -342,12 +415,9 @@ Fade out...`;
 
   getCoverArtUrl(id: string, size: number = 300): string {
     if (!id) return 'https://picsum.photos/300/300?grayscale';
-    
-    // If the ID is already a URL (mostly for demo/mock data), return it directly
     if (id.startsWith('http') || id.startsWith('/')) return id;
 
     if (this.isDemo) {
-        // Try finding a match in mock data to keep consistency if ID is passed
         const song = MOCK_SONGS.find(s => s.id === id);
         const album = MOCK_ALBUMS.find(a => a.id === id);
         const artist = MOCK_ARTISTS.find(a => a.id === id);
