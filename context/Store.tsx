@@ -392,7 +392,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getMostPlayedSongs = () => {
-      const sorted = Object.values(playHistory).sort((a, b) => b.count - a.count);
+      const historyItems = Object.values(playHistory) as { count: number, song: ISong }[];
+      const sorted = historyItems.sort((a, b) => b.count - a.count);
       return sorted.map(item => item.song);
   };
 
