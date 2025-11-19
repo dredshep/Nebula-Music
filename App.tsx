@@ -1,0 +1,100 @@
+
+import React from 'react';
+import { StoreProvider, useStore } from './context/Store';
+import { Sidebar } from './components/Sidebar';
+import { Player } from './components/Player';
+import { HomeView } from './views/Home';
+import { LibraryView } from './views/Library';
+import { BrowseView } from './views/Browse';
+import { SettingsView } from './views/Settings';
+import { ArtistDetailView } from './views/ArtistDetail';
+import { AlbumDetailView } from './views/AlbumDetail';
+import { PlaylistDetailView } from './views/PlaylistDetail';
+import { PlaylistModal } from './components/PlaylistModal';
+import { SetupScreen } from './components/SetupScreen';
+import { Settings } from 'lucide-react';
+
+const AppContent: React.FC = () => {
+  const { currentView, setView, credentials, isDemoMode, queue, currentSongIndex } = useStore();
+
+  if (!credentials && !isDemoMode) {
+      return <SetupScreen />;
+  }
+
+  let ViewComponent;
+  switch (currentView) {
+    case 'HOME':
+      ViewComponent = HomeView;
+      break;
+    case 'BROWSE':
+      ViewComponent = BrowseView;
+      break;
+    case 'SETTINGS':
+      ViewComponent = SettingsView;
+      break;
+    case 'ARTISTS':
+    case 'ALBUMS':
+    case 'SONGS':
+    case 'PLAYLISTS':
+      ViewComponent = LibraryView;
+      break;
+    case 'ARTIST_DETAIL':
+      ViewComponent = ArtistDetailView;
+      break;
+    case 'ALBUM_DETAIL':
+      ViewComponent = AlbumDetailView;
+      break;
+    case 'PLAYLIST_DETAIL':
+      ViewComponent = PlaylistDetailView;
+      break;
+    default:
+      ViewComponent = HomeView;
+  }
+
+  // Check if player is visible
+  const isPlayerVisible = queue.length > 0 && currentSongIndex >= 0;
+
+  return (
+    <div className="flex h-screen w-screen bg-dark text-white overflow-hidden selection:bg-primary selection:text-black font-sans">
+      {/* Background Ambient Light */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full filter blur-[100px] opacity-30 animate-blob transition-colors duration-1000"></div>
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-secondary/10 rounded-full filter blur-[120px] opacity-30 animate-blob animation-delay-2000 transition-colors duration-1000"></div>
+      </div>
+
+      <Sidebar />
+      
+      <main className="flex-1 h-full overflow-y-auto relative z-10 scroll-smooth">
+        {/* Floating Settings Button */}
+        <button 
+            onClick={() => setView('SETTINGS')}
+            className={`fixed right-8 z-50 p-3 rounded-full bg-black/40 hover:bg-white/10 text-neutral-400 hover:text-white transition-all duration-300 backdrop-blur-md border border-white/5 shadow-lg group
+                ${isPlayerVisible ? 'bottom-32' : 'bottom-8'}`}
+            aria-label="Settings"
+        >
+            <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-700" />
+        </button>
+
+        {/* Top Bar Fade */}
+        <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
+        
+        <div className="min-h-full">
+            <ViewComponent />
+        </div>
+      </main>
+
+      <Player />
+      <PlaylistModal />
+    </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <StoreProvider>
+      <AppContent />
+    </StoreProvider>
+  );
+};
+
+export default App;
