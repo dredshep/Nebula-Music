@@ -103,6 +103,15 @@ export class SubsonicService {
     }
   }
 
+  async scrobble(id: string, submission: boolean = true): Promise<void> {
+    if (this.isDemo) return;
+    try {
+        await fetch(this.buildUrl('scrobble.view', { id, submission: submission.toString() }));
+    } catch (e) {
+        console.warn("Scrobble failed", e);
+    }
+  }
+
   async getRandomSongs(size: number = 10): Promise<ISong[]> {
     if (this.isDemo) {
       // Return a larger list if requested for demo

@@ -4,7 +4,7 @@ import { ISong, IAlbum } from '../types';
 import { Play, Plus, Clock, Flame, Compass, Music, ListPlus } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
-  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs } = useStore();
+  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs, history } = useStore();
   const [randomSongs, setRandomSongs] = useState<ISong[]>([]);
   const [recentAlbums, setRecentAlbums] = useState<IAlbum[]>([]);
   const [newestAlbums, setNewestAlbums] = useState<IAlbum[]>([]);
@@ -15,22 +15,42 @@ export const HomeView: React.FC = () => {
   // If empty, we'll fetch random ones to act as "Suggested"
   const [suggestedMostPlayed, setSuggestedMostPlayed] = useState<ISong[]>([]);
 
+  // Initial Data Load
   useEffect(() => {
     const load = async () => {
       setRandomSongs(await service.getRandomSongs(20)); // Fetch more to rotate and show picks
-      setRecentAlbums(await service.getAlbumList('recent', 5));
+      setRecentAlbums(await service.getAlbumList('recent', 5)); // Server "Recent" is usually "Recently Added"
       setNewestAlbums(await service.getAlbumList('newest', 5));
       setRandomAlbums(await service.getAlbumList('random', 10));
       
-      if (mostPlayedReal.length === 0) {
+      const real = getMostPlayedSongs();
+      if (real.length === 0) {
           setSuggestedMostPlayed(await service.getRandomSongs(5));
       }
     };
     load();
-  }, [service, mostPlayedReal.length]); // Reload if real data changes length from 0 to something
+    // Removed mostPlayedReal.length dependency to prevent infinite reload loops during playback
+  }, [service]);
 
   const displayMostPlayed = mostPlayedReal.length > 0 ? mostPlayedReal : suggestedMostPlayed;
   const mostPlayedTitle = mostPlayedReal.length > 0 ? "Most Played" : "Suggested For You";
+
+  // Derive Recently Played Albums from Local History
+  const recentlyPlayedAlbums: IAlbum[] = history.reduce((acc, song) => {
+      if (!acc.find(a => a.id === (song.albumId || song.album))) {
+          acc.push({
+              id: song.albumId || 'unknown',
+              name: song.album,
+              artist: song.artist,
+              artistId: song.artistId,
+              coverArt: song.coverArt,
+              songCount: 0, 
+              duration: 0, 
+              created: ''
+          } as IAlbum);
+      }
+      return acc;
+  }, [] as IAlbum[]).slice(0, 10);
 
   const HeroSection = () => {
     // Use first 5 songs for Hero rotation
@@ -232,12 +252,17 @@ export const HomeView: React.FC = () => {
              </div>
           </div>
       </div>
+      
+      {/* Recently Played (Local History) */}
+      {recentlyPlayedAlbums.length > 0 && (
+          <>
+            <SectionHeader title="Recently Played" icon={Clock} />
+            <AlbumRow albums={recentlyPlayedAlbums} />
+          </>
+      )}
 
-      <SectionHeader title="Recently Played" icon={Clock} />
+      <SectionHeader title="Recently Added" icon={Plus} />
       <AlbumRow albums={recentAlbums} />
-
-      <SectionHeader title="Fresh Arrivals" icon={Plus} />
-      <AlbumRow albums={newestAlbums} />
     </div>
   );
 };

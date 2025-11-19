@@ -36,8 +36,9 @@ interface StoreContextType extends AppState {
   openSearchModal: () => void;
   closeSearchModal: () => void;
 
-  // Stats
+  // Stats & History
   getMostPlayedSongs: () => ISong[];
+  history: ISong[];
 
   service: SubsonicService;
   audioRef: React.RefObject<HTMLAudioElement>;
@@ -97,7 +98,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Play History & Stats
   const [playHistory, setPlayHistory] = useState<Record<string, { count: number, song: ISong }>>({});
+  const [history, setHistory] = useState<ISong[]>([]); // Chronological history
   const lastPlayedSongIdRef = useRef<string | null>(null);
+  const hasScrobbledRef = useRef(false);
 
   // Audio Element State
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -122,20 +125,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           
           // Load play history
           try {
-            const stored = localStorage.getItem('nebula_play_history');
-            if (stored) {
-                setPlayHistory(JSON.parse(stored));
+            const storedStats = localStorage.getItem('nebula_play_history');
+            if (storedStats) {
+                setPlayHistory(JSON.parse(storedStats));
+            }
+            const storedList = localStorage.getItem('nebula_history');
+            if (storedList) {
+                setHistory(JSON.parse(storedList));
             }
         } catch (e) {}
       };
       init();
   }, [service]);
 
-  // Record Play Logic
+  // Record Play Logic (Counts & History List)
   useEffect(() => {
       if (isPlaying && currentSongIndex >= 0 && queue[currentSongIndex]) {
           const song = queue[currentSongIndex];
           if (song.id !== lastPlayedSongIdRef.current) {
+              hasScrobbledRef.current = false;
+
+              // Update Counts
               setPlayHistory(prev => {
                   const currentCount = prev[song.id]?.count || 0;
                   const updated = {
@@ -145,10 +155,30 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                   localStorage.setItem('nebula_play_history', JSON.stringify(updated));
                   return updated;
               });
+
+              // Update Recent History (Chronological, unique bubble to top)
+              setHistory(prev => {
+                  const withoutCurrent = prev.filter(s => s.id !== song.id);
+                  const newHistory = [song, ...withoutCurrent].slice(0, 50);
+                  localStorage.setItem('nebula_history', JSON.stringify(newHistory));
+                  return newHistory;
+              });
+
               lastPlayedSongIdRef.current = song.id;
           }
       }
   }, [currentSongIndex, isPlaying, queue]);
+
+  // Scrobble Check
+  useEffect(() => {
+      if (isPlaying && duration > 0 && currentTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
+           // Scrobble if played more than 30s or 50% of duration
+           if (currentTime > 30 || currentTime > duration / 2) {
+               service.scrobble(queue[currentSongIndex].id);
+               hasScrobbledRef.current = true;
+           }
+      }
+  }, [currentTime, duration, isPlaying, currentSongIndex, queue, service]);
 
   // Apply Theme
   useEffect(() => {
@@ -431,7 +461,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       connectToSubsonic, disconnect, enableDemoMode, addToQueue, updateSettings,
       openPlaylistModal, closePlaylistModal, createPlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
-      getMostPlayedSongs,
+      getMostPlayedSongs, history,
       service, audioRef, analyser, currentTime, duration
     }}>
       {children}
