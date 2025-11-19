@@ -10,7 +10,9 @@ import { SettingsView } from './views/Settings';
 import { ArtistDetailView } from './views/ArtistDetail';
 import { AlbumDetailView } from './views/AlbumDetail';
 import { PlaylistDetailView } from './views/PlaylistDetail';
+import { SearchView } from './views/Search';
 import { PlaylistModal } from './components/PlaylistModal';
+import { SearchModal } from './components/SearchModal';
 import { SetupScreen } from './components/SetupScreen';
 import { Settings } from 'lucide-react';
 
@@ -46,6 +48,9 @@ const AppContent: React.FC = () => {
       break;
     case 'PLAYLIST_DETAIL':
       ViewComponent = PlaylistDetailView;
+      break;
+    case 'SEARCH':
+      ViewComponent = SearchView;
       break;
     default:
       ViewComponent = HomeView;
@@ -85,6 +90,7 @@ const AppContent: React.FC = () => {
 
       <Player />
       <PlaylistModal />
+      <SearchModal />
     </div>
   );
 };

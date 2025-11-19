@@ -309,6 +309,14 @@ export const Player: React.FC = () => {
                             
                             <div className="flex items-center gap-4">
                                 <button 
+                                    onClick={() => setActiveTab('lyrics')}
+                                    className="transition hover:scale-110 text-neutral-500 hover:text-white"
+                                    title="Lyrics"
+                                >
+                                    <Mic2 className="w-6 h-6" />
+                                </button>
+
+                                <button 
                                     onClick={() => toggleLike(currentSong)} 
                                     className={`transition hover:scale-110 ${currentSong.starred ? 'text-red-500' : 'text-neutral-500 hover:text-white'}`}
                                 >
@@ -323,9 +331,27 @@ export const Player: React.FC = () => {
                             </div>
                         </div>
                         
-                        {/* Speed & Vinyl Toggle */}
-                        <div className="flex items-center gap-6 p-4 bg-white/5 rounded-xl border border-white/5 w-full lg:w-auto self-start">
-                             <div className="flex-1 min-w-[120px]">
+                        {/* Volume, Speed & Vinyl Toggle */}
+                        <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-white/5 rounded-xl border border-white/5 w-full self-start">
+                             {/* Volume */}
+                             <div className="w-full md:flex-1 min-w-[120px]">
+                                 <div className="flex justify-between text-xs uppercase text-neutral-400 tracking-wider mb-2">
+                                     <span className="flex items-center gap-2"><Volume2 className="w-3 h-3" /> Volume</span>
+                                     <span>{Math.round(volume * 100)}%</span>
+                                 </div>
+                                 <input 
+                                     type="range" 
+                                     min="0" max="1" step="0.01"
+                                     value={volume}
+                                     onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                     className="w-full h-1 bg-neutral-600 rounded-lg appearance-none cursor-pointer accent-primary"
+                                 />
+                             </div>
+
+                             <div className="hidden md:block h-8 w-px bg-white/10"></div>
+
+                             {/* Speed */}
+                             <div className="w-full md:flex-1 min-w-[120px]">
                                  <div className="flex justify-between text-xs uppercase text-neutral-400 tracking-wider mb-2">
                                      <span>Speed</span>
                                      <span>{playbackRate.toFixed(2)}x</span>
@@ -338,8 +364,11 @@ export const Player: React.FC = () => {
                                      className="w-full h-1 bg-neutral-600 rounded-lg appearance-none cursor-pointer accent-primary"
                                  />
                              </div>
-                             <div className="h-8 w-px bg-white/10"></div>
-                             <div className="flex items-center justify-between gap-3">
+                             
+                             <div className="hidden md:block h-8 w-px bg-white/10"></div>
+                             
+                             {/* Vinyl */}
+                             <div className="flex items-center justify-between gap-3 w-full md:w-auto">
                                  <div className="flex flex-col">
                                      <span className="text-xs uppercase text-neutral-400 tracking-wider font-bold flex items-center gap-1">
                                         <Disc className={`w-3 h-3 ${isVinyl ? 'text-primary animate-spin-slow' : 'text-neutral-500'}`} />

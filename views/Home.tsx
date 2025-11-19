@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
 import { ISong, IAlbum } from '../types';
-import { Play, Plus, Clock, Flame, Shuffle, Compass, MoreVertical, Music, ListPlus } from 'lucide-react';
+import { Play, Plus, Clock, Flame, Compass, Music, ListPlus } from 'lucide-react';
 
 export const HomeView: React.FC = () => {
   const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs } = useStore();
@@ -17,7 +17,7 @@ export const HomeView: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      setRandomSongs(await service.getRandomSongs(4));
+      setRandomSongs(await service.getRandomSongs(20)); // Fetch more to rotate and show picks
       setRecentAlbums(await service.getAlbumList('recent', 5));
       setNewestAlbums(await service.getAlbumList('newest', 5));
       setRandomAlbums(await service.getAlbumList('random', 10));
@@ -33,48 +33,74 @@ export const HomeView: React.FC = () => {
   const mostPlayedTitle = mostPlayedReal.length > 0 ? "Most Played" : "Suggested For You";
 
   const HeroSection = () => {
-    if (randomSongs.length === 0) return null;
-    const featured = randomSongs[0];
+    // Use first 5 songs for Hero rotation
+    const heroSongs = randomSongs.slice(0, 5);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    useEffect(() => {
+        if (heroSongs.length === 0) return;
+        const interval = setInterval(() => {
+            setCurrentIndex((prev) => (prev + 1) % heroSongs.length);
+        }, 6000);
+        return () => clearInterval(interval);
+    }, [heroSongs.length]);
+
+    if (heroSongs.length === 0) return null;
+
+    const featured = heroSongs[currentIndex];
     const artUrl = service.getCoverArtUrl(featured.coverArt || featured.id, 800);
 
     return (
       <div className="relative w-full h-[350px] rounded-2xl overflow-hidden mb-12 group shadow-2xl shadow-black/50">
-        <img src={artUrl} className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" alt="Hero" />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent">
-          <div className="absolute bottom-0 left-0 p-8 md:p-10 w-full">
-             <div className="flex items-start justify-between">
-                <div>
-                    <span className="px-3 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider rounded mb-4 inline-block backdrop-blur-md border border-primary/20 animate-pulse">Featured Pick</span>
-                    <h2 
-                        className="text-4xl md:text-6xl font-bold text-white mb-3 cursor-pointer hover:text-primary transition"
-                        onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
-                    >
-                        {featured.title}
-                    </h2>
-                    <p 
-                        className="text-xl text-neutral-300 mb-6 cursor-pointer hover:text-white"
-                        onClick={() => { if(featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
-                    >
-                        {featured.artist}
-                    </p>
-                    <div className="flex gap-4">
-                        <button 
-                            onClick={() => playSong(featured, randomSongs)}
-                            className="flex items-center px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg shadow-black/50 hover:scale-105 transform duration-200"
-                        >
-                            <Play className="w-5 h-5 mr-2 fill-current" />
-                            Listen Now
-                        </button>
-                        <button 
-                            onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
-                            className="px-8 py-3 bg-white/10 text-white rounded-full font-bold hover:bg-white/20 transition backdrop-blur-md"
-                        >
-                            View Album
-                        </button>
-                    </div>
-                </div>
+        <div key={featured.id} className="absolute inset-0 transition-opacity duration-1000 animate-fade-in">
+             <img src={artUrl} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10s] scale-100 group-hover:scale-105" alt="Hero" />
+             <div className="absolute inset-0 bg-gradient-to-t from-dark via-dark/60 to-transparent">
+               <div className="absolute bottom-0 left-0 p-8 md:p-10 w-full">
+                  <div className="flex items-start justify-between">
+                     <div>
+                         <span className="px-3 py-1 bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider rounded mb-4 inline-block backdrop-blur-md border border-primary/20 animate-pulse">Featured Pick</span>
+                         <h2 
+                             className="text-4xl md:text-6xl font-bold text-white mb-3 cursor-pointer hover:text-primary transition"
+                             onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
+                         >
+                             {featured.title}
+                         </h2>
+                         <p 
+                             className="text-xl text-neutral-300 mb-6 cursor-pointer hover:text-white"
+                             onClick={() => { if(featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
+                         >
+                             {featured.artist}
+                         </p>
+                         <div className="flex gap-4">
+                             <button 
+                                 onClick={() => playSong(featured, heroSongs)}
+                                 className="flex items-center px-8 py-3 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg shadow-black/50 hover:scale-105 transform duration-200"
+                             >
+                                 <Play className="w-5 h-5 mr-2 fill-current" />
+                                 Listen Now
+                             </button>
+                             <button 
+                                 onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
+                                 className="px-8 py-3 bg-white/10 text-white rounded-full font-bold hover:bg-white/20 transition backdrop-blur-md"
+                             >
+                                 View Album
+                             </button>
+                         </div>
+                     </div>
+                  </div>
+               </div>
              </div>
-          </div>
+        </div>
+
+        {/* Indicators */}
+        <div className="absolute bottom-6 right-8 flex space-x-2 z-10">
+            {heroSongs.map((_, idx) => (
+                <button 
+                    key={idx}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/30 hover:bg-white/60'}`}
+                />
+            ))}
         </div>
       </div>
     );
@@ -128,13 +154,14 @@ export const HomeView: React.FC = () => {
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
                     className="text-xs font-medium text-neutral-400 hover:text-white"
-                    onClick={async () => setRandomSongs(await service.getRandomSongs(4))}
+                    onClick={async () => setRandomSongs(await service.getRandomSongs(20))}
                    >
                     Refresh
                   </button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {randomSongs.slice(0, 4).map((song, i) => (
+                  {/* Use songs 5-9 for Quick Picks so they don't overlap with Hero */}
+                  {randomSongs.slice(5, 9).map((song, i) => (
                       <div key={song.id} className="flex items-center p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5" onClick={() => playSong(song, randomSongs)}>
                           <img src={service.getCoverArtUrl(song.coverArt || song.id, 100)} className="w-12 h-12 rounded-lg bg-neutral-800 object-cover mr-4 shadow-md" alt="" />
                           <div className="flex-1 min-w-0">

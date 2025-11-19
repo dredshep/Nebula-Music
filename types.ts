@@ -81,7 +81,7 @@ export interface AppSettings {
 export type PlaybackMode = 'normal' | 'shuffle';
 export type RepeatMode = 'OFF' | 'ALL' | 'ONE';
 export type VisualizerMode = 'BARS' | 'WAVE' | 'CIRCLE' | 'MIRROR';
-export type View = 'HOME' | 'BROWSE' | 'ARTISTS' | 'ALBUMS' | 'SONGS' | 'PLAYLISTS' | 'SETTINGS' | 'PLAYLIST_DETAIL' | 'ARTIST_DETAIL' | 'ALBUM_DETAIL';
+export type View = 'HOME' | 'BROWSE' | 'ARTISTS' | 'ALBUMS' | 'SONGS' | 'PLAYLISTS' | 'SETTINGS' | 'PLAYLIST_DETAIL' | 'ARTIST_DETAIL' | 'ALBUM_DETAIL' | 'SEARCH';
 
 export interface AppState {
   currentView: View;
@@ -102,4 +102,9 @@ export interface AppState {
   playlists: IPlaylist[];
   modalOpen: boolean;
   songToAddToPlaylist: ISong | null;
+
+  // Search
+  searchResults: { artists: IArtist[], albums: IAlbum[], songs: ISong[] };
+  isSearching: boolean;
+  lastSearchQuery: string;
 }

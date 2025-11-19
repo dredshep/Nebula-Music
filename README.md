@@ -1,25 +1,46 @@
 
-# Nebula Stream
+<div align="center">
+  <br />
+  <svg viewBox="0 0 24 24" width="80" height="80" stroke="#06b6d4" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 10v4" opacity="0.5" />
+    <path d="M8 7v10" opacity="0.75" />
+    <path d="M12 3v18" opacity="1" />
+    <path d="M16 7v10" opacity="0.75" />
+    <path d="M20 10v4" opacity="0.5" />
+  </svg>
+  <h1>Nebula Stream</h1>
+  <p>A high-fidelity, glassmorphic music client for the modern web.</p>
+</div>
 
-Nebula Stream is a modern, high-fidelity web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications.
+Nebula Stream is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications.
 
 ## 🚀 Features
 
 *   **Modern UI/UX**: Glassmorphism design, smooth transitions, and animated backgrounds.
-*   **Offline Ready**: Intelligent caching of API responses and images via IndexedDB.
+*   **Smart Search**: 
+    *   Spotlight-style command palette (`Cmd+K`) for instant access.
+    *   Semantic search across Artists, Albums, and Songs.
+    *   Real-time results as you type.
 *   **Audio Engine**: 
     *   Pitch control (Vinyl Mode).
     *   Playback speed adjustment.
+    *   Integrated Volume control.
     *   Real-time audio visualizers (Bars, Wave, Circle, Mirror).
+*   **Enhanced Player**:
+    *   Synchronized Lyrics view.
+    *   Immersive "Zen Mode" visualizer.
+    *   Queue management.
 *   **Library Management**:
     *   Browse by Artists, Albums, Songs.
     *   Manage Playlists (Create, Delete, Reorder via Drag & Drop).
     *   Favorites/Starring system.
 *   **Discovery**:
+    *   Rotating Featured Hero section.
     *   Random suggested mixes.
     *   Most Played tracking (Local).
     *   Recent & Frequent album views.
 *   **Subsonic Integration**: Full support for standard Subsonic API authentication.
+*   **Offline Ready**: Intelligent caching of API responses and images via IndexedDB.
 
 ## 🛠 Tech Stack
 

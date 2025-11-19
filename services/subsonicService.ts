@@ -105,7 +105,9 @@ export class SubsonicService {
 
   async getRandomSongs(size: number = 10): Promise<ISong[]> {
     if (this.isDemo) {
-      return MOCK_SONGS.sort(() => 0.5 - Math.random()).slice(0, size);
+      // Return a larger list if requested for demo
+      const pool = [...MOCK_SONGS, ...MOCK_SONGS, ...MOCK_SONGS]; 
+      return pool.sort(() => 0.5 - Math.random()).slice(0, size);
     }
     try {
       const res = await fetch(this.buildUrl('getRandomSongs.view', { size: size.toString() }));
@@ -252,6 +254,35 @@ export class SubsonicService {
   async getAllSongs(): Promise<ISong[]> {
     if (this.isDemo) return MOCK_SONGS;
     return this.getRandomSongs(50);
+  }
+
+  async search(query: string): Promise<{ artists: IArtist[], albums: IAlbum[], songs: ISong[] }> {
+    if (!query) return { artists: [], albums: [], songs: [] };
+    
+    if (this.isDemo) {
+       const q = query.toLowerCase();
+       return {
+           artists: MOCK_ARTISTS.filter(a => a.name.toLowerCase().includes(q)),
+           albums: MOCK_ALBUMS.filter(a => a.name.toLowerCase().includes(q) || a.artist.toLowerCase().includes(q)),
+           songs: MOCK_SONGS.filter(s => s.title.toLowerCase().includes(q) || s.artist.toLowerCase().includes(q) || s.album.toLowerCase().includes(q))
+       };
+    }
+    
+    try {
+        const res = await fetch(this.buildUrl('search3.view', { query, artistCount: '6', albumCount: '10', songCount: '20' }));
+        const data = await res.json();
+        const r = data['subsonic-response'].searchResult3;
+        if (!r) return { artists: [], albums: [], songs: [] };
+        
+        return {
+            artists: r.artist || [],
+            albums: r.album || [],
+            songs: (r.song || []).map((s: any) => this.mapSong(s))
+        };
+    } catch (e) {
+        console.error(e);
+        return { artists: [], albums: [], songs: [] };
+    }
   }
 
   async getLyrics(artist: string, title: string): Promise<string> {

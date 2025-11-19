@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode } from '../types';
+import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode, IArtist, IAlbum } from '../types';
 import { SubsonicService } from '../services/subsonicService';
 import { MOCK_PLAYLISTS } from '../constants';
 import { db } from '../services/db';
@@ -29,6 +29,12 @@ interface StoreContextType extends AppState {
   addSongToPlaylist: (playlistId: string, song: ISong) => void;
   deletePlaylist: (id: string) => void;
   reorderPlaylist: (playlistId: string, fromIndex: number, toIndex: number) => void;
+
+  // Search
+  performSearch: (query: string) => void;
+  isSearchModalOpen: boolean;
+  openSearchModal: () => void;
+  closeSearchModal: () => void;
 
   // Stats
   getMostPlayedSongs: () => ISong[];
@@ -83,6 +89,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [modalOpen, setModalOpen] = useState(false);
   const [songToAddToPlaylist, setSongToAddToPlaylist] = useState<ISong | null>(null);
   
+  // Search State
+  const [searchResults, setSearchResults] = useState<{ artists: IArtist[], albums: IAlbum[], songs: ISong[] }>({ artists: [], albums: [], songs: [] });
+  const [isSearching, setIsSearching] = useState(false);
+  const [lastSearchQuery, setLastSearchQuery] = useState('');
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+
   // Play History & Stats
   const [playHistory, setPlayHistory] = useState<Record<string, { count: number, song: ISong }>>({});
   const lastPlayedSongIdRef = useRef<string | null>(null);
@@ -287,6 +299,18 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setViewData(data);
   };
 
+  const performSearch = async (query: string) => {
+    setLastSearchQuery(query);
+    setIsSearching(true);
+    const results = await service.search(query);
+    setSearchResults(results);
+    setIsSearching(false);
+    setView('SEARCH');
+  };
+  
+  const openSearchModal = () => setIsSearchModalOpen(true);
+  const closeSearchModal = () => setIsSearchModalOpen(false);
+
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     setSettings(prev => ({
       ...prev,
@@ -406,6 +430,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       playSong, togglePlay, nextSong, prevSong, setVolume, setPlaybackRate, setPitchCorrection, setVisualizerMode, toggleRepeat, toggleLike,
       connectToSubsonic, disconnect, enableDemoMode, addToQueue, updateSettings,
       openPlaylistModal, closePlaylistModal, createPlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
+      performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
       getMostPlayedSongs,
       service, audioRef, analyser, currentTime, duration
     }}>

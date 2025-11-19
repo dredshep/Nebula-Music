@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Home, Disc, Mic2, Music, ListMusic, Settings, Compass, Globe } from 'lucide-react';
+import { Home, Disc, Mic2, Music, ListMusic, Settings, Compass, Search, Command } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { View } from '../types';
 
 export const Sidebar: React.FC = () => {
-  const { currentView, setView, isDemoMode, settings } = useStore();
+  const { currentView, setView, isDemoMode, settings, openSearchModal } = useStore();
   const s = settings.sidebar;
 
   const NavItem = ({ icon: Icon, label, view }: { icon: any, label: string, view: View }) => (
@@ -24,7 +24,7 @@ export const Sidebar: React.FC = () => {
   return (
     <div className="hidden md:flex flex-col w-64 h-full glass border-r border-white/5 pt-6 pb-4 z-20 relative bg-neutral-950/50">
       <div className="px-6 mb-8">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-gradient-to-tr from-primary to-secondary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 transform rotate-0 group hover:rotate-180 transition-transform duration-700">
               <svg viewBox="0 0 24 24" className="w-6 h-6 text-white stroke-current" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M4 10v4" className="opacity-50" />
@@ -39,8 +39,24 @@ export const Sidebar: React.FC = () => {
                 <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-mono">Stream</p>
             </div>
         </div>
+
+        {/* Search Trigger */}
+        <button 
+            onClick={openSearchModal}
+            className="w-full flex items-center justify-between bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2.5 px-3 text-sm text-neutral-400 transition-colors group mb-6"
+        >
+            <div className="flex items-center">
+                <Search className="w-4 h-4 mr-2 group-hover:text-white transition-colors" />
+                <span>Search...</span>
+            </div>
+            <div className="flex items-center space-x-1">
+                <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded border border-white/10 bg-black/20 px-1.5 font-mono text-[10px] font-medium text-neutral-500">
+                    <span className="text-xs">⌘</span>K
+                </kbd>
+            </div>
+        </button>
         
-        <div className="flex items-center mt-4 bg-white/5 rounded px-3 py-1.5 border border-white/5">
+        <div className="flex items-center bg-white/5 rounded px-3 py-1.5 border border-white/5">
           <div className={`w-2 h-2 rounded-full mr-2 ${isDemoMode ? 'bg-yellow-500' : 'bg-green-500 animate-pulse'}`}></div>
           <span className="text-xs text-neutral-400 font-mono uppercase">{isDemoMode ? 'DEMO MODE' : 'CONNECTED'}</span>
         </div>
