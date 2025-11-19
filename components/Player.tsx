@@ -406,7 +406,7 @@ export const Player: React.FC = () => {
                               <img src={coverArt} className="w-full h-full object-cover" alt={currentSong.title} />
                               {/* Vinyl Texture overlay if mode enabled */}
                               {isVinyl && (
-                                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div>
+                                  <div className="absolute inset-0 bg-black/10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-40 mix-blend-overlay pointer-events-none"></div>
                               )}
                           </div>
                           
@@ -478,8 +478,9 @@ export const Player: React.FC = () => {
                  </div>
 
                  {/* Buttons */}
-                 <div className="flex items-center justify-between">
-                     <div className="flex items-center gap-4">
+                 <div className="flex items-center w-full">
+                     {/* Left Group - Flex-1 with basis-0 ensures equal width distribution */}
+                     <div className="flex-1 basis-0 min-w-0 flex items-center justify-start gap-4">
                           <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`p-2 rounded-full hover:bg-white/10 transition ${currentSong.starred ? 'text-red-500' : 'text-neutral-400'}`}>
                               <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
                           </button>
@@ -488,7 +489,8 @@ export const Player: React.FC = () => {
                           </button>
                      </div>
 
-                     <div className="flex items-center gap-6 md:gap-8">
+                     {/* Center Group - Fixed/Centered */}
+                     <div className="flex-none flex items-center justify-center gap-6 md:gap-8">
                           <button onClick={prevSong} className="p-2 text-neutral-300 hover:text-white hover:scale-110 transition">
                               <SkipBack className="w-8 h-8 fill-current" />
                           </button>
@@ -503,7 +505,8 @@ export const Player: React.FC = () => {
                           </button>
                      </div>
 
-                     <div className="flex items-center gap-4">
+                     {/* Right Group - Flex-1 with basis-0 ensures equal width distribution */}
+                     <div className="flex-1 basis-0 min-w-0 flex items-center justify-end gap-4">
                          <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}>
                               {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                          </button>
@@ -522,23 +525,27 @@ export const Player: React.FC = () => {
                  </div>
 
                  <div className="mt-6 flex justify-center gap-8 border-t border-white/5 pt-4">
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center w-32">
                           <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Speed</label>
-                          <div className="flex items-center bg-black/30 rounded-lg p-1">
+                          <div className="flex items-center justify-center bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px]">
                               <button onClick={() => setPlaybackRate(Math.max(0.5, playbackRate - 0.1))} className="px-2 text-neutral-400 hover:text-white">-</button>
-                              <span className="w-12 text-center text-xs font-mono">{playbackRate.toFixed(1)}x</span>
+                              <span className="flex-1 text-center text-xs font-mono">{playbackRate.toFixed(1)}x</span>
                               <button onClick={() => setPlaybackRate(Math.min(2.0, playbackRate + 0.1))} className="px-2 text-neutral-400 hover:text-white">+</button>
                           </div>
                       </div>
                       
-                      <div className="flex flex-col items-center">
+                      <div className="flex flex-col items-center w-32">
                           <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Vinyl Mode</label>
-                          <button 
-                            onClick={toggleVinylMode}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold border transition ${isVinyl ? 'bg-orange-500/20 text-orange-500 border-orange-500/50' : 'bg-black/30 text-neutral-500 border-transparent'}`}
-                          >
-                              {isVinyl ? 'ANALOG' : 'DIGITAL'}
-                          </button>
+                          <div className="bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px] flex">
+                              <button 
+                                onClick={toggleVinylMode}
+                                className={`flex-1 flex items-center justify-center rounded transition ${isVinyl ? 'bg-white/10' : ''} group`}
+                              >
+                                  <span className={`text-xs font-bold transition ${isVinyl ? 'text-orange-500' : 'text-neutral-400 group-hover:text-white'}`}>
+                                    {isVinyl ? 'ANALOG' : 'DIGITAL'}
+                                  </span>
+                              </button>
+                          </div>
                       </div>
                  </div>
             </div>

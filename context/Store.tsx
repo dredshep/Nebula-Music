@@ -211,6 +211,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const cTime = audio.currentTime;
         const dur = audio.duration || 0;
         
+        // Sync Media Session Position
+        if ('mediaSession' in navigator && !isNaN(dur) && dur > 0) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: dur,
+                    playbackRate: audio.playbackRate,
+                    position: cTime
+                });
+            } catch (e) {
+                // Ignore if position > duration occasionally
+            }
+        }
+        
         if (isPlaying && dur > 0 && cTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
            if (cTime > 30 || cTime > dur / 2) {
                service.scrobble(queue[currentSongIndex].id);
@@ -332,6 +345,54 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setIsPlaying(true);
     }
   };
+
+  // Media Session API Integration
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+
+    if (currentSongIndex >= 0 && queue[currentSongIndex]) {
+      const song = queue[currentSongIndex];
+      const cover = service.getCoverArtUrl(song.id, 512);
+
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: song.title,
+        artist: song.artist,
+        album: song.album,
+        artwork: [
+          { src: cover, sizes: '512x512', type: 'image/jpeg' },
+          { src: cover, sizes: '512x512', type: 'image/png' }
+        ]
+      });
+    }
+
+    navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
+    navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+    navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+    navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
+    
+    // Seeking support
+    navigator.mediaSession.setActionHandler('seekto', (details) => {
+        if (details.seekTime !== undefined && audioRef.current) {
+            audioRef.current.currentTime = details.seekTime;
+        }
+    });
+    navigator.mediaSession.setActionHandler('seekbackward', (details) => {
+         const skip = details.seekOffset || 10;
+         if (audioRef.current) audioRef.current.currentTime = Math.max(audioRef.current.currentTime - skip, 0);
+    });
+    navigator.mediaSession.setActionHandler('seekforward', (details) => {
+         const skip = details.seekOffset || 10;
+         if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.currentTime + skip, audioRef.current.duration);
+    });
+    
+  }, [currentSongIndex, queue, service, isPlaying]);
+
+  // Update Media Session Playback State
+  useEffect(() => {
+      if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+      }
+  }, [isPlaying]);
 
   const toggleRepeat = () => {
       const modes: RepeatMode[] = ['OFF', 'ALL', 'ONE'];

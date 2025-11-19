@@ -402,40 +402,6 @@ export const LibraryView: React.FC = () => {
       </div>
   );
 
-  if (isLoading && !displayItems.length) {
-      return (
-          <div className="p-10 pb-32">
-              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-                <h2 className="text-3xl font-bold capitalize flex items-center">
-                    {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
-                    {currentView === 'ALBUMS' && <Disc className="w-8 h-8 mr-3 text-primary" />}
-                    {currentView === 'SONGS' && <Music className="w-8 h-8 mr-3 text-primary" />}
-                    {currentView === 'PLAYLISTS' && <ListPlus className="w-8 h-8 mr-3 text-primary" />}
-                    {currentView.toLowerCase()}
-                </h2>
-                <FilterBar 
-                  currentView={currentView}
-                  filter={filter}
-                  setFilter={setFilter}
-                  setPage={setPage}
-                  sortType={sortType}
-                  setSortType={setSortType}
-                  selectedGenre={selectedGenre}
-                  setSelectedGenre={setSelectedGenre}
-                  selectedYear={selectedYear}
-                  setSelectedYear={setSelectedYear}
-                  genres={genres}
-                  resetFilters={resetFilters}
-                />
-              </div>
-              <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
-                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p>Loading library...</p>
-              </div>
-          </div>
-      );
-  }
-
   const showPagination = !filter && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
   const showPaginationAlways = currentView !== 'PLAYLISTS' && currentView !== 'ARTISTS' && (displayItems.length > 0 || page > 0);
   const showPaginationArtists = currentView === 'ARTISTS' && !filter && (displayItems.length > 0 || page > 0);
@@ -444,7 +410,7 @@ export const LibraryView: React.FC = () => {
   return (
     <div className="p-6 md:p-10 pb-32 min-h-screen flex flex-col" ref={scrollRef}>
       
-      {/* View Header Inlined */}
+      {/* View Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
         <h2 className="text-3xl font-bold capitalize flex items-center">
             {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
@@ -502,130 +468,137 @@ export const LibraryView: React.FC = () => {
         </div>
       </div>
 
-      {/* Top Pagination */}
       {shouldShowPagination && <PaginationControls />}
 
-      {/* CONTENT GRID/LIST */}
-      {currentView === 'SONGS' ? (
-          <div className="bg-neutral-900/50 rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm flex-1">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-neutral-400">
-                    <thead className="bg-white/5 text-neutral-300 uppercase tracking-wider text-xs">
-                        <tr>
-                            <th className="p-4 w-12 text-center">#</th>
-                            <th className="p-4">Title</th>
-                            <th className="p-4 hidden md:table-cell">Artist</th>
-                            <th className="p-4 hidden lg:table-cell">Album</th>
-                            <th className="p-4 text-right">Time</th>
-                            <th className="p-4 w-24"></th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {displayItems.map((song: ISong, idx) => (
-                            <tr key={song.id} className="hover:bg-white/5 group transition-colors">
-                                <td className="p-4 text-center cursor-pointer relative" onClick={() => playSong(song, displayItems as ISong[])}>
-                                    <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
-                                        <span className="font-mono text-neutral-600 text-sm absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
-                                            {(page * ITEMS_PER_PAGE) + idx + 1}
-                                        </span>
-                                        <Play className="w-4 h-4 text-primary absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
-                                    </div>
-                                </td>
-                                <td className="p-4 font-medium text-white cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>
-                                    <div className="flex items-center">
-                                        <img src={service.getCoverArtUrl(song.id, 40)} className="w-10 h-10 rounded-md mr-3 object-cover bg-neutral-800 shadow-sm" loading="lazy" alt="" />
-                                        <div className="min-w-0">
-                                            <div className="truncate">{song.title}</div>
-                                            <div className="md:hidden text-xs text-neutral-500 truncate">{song.artist}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="p-4 hidden md:table-cell cursor-pointer hover:text-white hover:underline" onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}>{song.artist}</td>
-                                <td className="p-4 hidden lg:table-cell cursor-pointer hover:text-white hover:underline" onClick={(e) => { e.stopPropagation(); if(song.albumId) setView('ALBUM_DETAIL', song.albumId); }}>{song.album}</td>
-                                <td className="p-4 text-right font-mono cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>{Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}</td>
-                                <td className="p-4 text-right flex items-center justify-end">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }} 
-                                        className="text-neutral-500 hover:text-primary p-2 opacity-0 group-hover:opacity-100 transition hover:bg-white/10 rounded-full"
-                                        title="Add to Playlist"
-                                    >
-                                        <ListPlus className="w-4 h-4" />
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                        {displayItems.length === 0 && (
-                            <tr>
-                                <td colSpan={6} className="p-8 text-center text-neutral-500">
-                                    No songs match current filters.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-              </div>
+      {/* CONTENT GRID/LIST - Render conditionally but keep header mounted */}
+      {isLoading && !displayItems.length ? (
+          <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p>Loading library...</p>
           </div>
       ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 flex-1 content-start">
-            {displayItems.map((item: any) => (
-              <div 
-                key={item.id} 
-                className="group cursor-pointer bg-neutral-900/50 rounded-2xl p-4 border border-white/5 hover:bg-white/10 hover:border-white/10 transition duration-300"
-                onClick={() => {
-                    if (currentView === 'ARTISTS') {
-                        setView('ARTIST_DETAIL', item.id);
-                    } else if (currentView === 'ALBUMS') {
-                        setView('ALBUM_DETAIL', item.id);
-                    } else if (currentView === 'PLAYLISTS') {
-                        setView('PLAYLIST_DETAIL', item.id);
-                    }
-                }}
-              >
-                <div className={`aspect-square overflow-hidden mb-4 relative shadow-lg bg-neutral-800 ${currentView === 'ARTISTS' ? 'rounded-full' : 'rounded-xl'}`}>
-                  {item.coverArt || (currentView === 'ARTISTS' && item.id) ? (
-                    <img 
-                        src={currentView === 'ARTISTS' ? service.getCoverArtUrl(item.coverArt || item.id, 300) : service.getCoverArtUrl(item.coverArt || item.id, 300)} 
-                        alt={item.name} 
-                        className="w-full h-full object-cover transition-opacity" 
-                        loading="lazy"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-neutral-800">
-                        {currentView === 'ARTISTS' ? <Mic2 className="w-12 h-12 text-neutral-700" /> : <Music className="w-12 h-12 text-neutral-700" />}
+          <>
+            {currentView === 'SONGS' ? (
+                <div className="bg-neutral-900/50 rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm flex-1">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm text-neutral-400">
+                            <thead className="bg-white/5 text-neutral-300 uppercase tracking-wider text-xs">
+                                <tr>
+                                    <th className="p-4 w-12 text-center">#</th>
+                                    <th className="p-4">Title</th>
+                                    <th className="p-4 hidden md:table-cell">Artist</th>
+                                    <th className="p-4 hidden lg:table-cell">Album</th>
+                                    <th className="p-4 text-right">Time</th>
+                                    <th className="p-4 w-24"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {displayItems.map((song: ISong, idx) => (
+                                    <tr key={song.id} className="hover:bg-white/5 group transition-colors">
+                                        <td className="p-4 text-center cursor-pointer relative" onClick={() => playSong(song, displayItems as ISong[])}>
+                                            <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
+                                                <span className="font-mono text-neutral-600 text-sm absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
+                                                    {(page * ITEMS_PER_PAGE) + idx + 1}
+                                                </span>
+                                                <Play className="w-4 h-4 text-primary absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
+                                            </div>
+                                        </td>
+                                        <td className="p-4 font-medium text-white cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>
+                                            <div className="flex items-center">
+                                                <img src={service.getCoverArtUrl(song.id, 40)} className="w-10 h-10 rounded-md mr-3 object-cover bg-neutral-800 shadow-sm" loading="lazy" alt="" />
+                                                <div className="min-w-0">
+                                                    <div className="truncate">{song.title}</div>
+                                                    <div className="md:hidden text-xs text-neutral-500 truncate">{song.artist}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="p-4 hidden md:table-cell cursor-pointer hover:text-white hover:underline" onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}>{song.artist}</td>
+                                        <td className="p-4 hidden lg:table-cell cursor-pointer hover:text-white hover:underline" onClick={(e) => { e.stopPropagation(); if(song.albumId) setView('ALBUM_DETAIL', song.albumId); }}>{song.album}</td>
+                                        <td className="p-4 text-right font-mono cursor-pointer" onClick={() => playSong(song, displayItems as ISong[])}>{Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}</td>
+                                        <td className="p-4 text-right flex items-center justify-end">
+                                            <button 
+                                                onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }} 
+                                                className="text-neutral-500 hover:text-primary p-2 opacity-0 group-hover:opacity-100 transition hover:bg-white/10 rounded-full"
+                                                title="Add to Playlist"
+                                            >
+                                                <ListPlus className="w-4 h-4" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {displayItems.length === 0 && (
+                                    <tr>
+                                        <td colSpan={6} className="p-8 text-center text-neutral-500">
+                                            No songs match current filters.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                  )}
-                  
-                  {/* Hover Play Overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
-                       {currentView === 'ARTISTS' ? (
-                           <span className="px-4 py-1.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-wider transform scale-90 group-hover:scale-100 transition-transform">View</span>
-                       ) : (
-                           <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                               <Play className="w-5 h-5 text-black fill-current ml-1" />
-                           </div>
-                       )}
-                  </div>
                 </div>
-                
-                <div className={currentView === 'ARTISTS' ? 'text-center' : ''}>
-                    <h3 className="font-bold text-white truncate leading-tight mb-1">{item.name}</h3>
-                    {currentView !== 'ARTISTS' && currentView !== 'PLAYLISTS' && <p className="text-xs text-neutral-400 truncate hover:text-white transition">{item.artist}</p>}
-                    {currentView === 'ARTISTS' && <p className="text-xs text-neutral-500 truncate">{item.albumCount} Albums</p>}
-                    {currentView === 'PLAYLISTS' && <p className="text-xs text-neutral-500 truncate">{item.songCount} Songs</p>}
+            ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 flex-1 content-start">
+                    {displayItems.map((item: any) => (
+                    <div 
+                        key={item.id} 
+                        className="group cursor-pointer bg-neutral-900/50 rounded-2xl p-4 border border-white/5 hover:bg-white/10 hover:border-white/10 transition duration-300"
+                        onClick={() => {
+                            if (currentView === 'ARTISTS') {
+                                setView('ARTIST_DETAIL', item.id);
+                            } else if (currentView === 'ALBUMS') {
+                                setView('ALBUM_DETAIL', item.id);
+                            } else if (currentView === 'PLAYLISTS') {
+                                setView('PLAYLIST_DETAIL', item.id);
+                            }
+                        }}
+                    >
+                        <div className={`aspect-square overflow-hidden mb-4 relative shadow-lg bg-neutral-800 ${currentView === 'ARTISTS' ? 'rounded-full' : 'rounded-xl'}`}>
+                        {item.coverArt || (currentView === 'ARTISTS' && item.id) ? (
+                            <img 
+                                src={currentView === 'ARTISTS' ? service.getCoverArtUrl(item.coverArt || item.id, 300) : service.getCoverArtUrl(item.coverArt || item.id, 300)} 
+                                alt={item.name} 
+                                className="w-full h-full object-cover transition-opacity" 
+                                loading="lazy"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-neutral-800">
+                                {currentView === 'ARTISTS' ? <Mic2 className="w-12 h-12 text-neutral-700" /> : <Music className="w-12 h-12 text-neutral-700" />}
+                            </div>
+                        )}
+                        
+                        {/* Hover Play Overlay */}
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
+                            {currentView === 'ARTISTS' ? (
+                                <span className="px-4 py-1.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-wider transform scale-90 group-hover:scale-100 transition-transform">View</span>
+                            ) : (
+                                <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                    <Play className="w-5 h-5 text-black fill-current ml-1" />
+                                </div>
+                            )}
+                        </div>
+                        </div>
+                        
+                        <div className={currentView === 'ARTISTS' ? 'text-center' : ''}>
+                            <h3 className="font-bold text-white truncate leading-tight mb-1">{item.name}</h3>
+                            {currentView !== 'ARTISTS' && currentView !== 'PLAYLISTS' && <p className="text-xs text-neutral-400 truncate hover:text-white transition">{item.artist}</p>}
+                            {currentView === 'ARTISTS' && <p className="text-xs text-neutral-500 truncate">{item.albumCount} Albums</p>}
+                            {currentView === 'PLAYLISTS' && <p className="text-xs text-neutral-500 truncate">{item.songCount} Songs</p>}
+                        </div>
+                    </div>
+                    ))}
                 </div>
-              </div>
-            ))}
-          </div>
-      )}
-      
-      {displayItems.length === 0 && !isLoading && (
-          <div className="text-center py-20 text-neutral-500">
-              <p className="text-lg">No items found.</p>
-              <button onClick={resetFilters} className="mt-4 text-primary hover:underline text-sm">Clear filters</button>
-          </div>
+            )}
+
+            {displayItems.length === 0 && !isLoading && (
+                <div className="text-center py-20 text-neutral-500">
+                    <p className="text-lg">No items found.</p>
+                    <button onClick={resetFilters} className="mt-4 text-primary hover:underline text-sm">Clear filters</button>
+                </div>
+            )}
+          </>
       )}
 
-      {/* Bottom Pagination */}
       {shouldShowPagination && <PaginationControls />}
     </div>
   );
