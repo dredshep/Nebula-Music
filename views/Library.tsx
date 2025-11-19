@@ -123,6 +123,108 @@ const YearPicker: React.FC<{ value: string, onChange: (val: string) => void }> =
     );
 };
 
+const FilterBar: React.FC<{
+  currentView: View;
+  filter: string;
+  setFilter: (val: string) => void;
+  setPage: (val: number) => void;
+  sortType: string;
+  setSortType: (val: string) => void;
+  selectedGenre: string;
+  setSelectedGenre: (val: string) => void;
+  selectedYear: string;
+  setSelectedYear: (val: string) => void;
+  genres: string[];
+  resetFilters: () => void;
+}> = ({
+  currentView,
+  filter,
+  setFilter,
+  setPage,
+  sortType,
+  setSortType,
+  selectedGenre,
+  setSelectedGenre,
+  selectedYear,
+  setSelectedYear,
+  genres,
+  resetFilters
+}) => (
+      <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+            {/* Text Search */}
+            <div className="relative flex-1 min-w-[200px] group">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-primary transition-colors" />
+                <input 
+                    type="text" 
+                    value={filter}
+                    onChange={(e) => { setFilter(e.target.value); setPage(0); }}
+                    placeholder={`Search ${currentView.toLowerCase()}...`}
+                    className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-10 pr-8 text-sm focus:border-primary focus:outline-none transition-colors"
+                />
+                {filter && (
+                    <button onClick={() => setFilter('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white">
+                        <X className="w-3 h-3" />
+                    </button>
+                )}
+            </div>
+
+            {/* Sorting for Albums */}
+            {currentView === 'ALBUMS' && !filter && !selectedGenre && !selectedYear && (
+                <div className="relative min-w-[140px]">
+                    <ArrowDownUp className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+                    <select
+                        value={sortType}
+                        onChange={(e) => { setSortType(e.target.value); setPage(0); }}
+                        className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
+                    >
+                        <option value="alphabeticalByName">A-Z</option>
+                        <option value="newest">Recently Added</option>
+                        <option value="recent">Recently Played</option>
+                        <option value="frequent">Most Played</option>
+                        <option value="random">Random</option>
+                        <option value="byYear">By Year</option>
+                    </select>
+                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
+                </div>
+            )}
+            
+            {/* Advanced Filters for Albums/Songs */}
+            {(currentView === 'ALBUMS' || currentView === 'SONGS') && (
+                <>
+                    {/* Genre Select */}
+                    <div className="relative min-w-[140px]">
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
+                        <select 
+                            value={selectedGenre}
+                            onChange={(e) => { setSelectedGenre(e.target.value); setPage(0); }}
+                            className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
+                        >
+                            <option value="">All Genres</option>
+                            {genres.map(g => <option key={g} value={g}>{g}</option>)}
+                        </select>
+                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
+                    </div>
+
+                    {/* Year Picker */}
+                    <YearPicker 
+                        value={selectedYear} 
+                        onChange={(val) => { setSelectedYear(val); setPage(0); }} 
+                    />
+
+                    {(selectedGenre || selectedYear) && (
+                        <button 
+                            onClick={resetFilters}
+                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition"
+                            title="Clear Filters"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
+                </>
+            )}
+      </div>
+);
+
 export const LibraryView: React.FC = () => {
   const { currentView, setView, viewData, service, playSong, openPlaylistModal, playlists, createPlaylist } = useStore();
   
@@ -300,83 +402,49 @@ export const LibraryView: React.FC = () => {
       </div>
   );
 
-  const FilterBar = () => (
-      <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            {/* Text Search */}
-            <div className="relative flex-1 min-w-[200px] group">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500 group-focus-within:text-primary transition-colors" />
-                <input 
-                    type="text" 
-                    value={filter}
-                    onChange={(e) => { setFilter(e.target.value); setPage(0); }}
-                    placeholder={`Search ${currentView.toLowerCase()}...`}
-                    className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-10 pr-8 text-sm focus:border-primary focus:outline-none transition-colors"
+  if (isLoading && !displayItems.length) {
+      return (
+          <div className="p-10 pb-32">
+              <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+                <h2 className="text-3xl font-bold capitalize flex items-center">
+                    {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
+                    {currentView === 'ALBUMS' && <Disc className="w-8 h-8 mr-3 text-primary" />}
+                    {currentView === 'SONGS' && <Music className="w-8 h-8 mr-3 text-primary" />}
+                    {currentView === 'PLAYLISTS' && <ListPlus className="w-8 h-8 mr-3 text-primary" />}
+                    {currentView.toLowerCase()}
+                </h2>
+                <FilterBar 
+                  currentView={currentView}
+                  filter={filter}
+                  setFilter={setFilter}
+                  setPage={setPage}
+                  sortType={sortType}
+                  setSortType={setSortType}
+                  selectedGenre={selectedGenre}
+                  setSelectedGenre={setSelectedGenre}
+                  selectedYear={selectedYear}
+                  setSelectedYear={setSelectedYear}
+                  genres={genres}
+                  resetFilters={resetFilters}
                 />
-                {filter && (
-                    <button onClick={() => setFilter('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white">
-                        <X className="w-3 h-3" />
-                    </button>
-                )}
-            </div>
+              </div>
+              <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
+                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p>Loading library...</p>
+              </div>
+          </div>
+      );
+  }
 
-            {/* Sorting for Albums */}
-            {currentView === 'ALBUMS' && !filter && !selectedGenre && !selectedYear && (
-                <div className="relative min-w-[140px]">
-                    <ArrowDownUp className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-                    <select
-                        value={sortType}
-                        onChange={(e) => { setSortType(e.target.value); setPage(0); }}
-                        className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
-                    >
-                        <option value="alphabeticalByName">A-Z</option>
-                        <option value="newest">Recently Added</option>
-                        <option value="recent">Recently Played</option>
-                        <option value="frequent">Most Played</option>
-                        <option value="random">Random</option>
-                        <option value="byYear">By Year</option>
-                    </select>
-                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
-                </div>
-            )}
-            
-            {/* Advanced Filters for Albums/Songs */}
-            {(currentView === 'ALBUMS' || currentView === 'SONGS') && (
-                <>
-                    {/* Genre Select */}
-                    <div className="relative min-w-[140px]">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
-                        <select 
-                            value={selectedGenre}
-                            onChange={(e) => { setSelectedGenre(e.target.value); setPage(0); }}
-                            className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-9 pr-8 text-sm appearance-none focus:border-primary focus:outline-none text-neutral-300 cursor-pointer hover:bg-white/5 transition"
-                        >
-                            <option value="">All Genres</option>
-                            {genres.map(g => <option key={g} value={g}>{g}</option>)}
-                        </select>
-                        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 rotate-90 pointer-events-none" />
-                    </div>
+  const showPagination = !filter && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
+  const showPaginationAlways = currentView !== 'PLAYLISTS' && currentView !== 'ARTISTS' && (displayItems.length > 0 || page > 0);
+  const showPaginationArtists = currentView === 'ARTISTS' && !filter && (displayItems.length > 0 || page > 0);
+  const shouldShowPagination = showPaginationAlways || showPaginationArtists;
 
-                    {/* Year Picker */}
-                    <YearPicker 
-                        value={selectedYear} 
-                        onChange={(val) => { setSelectedYear(val); setPage(0); }} 
-                    />
-
-                    {(selectedGenre || selectedYear) && (
-                        <button 
-                            onClick={resetFilters}
-                            className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white transition"
-                            title="Clear Filters"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
-                    )}
-                </>
-            )}
-      </div>
-  );
-
-  const ViewHeader = () => (
+  return (
+    <div className="p-6 md:p-10 pb-32 min-h-screen flex flex-col" ref={scrollRef}>
+      
+      {/* View Header Inlined */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
         <h2 className="text-3xl font-bold capitalize flex items-center">
             {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
@@ -387,7 +455,20 @@ export const LibraryView: React.FC = () => {
         </h2>
         
         <div className="flex flex-wrap items-center w-full lg:w-auto gap-3">
-            <FilterBar />
+            <FilterBar 
+                currentView={currentView}
+                filter={filter}
+                setFilter={setFilter}
+                setPage={setPage}
+                sortType={sortType}
+                setSortType={setSortType}
+                selectedGenre={selectedGenre}
+                setSelectedGenre={setSelectedGenre}
+                selectedYear={selectedYear}
+                setSelectedYear={setSelectedYear}
+                genres={genres}
+                resetFilters={resetFilters}
+            />
 
             {currentView === 'PLAYLISTS' && (
                 <div className="flex items-center ml-auto lg:ml-0">
@@ -420,28 +501,6 @@ export const LibraryView: React.FC = () => {
             )}
         </div>
       </div>
-  );
-
-  if (isLoading && !displayItems.length) {
-      return (
-          <div className="p-10 pb-32">
-              <ViewHeader />
-              <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
-                  <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                  <p>Loading library...</p>
-              </div>
-          </div>
-      );
-  }
-
-  const showPagination = !filter && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
-  const showPaginationAlways = currentView !== 'PLAYLISTS' && currentView !== 'ARTISTS' && (displayItems.length > 0 || page > 0);
-  const showPaginationArtists = currentView === 'ARTISTS' && !filter && (displayItems.length > 0 || page > 0);
-  const shouldShowPagination = showPaginationAlways || showPaginationArtists;
-
-  return (
-    <div className="p-6 md:p-10 pb-32 min-h-screen flex flex-col" ref={scrollRef}>
-      <ViewHeader />
 
       {/* Top Pagination */}
       {shouldShowPagination && <PaginationControls />}

@@ -61,7 +61,7 @@ export const AlbumDetailView: React.FC = () => {
   return (
     <div className="flex flex-col min-h-full pb-10">
       {/* Header / Top Section */}
-      <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden">
+      <div className="relative px-8 pb-8 pt-4 md:px-12 md:pb-12 md:pt-8 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden">
         
         {/* Dynamic Background Blur */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -76,8 +76,8 @@ export const AlbumDetailView: React.FC = () => {
                 {isPlaying && isAlbumPlaying && <Visualizer className="w-full h-full opacity-50 scale-110" />}
             </div>
             
-            {/* The Cover Art */}
-            <div className="relative w-64 h-64 md:w-80 md:h-80 rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900">
+            {/* The Cover Art - INCREASED SIZE */}
+            <div className="relative w-72 h-72 md:w-[400px] md:h-[400px] rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900">
                 <img 
                     src={service.getCoverArtUrl(album.coverArt || album.id, 600)} 
                     alt={album.name} 
@@ -92,33 +92,35 @@ export const AlbumDetailView: React.FC = () => {
             <button onClick={() => setView('ALBUMS')} className="mb-4 flex items-center justify-center md:justify-start text-neutral-400 hover:text-white transition text-sm">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to Albums
             </button>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">{album.name}</h1>
-            <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-neutral-300 mb-6">
+            {/* Increased Font Size */}
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-3 tracking-tight leading-none">{album.name}</h1>
+            
+            <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-neutral-300 mb-8">
                 <span 
-                    className="text-xl text-primary cursor-pointer hover:underline font-bold"
+                    className="text-2xl text-primary cursor-pointer hover:underline font-bold"
                     onClick={() => album.artistId && setView('ARTIST_DETAIL', album.artistId)}
                 >
                     {album.artist}
                 </span>
-                <span className="hidden md:block w-1 h-1 bg-neutral-500 rounded-full"></span>
-                <span>{album.year}</span>
-                <span className="hidden md:block w-1 h-1 bg-neutral-500 rounded-full"></span>
+                <span className="hidden md:block w-1.5 h-1.5 bg-neutral-500 rounded-full"></span>
+                <span className="text-lg">{album.year}</span>
+                <span className="hidden md:block w-1.5 h-1.5 bg-neutral-500 rounded-full"></span>
                 <span className="uppercase text-xs border border-neutral-600 px-2 py-0.5 rounded text-neutral-400">{album.genre || 'Music'}</span>
             </div>
 
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5">
                 <button 
                     onClick={() => album.songs && playSong(album.songs[0], album.songs)}
-                    className="px-8 py-3 bg-primary text-black font-bold rounded-full hover:bg-white transition shadow-lg shadow-primary/20 flex items-center"
+                    className="px-10 py-4 bg-primary text-black text-lg font-bold rounded-full hover:bg-white transition shadow-xl shadow-primary/20 flex items-center transform hover:scale-105"
                 >
-                    <Play className="w-5 h-5 mr-2 fill-current" /> Play Album
+                    <Play className="w-6 h-6 mr-2 fill-current" /> Play Album
                 </button>
-                <button className="px-4 py-3 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center">
-                    <Shuffle className="w-5 h-5 mr-2" /> Shuffle
+                <button className="px-6 py-4 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center border border-white/10">
+                    <Shuffle className="w-6 h-6 mr-2" /> Shuffle
                 </button>
             </div>
             
-            <div className="mt-6 flex items-center justify-center md:justify-start gap-6 text-xs font-mono text-neutral-500 uppercase tracking-widest">
+            <div className="mt-8 flex items-center justify-center md:justify-start gap-8 text-sm font-mono text-neutral-500 uppercase tracking-widest">
                 <span className="flex items-center"><ListMusic className="w-4 h-4 mr-2" /> {album.songCount} Tracks</span>
                 <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {formatTotalTime(album.duration)}</span>
             </div>

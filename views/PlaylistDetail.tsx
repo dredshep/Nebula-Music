@@ -116,7 +116,7 @@ export const PlaylistDetailView: React.FC = () => {
   return (
     <div className="flex flex-col min-h-full pb-10 relative">
       {/* Header / Top Section */}
-      <div className="relative p-8 md:p-12 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden shrink-0">
+      <div className="relative px-8 pb-8 pt-4 md:px-12 md:pb-12 md:pt-8 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden shrink-0">
         
         {/* Dynamic Background Blur */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -126,13 +126,13 @@ export const PlaylistDetailView: React.FC = () => {
              <div className="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/90 to-dark"></div>
         </div>
 
-        {/* Cover Art */}
+        {/* Cover Art - INCREASED SIZE */}
         <div className="relative z-10 group">
-            <div className="w-64 h-64 bg-neutral-900 shadow-2xl rounded-lg overflow-hidden border border-white/10 flex items-center justify-center">
+            <div className="w-72 h-72 md:w-[400px] md:h-[400px] bg-neutral-900 shadow-2xl rounded-lg overflow-hidden border border-white/10 flex items-center justify-center">
                 {playlist.coverArt ? (
                     <img src={service.getCoverArtUrl(playlist.coverArt, 600)} alt={playlist.name} className="w-full h-full object-cover" />
                 ) : (
-                    <ListMusic className="w-24 h-24 text-neutral-700" />
+                    <ListMusic className="w-32 h-32 text-neutral-700" />
                 )}
             </div>
         </div>
@@ -142,19 +142,20 @@ export const PlaylistDetailView: React.FC = () => {
             <button onClick={() => setView(isSavedPlaylist ? 'PLAYLISTS' : 'BROWSE')} className="mb-4 flex items-center justify-center md:justify-start text-neutral-400 hover:text-white transition text-sm">
                 <ArrowLeft className="w-4 h-4 mr-1" /> Back to {isSavedPlaylist ? 'Playlists' : 'Browse'}
             </button>
-            <h1 className="text-4xl md:text-6xl font-bold text-white mb-4 tracking-tight">{playlist.name}</h1>
+            {/* Increased Font Size */}
+            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-none">{playlist.name}</h1>
             
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6">
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 mb-8">
                 {playlist.songs && playlist.songs.length > 0 && (
                     <>
                         <button 
                             onClick={() => playlist.songs && playSong(playlist.songs[0], playlist.songs)}
-                            className="px-8 py-3 bg-primary text-black font-bold rounded-full hover:bg-white transition shadow-lg shadow-primary/20 flex items-center"
+                            className="px-10 py-4 bg-primary text-black text-lg font-bold rounded-full hover:bg-white transition shadow-xl shadow-primary/20 flex items-center transform hover:scale-105"
                         >
-                            <Play className="w-5 h-5 mr-2 fill-current" /> Play
+                            <Play className="w-6 h-6 mr-2 fill-current" /> Play
                         </button>
-                        <button className="px-4 py-3 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center">
-                            <Shuffle className="w-5 h-5 mr-2" /> Shuffle
+                        <button className="px-6 py-4 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center border border-white/10">
+                            <Shuffle className="w-6 h-6 mr-2" /> Shuffle
                         </button>
                     </>
                 )}
@@ -162,21 +163,21 @@ export const PlaylistDetailView: React.FC = () => {
                 {isSavedPlaylist ? (
                     <button 
                         onClick={() => { if(confirm('Are you sure you want to delete this playlist?')) deletePlaylist(playlist.id); }}
-                        className="px-4 py-3 bg-red-500/10 text-red-500 font-medium rounded-full hover:bg-red-500/20 transition flex items-center border border-red-500/20"
+                        className="px-6 py-4 bg-red-500/10 text-red-500 font-medium rounded-full hover:bg-red-500/20 transition flex items-center border border-red-500/20"
                     >
-                        <Trash2 className="w-5 h-5 mr-2" /> Delete
+                        <Trash2 className="w-6 h-6 mr-2" /> Delete
                     </button>
                 ) : (
                     <button 
                         onClick={handleSave}
-                        className="px-6 py-3 bg-secondary/20 text-secondary font-bold rounded-full hover:bg-secondary hover:text-white transition flex items-center border border-secondary/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]"
+                        className="px-8 py-4 bg-secondary/20 text-secondary font-bold rounded-full hover:bg-secondary hover:text-white transition flex items-center border border-secondary/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]"
                     >
-                        <Save className="w-5 h-5 mr-2" /> Save as Playlist
+                        <Save className="w-6 h-6 mr-2" /> Save as Playlist
                     </button>
                 )}
             </div>
             
-            <div className="flex items-center justify-center md:justify-start gap-6 text-xs font-mono text-neutral-500 uppercase tracking-widest">
+            <div className="flex items-center justify-center md:justify-start gap-8 text-sm font-mono text-neutral-500 uppercase tracking-widest">
                 <span className="flex items-center"><ListMusic className="w-4 h-4 mr-2" /> {playlist.songCount} Tracks</span>
                 <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {formatTotalTime(playlist.duration)}</span>
                 <span>Created {new Date(playlist.created).toLocaleDateString()}</span>

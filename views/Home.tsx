@@ -178,15 +178,13 @@ export const HomeView: React.FC = () => {
                          onClick={() => playSong(featured, heroSongs)}
                          className="flex items-center px-8 py-3.5 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg hover:scale-105 active:scale-95 duration-200"
                      >
-                         <Play className="w-5 h-5 mr-2 fill-current" />
-                         Listen Now
+                         <Play className="w-5 h-5 mr-2 fill-current" /> Listen Now
                      </button>
                      <button 
                          onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
                          className="flex items-center px-8 py-3.5 bg-white/10 text-white rounded-full font-bold hover:bg-white/20 transition backdrop-blur-md border border-white/10"
                      >
-                         <Disc className="w-5 h-5 mr-2" />
-                         View Album
+                         <Disc className="w-5 h-5 mr-2" /> View Album
                      </button>
                  </div>
              </div>
@@ -267,10 +265,11 @@ export const HomeView: React.FC = () => {
     <div className="p-6 md:p-10 pb-32 max-w-[1600px] mx-auto">
       <HeroSection />
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      {/* Adjusted height to 600px to fit 2 rows of cards symmetrically */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[600px]">
           {/* Quick Picks (Top Left) */}
-          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-4">
+          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between mb-4 shrink-0">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
                     className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1"
@@ -279,8 +278,9 @@ export const HomeView: React.FC = () => {
                     <RefreshCw className="w-3 h-3" /> Refresh
                   </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {randomSongs.slice(5, 13).map((song, i) => (
+              {/* Added overflow-y-auto and pr-2 to handle overflow elegantly */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+                  {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
                           <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-neutral-800 shadow-md">
                               <img src={service.getCoverArtUrl(song.coverArt || song.id, 200)} className="w-full h-full object-cover" alt="" />
@@ -307,8 +307,8 @@ export const HomeView: React.FC = () => {
           </div>
 
           {/* Tabbed Box: Most Played / Recommended (Top Right) */}
-          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col h-[500px]">
-               <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-around">
+          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col h-full">
+               <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-around shrink-0">
                    <button 
                         onClick={() => setActiveTab('played')}
                         className={`flex-1 text-center py-2 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'played' ? 'text-primary border-b-2 border-primary' : 'text-neutral-500 hover:text-white'}`}
