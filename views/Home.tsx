@@ -125,7 +125,7 @@ export const HomeView: React.FC = () => {
 
     return (
       <div 
-        className="relative w-full h-[450px] rounded-3xl overflow-hidden mb-12 group shadow-2xl shadow-black/50 border border-white/5 transition-all"
+        className="relative w-full min-h-[550px] lg:min-h-[450px] lg:h-[450px] rounded-3xl overflow-hidden mb-12 group shadow-2xl shadow-black/50 border border-white/5 transition-all flex flex-col justify-center"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -138,9 +138,9 @@ export const HomeView: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent/30" />
          </div>
 
-         <div className="relative z-10 h-full flex flex-col md:flex-row items-center p-8 md:p-16 gap-10 md:gap-16">
-             <div key={featured.id + '-img'} className="shrink-0 animate-fade-in-up">
-                 <div className="w-48 h-48 md:w-64 md:h-64 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900 relative group/art cursor-pointer" onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}>
+         <div className="relative z-10 w-full flex flex-col lg:flex-row items-center p-6 md:p-12 lg:p-16 gap-8 lg:gap-16">
+             <div key={featured.id + '-img'} className="shrink-0 animate-fade-in-up mt-8 lg:mt-0">
+                 <div className="w-48 h-48 md:w-64 md:h-64 lg:w-64 lg:h-64 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900 relative group/art cursor-pointer" onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}>
                      <img 
                         src={artUrl} 
                         className="w-full h-full object-cover transition-transform duration-700 group-hover/art:scale-105 transform-gpu" 
@@ -150,30 +150,30 @@ export const HomeView: React.FC = () => {
                  </div>
              </div>
 
-             <div key={featured.id + '-text'} className="flex-1 text-center md:text-left animate-fade-in flex flex-col justify-center items-center md:items-start">
+             <div key={featured.id + '-text'} className="flex-1 text-center lg:text-left animate-fade-in flex flex-col justify-center items-center lg:items-start w-full min-w-0 mb-12 lg:mb-0">
                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider text-white mb-6">
                      <Flame className="w-3 h-3 mr-2 text-orange-500" /> Featured Track
                  </div>
                  
                  <h1 
-                    className="text-4xl md:text-6xl font-bold text-white mb-2 leading-tight drop-shadow-lg cursor-pointer hover:text-primary transition line-clamp-2"
+                    className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 leading-tight drop-shadow-lg cursor-pointer hover:text-primary transition line-clamp-2 py-2 pr-4"
                     onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
                  >
                      {featured.title}
                  </h1>
                  
-                 <div className="flex flex-col md:flex-row items-center gap-2 md:gap-4 text-lg md:text-xl text-neutral-200 mb-8 font-medium drop-shadow-md">
+                 <div className="flex flex-col lg:flex-row items-center gap-2 md:gap-4 text-lg md:text-xl text-neutral-200 mb-8 font-medium drop-shadow-md">
                      <span 
                         className="hover:text-white cursor-pointer hover:underline"
                         onClick={() => { if(featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
                      >
                          {featured.artist}
                      </span>
-                     <span className="hidden md:inline text-neutral-500">•</span>
+                     <span className="hidden lg:inline text-neutral-500">•</span>
                      <span className="text-neutral-400">{featured.album}</span>
                  </div>
 
-                 <div className="flex flex-wrap justify-center md:justify-start gap-4">
+                 <div className="flex flex-wrap justify-center lg:justify-start gap-4">
                      <button 
                          onClick={() => playSong(featured, heroSongs)}
                          className="flex items-center px-8 py-3.5 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg hover:scale-105 active:scale-95 duration-200"

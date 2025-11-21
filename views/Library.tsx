@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useMemo, useRef, useLayoutEffect } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum, ISong, IArtist, View } from '../types';
-import { Play, Music, Mic2, MoreVertical, Plus, ListPlus, Search, Disc, ChevronLeft, ChevronRight, ArrowUp, Filter, X, Calendar, Tag, ArrowDownUp, ChevronDown } from 'lucide-react';
+import { Play, Music, Mic2, MoreVertical, Plus, ListPlus, Search, Disc, ChevronLeft, ChevronRight, ArrowUp, Filter, X, Calendar, Tag, ArrowDownUp, ChevronDown, Heart, Star, ListMusic } from 'lucide-react';
 
 const ITEMS_PER_PAGE = 60; 
 
@@ -123,6 +123,56 @@ const YearPicker: React.FC<{ value: string, onChange: (val: string) => void }> =
     );
 };
 
+const ViewHeader = ({ currentView, children }: { currentView: View, children?: React.ReactNode }) => (
+    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
+        <h2 className="text-3xl font-bold capitalize flex items-center hidden md:flex">
+            {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
+            {currentView === 'ALBUMS' && <Disc className="w-8 h-8 mr-3 text-primary" />}
+            {currentView === 'SONGS' && <Music className="w-8 h-8 mr-3 text-primary" />}
+            {currentView === 'PLAYLISTS' && <ListPlus className="w-8 h-8 mr-3 text-primary" />}
+            {currentView === 'LIKED_SONGS' && <Heart className="w-8 h-8 mr-3 text-red-500 fill-current" />}
+            {currentView === 'LIKED_ALBUMS' && <Star className="w-8 h-8 mr-3 text-yellow-500 fill-current" />}
+            {currentView === 'LIKED_SONGS' ? 'Liked Songs' : currentView === 'LIKED_ALBUMS' ? 'Liked Albums' : currentView.toLowerCase()}
+        </h2>
+        
+        <div className="flex flex-wrap items-center w-full lg:w-auto gap-3">
+            {children}
+        </div>
+    </div>
+);
+
+const MobileLibraryTabs = () => {
+    const { currentView, setView } = useStore();
+    const tabs = [
+        { id: 'ALBUMS', label: 'Albums', icon: Disc },
+        { id: 'PLAYLISTS', label: 'Playlists', icon: ListMusic },
+        { id: 'ARTISTS', label: 'Artists', icon: Mic2 },
+        { id: 'SONGS', label: 'Songs', icon: Music },
+        { id: 'LIKED_SONGS', label: 'Liked', icon: Heart },
+    ];
+
+    return (
+        <div className="md:hidden w-full overflow-x-auto pb-4 mb-2 -mx-6 px-6 scrollbar-hide">
+            <div className="flex items-center gap-2">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setView(tab.id as any)}
+                        className={`flex items-center px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap border transition-all ${
+                            currentView === tab.id 
+                            ? 'bg-white text-black border-white shadow-md' 
+                            : 'bg-neutral-800/50 text-neutral-400 border-white/10'
+                        }`}
+                    >
+                        <tab.icon className={`w-3.5 h-3.5 mr-2 ${currentView === tab.id ? 'text-primary' : ''}`} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const FilterBar: React.FC<{
   currentView: View;
   filter: string;
@@ -158,7 +208,7 @@ const FilterBar: React.FC<{
                     type="text" 
                     value={filter}
                     onChange={(e) => { setFilter(e.target.value); setPage(0); }}
-                    placeholder={`Search ${currentView.toLowerCase()}...`}
+                    placeholder={`Search...`}
                     className="w-full bg-neutral-900 border border-white/10 rounded-full py-2 pl-10 pr-8 text-sm focus:border-primary focus:outline-none transition-colors"
                 />
                 {filter && (
@@ -170,7 +220,7 @@ const FilterBar: React.FC<{
 
             {/* Sorting for Albums */}
             {currentView === 'ALBUMS' && !filter && !selectedGenre && !selectedYear && (
-                <div className="relative min-w-[140px]">
+                <div className="relative min-w-[140px] flex-1 md:flex-none">
                     <ArrowDownUp className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
                     <select
                         value={sortType}
@@ -192,7 +242,7 @@ const FilterBar: React.FC<{
             {(currentView === 'ALBUMS' || currentView === 'SONGS') && (
                 <>
                     {/* Genre Select */}
-                    <div className="relative min-w-[140px]">
+                    <div className="relative min-w-[140px] flex-1 md:flex-none">
                         <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500 pointer-events-none" />
                         <select 
                             value={selectedGenre}
@@ -292,7 +342,6 @@ export const LibraryView: React.FC = () => {
             all = await service.getArtists();
             setAllItemsCached(all);
         }
-        // Pagination handled in render logic for Artists
       }
       // 3. ALBUMS (Server-side)
       else if (currentView === 'ALBUMS') {
@@ -330,6 +379,15 @@ export const LibraryView: React.FC = () => {
           setItems(res);
           setAllItemsCached(null);
       }
+      // 5. LIKED SONGS & ALBUMS (Fetch All, Client Side Paginate)
+      else if (currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS') {
+          const res = await service.getStarred();
+          if (currentView === 'LIKED_SONGS') {
+             setAllItemsCached(res.songs);
+          } else {
+             setAllItemsCached(res.albums);
+          }
+      }
       
       setIsLoading(false);
       // Scroll to top on page change
@@ -345,12 +403,21 @@ export const LibraryView: React.FC = () => {
           return items.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
       }
 
-      if (currentView === 'ARTISTS' && allItemsCached) {
+      const isLikedView = currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS';
+      if ((currentView === 'ARTISTS' || isLikedView) && allItemsCached) {
           let filtered = allItemsCached;
           if (filter) {
-              filtered = allItemsCached.filter(a => a.name.toLowerCase().includes(filter.toLowerCase()));
+              const q = filter.toLowerCase();
+              filtered = allItemsCached.filter(item => {
+                  if (currentView === 'ARTISTS') return item.name.toLowerCase().includes(q);
+                  // For songs/albums
+                  const title = item.title || item.name || '';
+                  const artist = item.artist || '';
+                  return title.toLowerCase().includes(q) || artist.toLowerCase().includes(q);
+              });
               return filtered;
           }
+          // Client-side pagination
           return filtered.slice(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE);
       }
 
@@ -402,26 +469,25 @@ export const LibraryView: React.FC = () => {
       </div>
   );
 
-  const showPagination = !filter && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
-  const showPaginationAlways = currentView !== 'PLAYLISTS' && currentView !== 'ARTISTS' && (displayItems.length > 0 || page > 0);
-  const showPaginationArtists = currentView === 'ARTISTS' && !filter && (displayItems.length > 0 || page > 0);
-  const shouldShowPagination = showPaginationAlways || showPaginationArtists;
+  const isClientSideView = currentView === 'ARTISTS' || currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS';
+  
+  // Logic for pagination visibility
+  // 1. Server Side views (ALBUMS, SONGS): Check if items present or not on first page
+  const showPaginationServer = !isClientSideView && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
+  
+  // 2. Client Side views: Check total items cached length vs page size
+  const showPaginationClient = isClientSideView && !filter && (allItemsCached?.length || 0) > ITEMS_PER_PAGE;
+
+  const shouldShowPagination = showPaginationServer || showPaginationClient;
+  const isSongView = currentView === 'SONGS' || currentView === 'LIKED_SONGS';
 
   return (
-    <div className="p-6 md:p-10 pb-32 min-h-screen flex flex-col" ref={scrollRef}>
+    <div className="p-6 md:p-10 min-h-screen flex flex-col" ref={scrollRef}>
       
-      {/* View Header */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 gap-4">
-        <h2 className="text-3xl font-bold capitalize flex items-center">
-            {currentView === 'ARTISTS' && <Mic2 className="w-8 h-8 mr-3 text-primary" />}
-            {currentView === 'ALBUMS' && <Disc className="w-8 h-8 mr-3 text-primary" />}
-            {currentView === 'SONGS' && <Music className="w-8 h-8 mr-3 text-primary" />}
-            {currentView === 'PLAYLISTS' && <ListPlus className="w-8 h-8 mr-3 text-primary" />}
-            {currentView.toLowerCase()}
-        </h2>
-        
-        <div className="flex flex-wrap items-center w-full lg:w-auto gap-3">
-            <FilterBar 
+      <MobileLibraryTabs />
+
+      <ViewHeader currentView={currentView}>
+          <FilterBar 
                 currentView={currentView}
                 filter={filter}
                 setFilter={setFilter}
@@ -465,8 +531,7 @@ export const LibraryView: React.FC = () => {
                     )}
                 </div>
             )}
-        </div>
-      </div>
+      </ViewHeader>
 
       {shouldShowPagination && <PaginationControls />}
 
@@ -478,7 +543,7 @@ export const LibraryView: React.FC = () => {
           </div>
       ) : (
           <>
-            {currentView === 'SONGS' ? (
+            {isSongView ? (
                 <div className="bg-neutral-900/50 rounded-2xl border border-white/5 overflow-hidden backdrop-blur-sm flex-1">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-neutral-400">
@@ -538,22 +603,22 @@ export const LibraryView: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 flex-1 content-start">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 flex-1 content-start">
                     {displayItems.map((item: any) => (
                     <div 
                         key={item.id} 
-                        className="group cursor-pointer bg-neutral-900/50 rounded-2xl p-4 border border-white/5 hover:bg-white/10 hover:border-white/10 transition duration-300"
+                        className="group cursor-pointer bg-neutral-900/50 rounded-2xl p-3 md:p-4 border border-white/5 hover:bg-white/10 hover:border-white/10 transition duration-300"
                         onClick={() => {
                             if (currentView === 'ARTISTS') {
                                 setView('ARTIST_DETAIL', item.id);
-                            } else if (currentView === 'ALBUMS') {
+                            } else if (currentView === 'ALBUMS' || currentView === 'LIKED_ALBUMS') {
                                 setView('ALBUM_DETAIL', item.id);
                             } else if (currentView === 'PLAYLISTS') {
                                 setView('PLAYLIST_DETAIL', item.id);
                             }
                         }}
                     >
-                        <div className={`aspect-square overflow-hidden mb-4 relative shadow-lg bg-neutral-800 ${currentView === 'ARTISTS' ? 'rounded-full' : 'rounded-xl'}`}>
+                        <div className={`aspect-square overflow-hidden mb-3 md:mb-4 relative shadow-lg bg-neutral-800 ${currentView === 'ARTISTS' ? 'rounded-full' : 'rounded-xl'}`}>
                         {item.coverArt || (currentView === 'ARTISTS' && item.id) ? (
                             <img 
                                 src={currentView === 'ARTISTS' ? service.getCoverArtUrl(item.coverArt || item.id, 300) : service.getCoverArtUrl(item.coverArt || item.id, 300)} 
@@ -580,7 +645,7 @@ export const LibraryView: React.FC = () => {
                         </div>
                         
                         <div className={currentView === 'ARTISTS' ? 'text-center' : ''}>
-                            <h3 className="font-bold text-white truncate leading-tight mb-1">{item.name}</h3>
+                            <h3 className="font-bold text-white truncate leading-tight mb-1 text-sm md:text-base">{item.name}</h3>
                             {currentView !== 'ARTISTS' && currentView !== 'PLAYLISTS' && <p className="text-xs text-neutral-400 truncate hover:text-white transition">{item.artist}</p>}
                             {currentView === 'ARTISTS' && <p className="text-xs text-neutral-500 truncate">{item.albumCount} Albums</p>}
                             {currentView === 'PLAYLISTS' && <p className="text-xs text-neutral-500 truncate">{item.songCount} Songs</p>}

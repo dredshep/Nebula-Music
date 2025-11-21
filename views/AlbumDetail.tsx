@@ -1,12 +1,14 @@
 
+
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
-import { IAlbum } from '../types';
-import { Play, Shuffle, Clock, Heart, ListMusic, ArrowLeft, MoreVertical, ListPlus, Info, Disc, BarChart2 } from 'lucide-react';
+import { IAlbum, ISong } from '../types';
+import { Play, Shuffle, Clock, Heart, ListMusic, ArrowLeft, ListPlus, BarChart2, Disc } from 'lucide-react';
 import { Visualizer } from '../components/Visualizer';
 
 export const AlbumDetailView: React.FC = () => {
-  const { viewData, setView, service, playSong, isPlaying, queue, currentSongIndex, openPlaylistModal } = useStore();
+  const { viewData, setView, service, playSong, isPlaying, queue, currentSongIndex, openPlaylistModal, toggleLike } = useStore();
   const [album, setAlbum] = useState<IAlbum | null>(null);
   const [showInfo, setShowInfo] = useState(false);
 
@@ -53,6 +55,21 @@ export const AlbumDetailView: React.FC = () => {
               )}
           </div>
       );
+  };
+
+  const toggleAlbumLike = async () => {
+      if (!album) return;
+      const newStatus = !album.starred;
+      setAlbum({ ...album, starred: newStatus });
+      await service.toggleStar(album.id, newStatus, 'album');
+  };
+
+  const handleSongLike = (song: ISong) => {
+      toggleLike(song);
+      setAlbum(prev => prev ? {
+          ...prev,
+          songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s)
+      } : null);
   };
 
   const currentSong = queue[currentSongIndex];
@@ -117,6 +134,12 @@ export const AlbumDetailView: React.FC = () => {
                 </button>
                 <button className="px-6 py-4 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center border border-white/10">
                     <Shuffle className="w-6 h-6 mr-2" /> Shuffle
+                </button>
+                <button 
+                    onClick={toggleAlbumLike}
+                    className={`px-6 py-4 font-medium rounded-full transition flex items-center border ${album.starred ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                >
+                    <Heart className={`w-6 h-6 mr-2 ${album.starred ? 'fill-current' : ''}`} /> {album.starred ? 'Liked' : 'Like'}
                 </button>
             </div>
             
@@ -230,7 +253,14 @@ export const AlbumDetailView: React.FC = () => {
                                     <td className="p-4 text-right font-mono cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
                                         {formatTime(song.duration)}
                                     </td>
-                                    <td className="p-4 text-right flex items-center justify-end">
+                                    <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
+                                            className={`p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${song.starred ? 'text-red-500 opacity-100' : 'text-neutral-500 hover:text-white'}`}
+                                            title={song.starred ? "Unlike" : "Like"}
+                                        >
+                                            <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
+                                        </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                             className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"

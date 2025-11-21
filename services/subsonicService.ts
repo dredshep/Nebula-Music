@@ -1,4 +1,6 @@
 
+
+
 import { SubsonicCredentials, ISong, IAlbum, IArtist, IPlaylist } from '../types';
 import { MOCK_ALBUMS, MOCK_ARTISTS, MOCK_SONGS, MOCK_PLAYLISTS } from '../constants';
 import { db } from './db';
@@ -108,15 +110,44 @@ export class SubsonicService {
     };
   }
 
-  async toggleStar(id: string, star: boolean): Promise<boolean> {
+  async toggleStar(id: string, star: boolean, type: 'song' | 'album' | 'artist' = 'song'): Promise<boolean> {
     if (this.isDemo) return true;
     try {
         const method = star ? 'star.view' : 'unstar.view';
-        const res = await fetch(this.buildUrl(method, { id }));
+        const params: any = {};
+        
+        if (type === 'album') params.albumId = id;
+        else if (type === 'artist') params.artistId = id;
+        else params.id = id;
+
+        const res = await fetch(this.buildUrl(method, params));
         const data = await res.json();
         return data['subsonic-response'].status === 'ok';
     } catch (e) {
         return false;
+    }
+  }
+
+  async getStarred(): Promise<{ songs: ISong[], albums: IAlbum[], artists: IArtist[] }> {
+    if (this.isDemo) {
+       const songs = MOCK_SONGS.map(s => ({ ...s, starred: true })).slice(0, 5);
+       const albums = MOCK_ALBUMS.map(a => ({ ...a, starred: true })).slice(0, 3);
+       return { songs, albums, artists: [] };
+    }
+
+    try {
+        const res = await fetch(this.buildUrl('getStarred.view'));
+        const data = await res.json();
+        const starred = data['subsonic-response'].starred;
+        if (!starred) return { songs: [], albums: [], artists: [] };
+
+        return {
+            songs: (starred.song || []).map((s: any) => this.mapSong(s)),
+            albums: starred.album || [],
+            artists: starred.artist || []
+        };
+    } catch (e) {
+        return { songs: [], albums: [], artists: [] };
     }
   }
 
@@ -224,7 +255,7 @@ export class SubsonicService {
     if (this.isDemo) {
       const album = MOCK_ALBUMS.find(a => a.id === id) || MOCK_ALBUMS[0];
       const songs = MOCK_SONGS.filter(s => s.album === album.name || s.albumId === id);
-      return { ...album, songs, info: { notes: "A journey through digital soundscapes." } };
+      return { ...album, songs, info: { notes: "A journey through digital soundscapes." }, starred: false };
     }
     try {
       const res = await fetch(this.buildUrl('getAlbum.view', { id }));
@@ -251,7 +282,8 @@ export class SubsonicService {
       return {
         ...albumData,
         songs,
-        info
+        info,
+        starred: albumData.starred !== undefined
       };
     } catch (e) {
       console.error("Get Album failed", e);

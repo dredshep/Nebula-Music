@@ -2,6 +2,7 @@
 import React, { useEffect, useCallback } from 'react';
 import { StoreProvider, useStore } from './context/Store';
 import { Sidebar } from './components/Sidebar';
+import { MobileNav } from './components/MobileNav';
 import { Player } from './components/Player';
 import { HomeView } from './views/Home';
 import { LibraryView } from './views/Library';
@@ -79,6 +80,8 @@ const AppContent: React.FC = () => {
     case 'ALBUMS':
     case 'SONGS':
     case 'PLAYLISTS':
+    case 'LIKED_SONGS':
+    case 'LIKED_ALBUMS':
       ViewComponent = LibraryView;
       break;
     case 'ARTIST_DETAIL':
@@ -114,12 +117,13 @@ const AppContent: React.FC = () => {
         {/* Top Bar Fade */}
         <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
         
-        {/* Content Wrapper with dynamic padding for Player */}
-        <div className={`min-h-full transition-all duration-300 ${isPlayerVisible ? 'pb-32' : ''}`}>
+        {/* Content Wrapper with dynamic padding for Player and Mobile Nav */}
+        <div className={`min-h-full transition-all duration-300 ${isPlayerVisible ? 'pb-40 md:pb-32' : 'pb-20 md:pb-0'}`}>
             <ViewComponent />
         </div>
       </main>
 
+      <MobileNav />
       <Player />
       <PlaylistModal />
       <SearchModal />

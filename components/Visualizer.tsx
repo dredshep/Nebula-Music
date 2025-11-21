@@ -11,20 +11,20 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
     const canvas = canvasRef.current;
     if (!canvas || !analyser) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const bufferLength = analyser.frequencyBinCount;
     const dataArray = new Uint8Array(bufferLength);
+    
+    // Initialize particles for PARTICLE mode
     const particles: {x: number, y: number, v: number, size: number}[] = [];
-
-    // Initialize particles
-    for(let i=0; i<50; i++) {
+    for(let i=0; i<100; i++) {
         particles.push({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
-            v: Math.random() * 2 + 1,
-            size: Math.random() * 3
+            v: Math.random() * 2 + 0.5,
+            size: Math.random() * 3 + 0.5
         });
     }
 
@@ -38,11 +38,15 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
 
       // Handle High DPI
       const dpr = window.devicePixelRatio || 1;
+      
+      // Resize if necessary
       if (canvas.width !== displayWidth * dpr || canvas.height !== displayHeight * dpr) {
           canvas.width = displayWidth * dpr;
           canvas.height = displayHeight * dpr;
+          // Context is reset on resize, so we must set transform again
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       } else {
+          // Reset transform to ensure clearRect works on logical pixels
           ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           ctx.clearRect(0, 0, displayWidth, displayHeight);
       }
@@ -50,166 +54,180 @@ export const Visualizer: React.FC<{ className?: string }> = ({ className }) => {
       const width = displayWidth;
       const height = displayHeight;
 
-      // Gradient
+      // Base Gradient
       const gradient = ctx.createLinearGradient(0, height, width, 0);
       gradient.addColorStop(0, '#06b6d4'); // cyan
       gradient.addColorStop(1, '#8b5cf6'); // violet
+      
+      // Reset Context State
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'butt';
       ctx.fillStyle = gradient;
       ctx.strokeStyle = gradient;
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 1;
 
-      analyser.getByteFrequencyData(dataArray);
+      try {
+          analyser.getByteFrequencyData(dataArray);
 
-      if (visualizerMode === 'WAVE') {
-          analyser.getByteTimeDomainData(dataArray);
-          ctx.lineWidth = 2;
-          ctx.beginPath();
+          if (visualizerMode === 'WAVE') {
+              analyser.getByteTimeDomainData(dataArray);
+              ctx.lineWidth = 2;
+              ctx.beginPath();
 
-          const sliceWidth = width * 1.0 / bufferLength;
-          let x = 0;
+              const sliceWidth = width * 1.0 / bufferLength;
+              let x = 0;
 
-          for (let i = 0; i < bufferLength; i++) {
-              const v = dataArray[i] / 128.0;
-              const y = v * height / 2;
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-              x += sliceWidth;
+              for (let i = 0; i < bufferLength; i++) {
+                  const v = dataArray[i] / 128.0;
+                  const y = v * height / 2;
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+                  x += sliceWidth;
+              }
+              ctx.lineTo(width, height / 2);
+              ctx.stroke();
           }
-          ctx.lineTo(width, height / 2);
-          ctx.stroke();
-      }
-      else if (visualizerMode === 'CIRCLE') {
-          const cx = width / 2;
-          const cy = height / 2;
-          const radius = Math.min(width, height) / 3;
-          const bars = 60;
-          const step = Math.floor(bufferLength / bars) || 1;
+          else if (visualizerMode === 'CIRCLE') {
+              const cx = width / 2;
+              const cy = height / 2;
+              const radius = Math.min(width, height) / 3;
+              const bars = 60;
+              const step = Math.floor(bufferLength / bars) || 1;
 
-          ctx.lineWidth = 3;
-          ctx.lineCap = 'round';
+              ctx.lineWidth = 3;
+              ctx.lineCap = 'round';
 
-          for(let i=0; i<bars; i++) {
-              const value = dataArray[i * step];
-              const percent = value / 255;
-              const barHeight = percent * (radius * 0.8);
-              const angle = (i * 2 * Math.PI) / bars;
+              for(let i=0; i<bars; i++) {
+                  const value = dataArray[i * step] || 0;
+                  const percent = value / 255;
+                  const barHeight = percent * (radius * 0.8);
+                  const angle = (i * 2 * Math.PI) / bars;
+                  
+                  ctx.save();
+                  ctx.translate(cx, cy);
+                  ctx.rotate(angle);
+                  
+                  ctx.beginPath();
+                  ctx.moveTo(0, radius);
+                  ctx.lineTo(0, radius + barHeight + 2);
+                  ctx.stroke();
+                  
+                  ctx.restore();
+              }
+          }
+          else if (visualizerMode === 'MIRROR') {
+              const bars = 40;
+              const step = Math.floor(bufferLength / bars) || 1;
+              const barWidth = (width / 2) / bars;
+
+              for(let i=0; i<bars; i++) {
+                 const value = dataArray[i * step] || 0;
+                 const percent = value / 255;
+                 const barHeight = Math.max(2, percent * height * 0.8);
+                 
+                 const xRight = (width / 2) + (i * barWidth);
+                 const xLeft = (width / 2) - ((i + 1) * barWidth);
+                 const y = (height - barHeight) / 2;
+
+                 ctx.fillRect(xRight, y, barWidth - 1, barHeight);
+                 ctx.fillRect(xLeft, y, barWidth - 1, barHeight);
+              }
+          }
+          else if (visualizerMode === 'SPECTRUM') {
+              const bars = 64;
+              const step = Math.floor(bufferLength / bars) || 1;
+              const barWidth = width / bars;
               
-              ctx.save();
-              ctx.translate(cx, cy);
-              ctx.rotate(angle);
+              for(let i=0; i<bars; i++) {
+                 const value = dataArray[i * step] || 0;
+                 const percent = value / 255;
+                 const barHeight = Math.max(2, percent * height);
+                 
+                 const hue = (i / bars) * 360;
+                 ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
+                 
+                 ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
+              }
+          }
+          else if (visualizerMode === 'PARTICLES') {
+              // Calculate average volume for interaction
+              let sum = 0;
+              // Sample fewer points for performance
+              for(let i=0; i<bufferLength; i+=10) sum += dataArray[i];
+              const avg = sum / (bufferLength / 10);
+              const intensity = avg / 255;
+
+              particles.forEach((p, i) => {
+                  p.y -= p.v + (intensity * 5);
+                  if (p.y < 0) {
+                      p.y = height;
+                      p.x = Math.random() * width;
+                  }
+                  
+                  const dataIndex = i % 20;
+                  const audioValue = dataArray[dataIndex * 10] || 0;
+                  const radius = p.size + (audioValue / 255) * 8;
+                  
+                  ctx.beginPath();
+                  ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
+                  ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + intensity * 0.6})`;
+                  ctx.fill();
+              });
+          }
+          else if (visualizerMode === 'HEXAGON') {
+              const cx = width / 2;
+              const cy = height / 2;
+              const bass = (dataArray[5] || 0) / 255; 
+              const radius = (Math.min(width, height) / 4) * (0.8 + bass * 0.4);
               
               ctx.beginPath();
-              ctx.moveTo(0, radius);
-              ctx.lineTo(0, radius + barHeight + 2);
+              for (let i = 0; i < 6; i++) {
+                  const angle = (i * 2 * Math.PI) / 6;
+                  const x = cx + radius * Math.cos(angle);
+                  const y = cy + radius * Math.sin(angle);
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+              }
+              ctx.closePath();
+              ctx.lineWidth = 4 + bass * 12;
+              ctx.lineJoin = 'round';
+              ctx.strokeStyle = gradient;
               ctx.stroke();
               
-              ctx.restore();
-          }
-      }
-      else if (visualizerMode === 'MIRROR') {
-          const bars = 40;
-          const step = Math.floor(bufferLength / bars) || 1;
-          const barWidth = (width / 2) / bars;
-
-          for(let i=0; i<bars; i++) {
-             const value = dataArray[i * step];
-             const percent = value / 255;
-             const barHeight = percent * height * 0.8;
-             
-             const xRight = (width / 2) + (i * barWidth);
-             const xLeft = (width / 2) - ((i + 1) * barWidth);
-             const y = (height - barHeight) / 2;
-
-             ctx.fillRect(xRight, y, barWidth - 1, barHeight);
-             ctx.fillRect(xLeft, y, barWidth - 1, barHeight);
-          }
-      }
-      else if (visualizerMode === 'SPECTRUM') {
-          const bars = 64;
-          const step = Math.floor(bufferLength / bars) || 1;
-          const barWidth = width / bars;
-          
-          for(let i=0; i<bars; i++) {
-             const value = dataArray[i * step];
-             const percent = value / 255;
-             const barHeight = percent * height;
-             
-             // Rainbow hue
-             const hue = (i / bars) * 360;
-             ctx.fillStyle = `hsla(${hue}, 80%, 60%, 0.8)`;
-             
-             ctx.fillRect(i * barWidth, height - barHeight, barWidth - 1, barHeight);
-          }
-      }
-      else if (visualizerMode === 'PARTICLES') {
-          // Calculate average volume
-          let sum = 0;
-          for(let i=0; i<bufferLength; i++) sum += dataArray[i];
-          const avg = sum / bufferLength;
-          const intensity = avg / 255;
-
-          particles.forEach((p, i) => {
-              p.y -= p.v + (intensity * 5);
-              if (p.y < 0) {
-                  p.y = height;
-                  p.x = Math.random() * width;
-              }
-              
-              const radius = p.size + (dataArray[i % 20] / 255) * 10;
-              ctx.beginPath();
-              ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
-              ctx.fillStyle = `rgba(255, 255, 255, ${0.2 + intensity * 0.5})`;
-              ctx.fill();
-          });
-      }
-      else if (visualizerMode === 'HEXAGON') {
-          const cx = width / 2;
-          const cy = height / 2;
-          // Use low freq for bass pulse
-          const bass = dataArray[10] / 255; 
-          const radius = (Math.min(width, height) / 4) * (1 + bass * 0.5);
-          
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-              const angle = (i * 2 * Math.PI) / 6;
-              const x = cx + radius * Math.cos(angle);
-              const y = cy + radius * Math.sin(angle);
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
-          }
-          ctx.closePath();
-          ctx.lineWidth = 5 + bass * 10;
-          ctx.strokeStyle = gradient;
-          ctx.stroke();
-          
-          // Inner ripple
-          ctx.beginPath();
-          for (let i = 0; i < 6; i++) {
-              const angle = (i * 2 * Math.PI) / 6;
+              // Inner ripple
               const r2 = radius * 0.6;
-              const x = cx + r2 * Math.cos(angle);
-              const y = cy + r2 * Math.sin(angle);
-              if (i === 0) ctx.moveTo(x, y);
-              else ctx.lineTo(x, y);
+              ctx.beginPath();
+              for (let i = 0; i < 6; i++) {
+                  const angle = (i * 2 * Math.PI) / 6;
+                  const x = cx + r2 * Math.cos(angle);
+                  const y = cy + r2 * Math.sin(angle);
+                  if (i === 0) ctx.moveTo(x, y);
+                  else ctx.lineTo(x, y);
+              }
+              ctx.closePath();
+              ctx.fillStyle = `rgba(139, 92, 246, ${bass * 0.8})`;
+              ctx.fill();
           }
-          ctx.closePath();
-          ctx.fillStyle = `rgba(139, 92, 246, ${bass})`;
-          ctx.fill();
-      }
-      else {
-          // BARS (Default)
-          const bars = 50; 
-          const step = Math.floor((bufferLength * 0.6) / bars) || 1; 
-          const barWidth = width / bars;
+          else {
+              // BARS (Default)
+              const bars = 50; 
+              // Focus on lower frequencies where most music energy is
+              const step = Math.floor((bufferLength * 0.7) / bars) || 1; 
+              const barWidth = width / bars;
 
-          for(let i=0; i<bars; i++) {
-             const value = dataArray[i * step];
-             const percent = value / 255;
-             const barHeight = Math.max(4, percent * height);
-             
-             // Revert to standard gradient
-             ctx.fillStyle = gradient;
-             ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+              for(let i=0; i<bars; i++) {
+                 const value = dataArray[i * step] || 0;
+                 const percent = value / 255;
+                 const barHeight = Math.max(4, percent * height);
+                 
+                 ctx.fillStyle = gradient;
+                 ctx.fillRect(i * barWidth, height - barHeight, barWidth - 2, barHeight);
+              }
           }
+      } catch (e) {
+          // Prevent crash on drawing error
+          console.warn("Visualizer draw error", e);
       }
     };
 

@@ -183,28 +183,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   }, [currentSongIndex, isPlaying, queue]);
 
-  // Audio Setup & Logic
+  // Audio Setup (Runs Once)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    if (audioContextRef.current) return; // Already initialized
 
-    if (!audioContextRef.current) {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const ctx = new AudioContext();
-      const ana = ctx.createAnalyser();
-      ana.fftSize = 2048; 
-      ana.smoothingTimeConstant = 0.85;
-      
-      try {
+    try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        const ctx = new AudioContext();
+        const ana = ctx.createAnalyser();
+        ana.fftSize = 2048; 
+        ana.smoothingTimeConstant = 0.85;
+        
         const source = ctx.createMediaElementSource(audio);
         source.connect(ana);
         ana.connect(ctx.destination);
+        
         audioContextRef.current = ctx;
         setAnalyser(ana);
-      } catch (e) {
-        console.warn("Audio source connection error:", e);
-      }
+    } catch (e) {
+        console.warn("Audio source connection error (possibly CORS or already connected):", e);
     }
+  }, []); // Run once on mount
+
+  // Audio Event Listeners & Logic
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
     // Use event listener for Scrobbling to avoid re-rendering the whole app via state
     const handleTimeUpdate = () => {
@@ -243,10 +249,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
          }
     };
 
-    const onEnded = () => handleSongEnd();
+    const onEnded = () => {
+         if (repeatMode === 'ONE') {
+            if(audioRef.current) {
+                audioRef.current.currentTime = 0;
+                audioRef.current.play();
+            }
+         } else {
+            nextSong(false);
+         }
+    };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleMetadata); // Ensure settings persist
+    audio.addEventListener('loadedmetadata', handleMetadata);
     audio.addEventListener('ended', onEnded);
 
     return () => {
@@ -254,18 +269,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       audio.removeEventListener('loadedmetadata', handleMetadata);
       audio.removeEventListener('ended', onEnded);
     };
-  }); // Effect runs on mount and when deps change, but ref is stable
-
-  const handleSongEnd = () => {
-      if (repeatMode === 'ONE') {
-          if(audioRef.current) {
-              audioRef.current.currentTime = 0;
-              audioRef.current.play();
-          }
-      } else {
-          nextSong(false);
-      }
-  };
+  }); // Runs on render to capture latest state closures
 
   // Apply Theme
   useEffect(() => {

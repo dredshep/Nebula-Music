@@ -6,11 +6,15 @@
   <p>A high-fidelity, glassmorphic music client for the modern web.</p>
 </div>
 
-Nebula Stream is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications.
+Nebula Stream is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications while fully supporting mobile devices.
 
 ## 🚀 Features
 
 *   **Modern UI/UX**: Glassmorphism design, smooth transitions, and animated backgrounds.
+*   **Mobile-First Experience**: 
+    *   Dedicated bottom navigation bar for mobile devices.
+    *   Touch-optimized library tabs and controls.
+    *   Responsive layouts optimized for Phones, Tablets (Portrait/Landscape), and Desktops.
 *   **Smart Search**: 
     *   Spotlight-style command palette (`Cmd+K`) for instant access.
     *   Semantic search across Artists, Albums, and Songs.
@@ -19,7 +23,7 @@ Nebula Stream is a modern web music client designed for Subsonic-compatible serv
     *   Pitch control (Vinyl Mode).
     *   Playback speed adjustment.
     *   Integrated Volume control.
-    *   Real-time audio visualizers (Bars, Wave, Circle, Mirror).
+    *   **High-Performance Visualizers**: Robust, high-DPI capable rendering engine supporting multiple modes (Bars, Wave, Circle, Mirror, Spectrum, Particles, Hexagon).
 *   **Enhanced Player**:
     *   Synchronized Lyrics view.
     *   Immersive "Zen Mode" visualizer.
@@ -30,7 +34,7 @@ Nebula Stream is a modern web music client designed for Subsonic-compatible serv
     *   Favorites/Starring system.
 *   **Discovery**:
     *   Rotating Featured Hero section.
-    *   Random suggested mixes.
+    *   Random suggested mixes (Flow State, Nostalgia Trip, Daily Mix).
     *   Most Played tracking (Local).
     *   Recent & Frequent album views.
 *   **Subsonic Integration**: Full support for standard Subsonic API authentication.

@@ -37,6 +37,7 @@ export interface IAlbum {
   year?: number;
   genre?: string;
   songs?: ISong[]; // Extended for detail view
+  starred?: boolean;
   info?: {
       notes?: string;
       musicBrainzId?: string;
@@ -101,7 +102,7 @@ export interface AppSettings {
 export type PlaybackMode = 'normal' | 'shuffle';
 export type RepeatMode = 'OFF' | 'ALL' | 'ONE';
 export type VisualizerMode = 'BARS' | 'WAVE' | 'CIRCLE' | 'MIRROR' | 'SPECTRUM' | 'PARTICLES' | 'HEXAGON';
-export type View = 'HOME' | 'BROWSE' | 'ARTISTS' | 'ALBUMS' | 'SONGS' | 'PLAYLISTS' | 'SETTINGS' | 'PLAYLIST_DETAIL' | 'ARTIST_DETAIL' | 'ALBUM_DETAIL' | 'SEARCH';
+export type View = 'HOME' | 'BROWSE' | 'ARTISTS' | 'ALBUMS' | 'SONGS' | 'PLAYLISTS' | 'SETTINGS' | 'PLAYLIST_DETAIL' | 'ARTIST_DETAIL' | 'ALBUM_DETAIL' | 'SEARCH' | 'LIKED_SONGS' | 'LIKED_ALBUMS';
 
 export interface AppState {
   currentView: View;

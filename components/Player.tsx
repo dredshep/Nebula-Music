@@ -182,7 +182,7 @@ export const Player: React.FC = () => {
   return (
     <>
       {/* EXPANDED PLAYER OVERLAY */}
-      <div className={`fixed inset-0 z-50 flex flex-col bg-neutral-950 transition-transform duration-500 ease-in-out ${isExpanded || isZenMode ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div className={`fixed inset-0 z-[60] flex flex-col bg-neutral-950 transition-transform duration-500 ease-in-out ${isExpanded || isZenMode ? 'translate-y-0' : 'translate-y-full'}`}>
         
         {!isZenMode && (
             <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
@@ -400,7 +400,7 @@ export const Player: React.FC = () => {
 
             {activeTab === 'playing' && (
                 <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl">
-                     <div className="relative aspect-square w-full max-w-[350px] md:max-w-[450px] mb-10 group">
+                     <div className="relative aspect-square w-full max-w-[300px] md:max-w-[450px] mb-10 group">
                           {/* Album Art */}
                           <div className={`relative w-full h-full rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-80'}`}>
                               <img src={coverArt} className="w-full h-full object-cover" alt={currentSong.title} />
@@ -414,11 +414,11 @@ export const Player: React.FC = () => {
                           <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-secondary rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-1000 -z-10 animate-pulse"></div>
                      </div>
 
-                     <div className="text-center mb-10">
-                          <h1 className="text-3xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg leading-tight">{currentSong.title}</h1>
+                     <div className="text-center mb-4 md:mb-10">
+                          <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight">{currentSong.title}</h1>
                           
                           <div 
-                            className="text-xl md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-2 block" 
+                            className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block" 
                             onClick={() => { 
                                 if (currentSong.artistId) {
                                     setView('ARTIST_DETAIL', currentSong.artistId);
@@ -429,9 +429,9 @@ export const Player: React.FC = () => {
                               {currentSong.artist}
                           </div>
                           
-                          <div className="flex flex-col items-center gap-2">
+                          <div className="flex flex-col items-center gap-1 md:gap-2">
                               <div 
-                                className="text-lg md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block" 
+                                className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block" 
                                 onClick={() => { 
                                     if (currentSong.albumId) {
                                         setView('ALBUM_DETAIL', currentSong.albumId);
@@ -478,9 +478,9 @@ export const Player: React.FC = () => {
                  </div>
 
                  {/* Buttons */}
-                 <div className="flex items-center w-full">
-                     {/* Left Group - Flex-1 with basis-0 ensures equal width distribution */}
-                     <div className="flex-1 basis-0 min-w-0 flex items-center justify-start gap-4">
+                 <div className="flex items-center w-full justify-between">
+                     {/* Left Group */}
+                     <div className="flex items-center gap-2 md:gap-4">
                           <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`p-2 rounded-full hover:bg-white/10 transition ${currentSong.starred ? 'text-red-500' : 'text-neutral-400'}`}>
                               <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
                           </button>
@@ -489,14 +489,14 @@ export const Player: React.FC = () => {
                           </button>
                      </div>
 
-                     {/* Center Group - Fixed/Centered */}
-                     <div className="flex-none flex items-center justify-center gap-6 md:gap-8">
+                     {/* Center Group */}
+                     <div className="flex items-center justify-center gap-6 md:gap-8">
                           <button onClick={prevSong} className="p-2 text-neutral-300 hover:text-white hover:scale-110 transition">
                               <SkipBack className="w-8 h-8 fill-current" />
                           </button>
                           <button 
                             onClick={togglePlay} 
-                            className="w-16 h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-lg shadow-white/10"
+                            className="w-14 h-14 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-lg shadow-white/10"
                           >
                               {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />}
                           </button>
@@ -505,13 +505,13 @@ export const Player: React.FC = () => {
                           </button>
                      </div>
 
-                     {/* Right Group - Flex-1 with basis-0 ensures equal width distribution */}
-                     <div className="flex-1 basis-0 min-w-0 flex items-center justify-end gap-4">
+                     {/* Right Group */}
+                     <div className="flex items-center gap-2 md:gap-4">
                          <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}>
                               {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                          </button>
-                         {/* Permanent Volume Slider for Expanded View */}
-                         <div className="flex items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 border border-white/5">
+                         {/* Permanent Volume Slider for Expanded View (Hidden on smallest screens) */}
+                         <div className="hidden sm:flex items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 border border-white/5">
                              <Volume2 className="w-4 h-4 text-neutral-400" />
                              <input 
                                 type="range" 
@@ -524,8 +524,8 @@ export const Player: React.FC = () => {
                      </div>
                  </div>
 
-                 <div className="mt-6 flex justify-center gap-8 border-t border-white/5 pt-4">
-                      <div className="flex flex-col items-center w-32">
+                 <div className="mt-6 flex justify-center gap-4 md:gap-8 border-t border-white/5 pt-4">
+                      <div className="flex flex-col items-center w-24 md:w-32">
                           <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Speed</label>
                           <div className="flex items-center justify-center bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px]">
                               <button onClick={() => setPlaybackRate(Math.max(0.5, playbackRate - 0.1))} className="px-2 text-neutral-400 hover:text-white">-</button>
@@ -534,7 +534,7 @@ export const Player: React.FC = () => {
                           </div>
                       </div>
                       
-                      <div className="flex flex-col items-center w-32">
+                      <div className="flex flex-col items-center w-24 md:w-32">
                           <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Vinyl Mode</label>
                           <div className="bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px] flex">
                               <button 
@@ -554,12 +554,12 @@ export const Player: React.FC = () => {
 
       {/* MINI PLAYER (Bottom Bar) */}
       <div 
-        className={`fixed bottom-0 left-0 right-0 bg-black/80 backdrop-blur-xl border-t border-white/10 h-24 px-4 md:px-8 flex items-center justify-between z-40 transition-transform duration-300 ${isExpanded ? 'translate-y-full' : 'translate-y-0'} ${isZenMode ? 'translate-y-full' : ''}`}
+        className={`fixed left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 h-20 md:h-24 px-4 md:px-8 flex items-center justify-between z-40 transition-all duration-300 bottom-16 md:bottom-0 ${isExpanded ? 'translate-y-[200%]' : 'translate-y-0'} ${isZenMode ? 'translate-y-[200%]' : ''}`}
         onClick={() => setIsExpanded(true)}
       >
           {/* Song Info */}
-          <div className="flex items-center w-1/3 min-w-0 cursor-pointer group">
-              <div className="relative w-14 h-14 mr-4">
+          <div className="flex items-center w-2/3 md:w-1/3 min-w-0 cursor-pointer group">
+              <div className="relative w-12 h-12 md:w-14 md:h-14 mr-3 md:mr-4 shrink-0">
                   <img src={coverArt} className="w-full h-full rounded-lg object-cover shadow-md group-hover:scale-105 transition" alt="" />
                   <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                       <Maximize2 className="w-5 h-5 text-white" />
@@ -568,25 +568,7 @@ export const Player: React.FC = () => {
               <div className="min-w-0 flex flex-col justify-center">
                   <h4 className="text-white font-bold truncate group-hover:text-primary transition text-sm md:text-base">{currentSong.title}</h4>
                   <div className="flex items-center text-xs text-neutral-400 truncate">
-                      <span 
-                        className="hover:text-white hover:underline cursor-pointer"
-                        onClick={(e) => { 
-                            e.stopPropagation();
-                            if (currentSong.artistId) setView('ARTIST_DETAIL', currentSong.artistId);
-                        }}
-                      >
-                          {currentSong.artist}
-                      </span>
-                      <span className="mx-1">•</span>
-                      <span 
-                        className="hover:text-white hover:underline cursor-pointer"
-                        onClick={(e) => { 
-                            e.stopPropagation();
-                            if (currentSong.albumId) setView('ALBUM_DETAIL', currentSong.albumId);
-                        }}
-                      >
-                          {currentSong.album}
-                      </span>
+                      <span className="truncate">{currentSong.artist}</span>
                       
                       {/* Minimized View Quality Badge */}
                       {currentSong.suffix && (
@@ -599,19 +581,19 @@ export const Player: React.FC = () => {
               </div>
               <button 
                 onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }}
-                className={`ml-4 p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${currentSong.starred ? 'text-red-500 opacity-100' : 'text-neutral-400'}`}
+                className={`hidden md:block ml-4 p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${currentSong.starred ? 'text-red-500 opacity-100' : 'text-neutral-400'}`}
               >
                   <Heart className={`w-4 h-4 ${currentSong.starred ? 'fill-current' : ''}`} />
               </button>
           </div>
 
           {/* Controls */}
-          <div className="flex flex-col items-center w-1/3">
-              <div className="flex items-center gap-6 mb-2">
+          <div className="flex flex-col items-center w-1/3 md:w-1/3">
+              <div className="flex items-center justify-end md:justify-center gap-4 md:gap-6 w-full">
                   <button onClick={(e) => { e.stopPropagation(); toggleRepeat(); }} className={`hidden md:block transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-500 hover:text-white'}`}>
                       <Repeat className="w-4 h-4" />
                   </button>
-                  <button onClick={(e) => { e.stopPropagation(); prevSong(); }} className="text-neutral-300 hover:text-white hover:scale-110 transition">
+                  <button onClick={(e) => { e.stopPropagation(); prevSong(); }} className="hidden md:block text-neutral-300 hover:text-white hover:scale-110 transition">
                       <SkipBack className="w-5 h-5 fill-current" />
                   </button>
                   <button 
@@ -627,7 +609,7 @@ export const Player: React.FC = () => {
                       <Eye className="w-4 h-4" />
                   </button>
               </div>
-              <div className="w-full max-w-md flex items-center gap-3 text-[10px] font-mono text-neutral-500">
+              <div className="hidden md:flex w-full max-w-md items-center gap-3 text-[10px] font-mono text-neutral-500 mt-1">
                   <span>{formatTime(currentTime)}</span>
                   <div className="relative flex-1 h-1 bg-white/10 rounded-full group" onClick={(e) => e.stopPropagation()}>
                       <div className="absolute inset-0 rounded-full overflow-hidden">
@@ -645,8 +627,8 @@ export const Player: React.FC = () => {
               </div>
           </div>
 
-          {/* Volume / Extra */}
-          <div className="flex items-center justify-end w-1/3 gap-4" onClick={(e) => e.stopPropagation()}>
+          {/* Volume / Extra (Desktop Only) */}
+          <div className="hidden md:flex items-center justify-end w-1/3 gap-4" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center group">
                   <Volume2 className="w-5 h-5 text-neutral-400 mr-2" />
                   <input 

@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { Home, Disc, Mic2, Music, ListMusic, Settings, Compass, Search, Command } from 'lucide-react';
+import { Home, Disc, Mic2, Music, ListMusic, Settings, Compass, Search, Command, Heart, Star } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { View } from '../types';
 
@@ -72,6 +73,8 @@ export const Sidebar: React.FC = () => {
         {(s.showArtists || s.showAlbums || s.showSongs) && (
           <div>
               <h3 className="px-4 mb-2 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Library</h3>
+              {s.showSongs && <NavItem icon={Heart} label="Liked Songs" view="LIKED_SONGS" />}
+              {s.showAlbums && <NavItem icon={Star} label="Liked Albums" view="LIKED_ALBUMS" />}
               {s.showArtists && <NavItem icon={Mic2} label="Artists" view="ARTISTS" />}
               {s.showAlbums && <NavItem icon={Disc} label="Albums" view="ALBUMS" />}
               {s.showSongs && <NavItem icon={Music} label="Songs" view="SONGS" />}

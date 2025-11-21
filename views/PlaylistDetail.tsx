@@ -1,12 +1,14 @@
 
+
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
 import { IPlaylist, ISong } from '../types';
-import { Play, Clock, ArrowLeft, MoreVertical, Trash2, ListMusic, Shuffle, GripVertical, Save, ListPlus, Headphones, BarChart2, Info, Disc } from 'lucide-react';
+import { Play, Clock, ArrowLeft, Trash2, ListMusic, Shuffle, GripVertical, Save, ListPlus, Info, BarChart2, Heart } from 'lucide-react';
 import { Visualizer } from '../components/Visualizer';
 
 export const PlaylistDetailView: React.FC = () => {
-  const { viewData, setView, playSong, isPlaying, queue, currentSongIndex, playlists, deletePlaylist, savePlaylist, reorderPlaylist, service, openPlaylistModal, isDemoMode } = useStore();
+  const { viewData, setView, playSong, isPlaying, queue, currentSongIndex, playlists, deletePlaylist, savePlaylist, reorderPlaylist, service, openPlaylistModal, isDemoMode, toggleLike } = useStore();
   const [playlist, setPlaylist] = useState<IPlaylist | null>(null);
   const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
   const [isSavedPlaylist, setIsSavedPlaylist] = useState(true);
@@ -56,6 +58,14 @@ export const PlaylistDetailView: React.FC = () => {
           savePlaylist(playlist);
           setView('PLAYLISTS');
       }
+  };
+
+  const handleSongLike = (song: ISong) => {
+      toggleLike(song);
+      setPlaylist(prev => prev ? {
+          ...prev,
+          songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s)
+      } : null);
   };
 
   const formatTime = (s: number) => {
@@ -285,7 +295,14 @@ export const PlaylistDetailView: React.FC = () => {
                                     <td className="p-4 text-right font-mono cursor-pointer" onClick={() => playlist.songs && playSong(song, playlist.songs)}>
                                         {formatTime(song.duration)}
                                     </td>
-                                    <td className="p-4 text-right flex items-center justify-end">
+                                    <td className="p-4 text-right flex items-center justify-end gap-2">
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
+                                            className={`p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${song.starred ? 'text-red-500 opacity-100' : 'text-neutral-500 hover:text-white'}`}
+                                            title={song.starred ? "Unlike" : "Like"}
+                                        >
+                                            <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
+                                        </button>
                                         <button 
                                             onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                             className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"
