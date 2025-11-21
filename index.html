@@ -1,14 +1,20 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Nebula Stream</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    
+    <!-- CSS linked via HTML for browser compatibility -->
+    <link rel="stylesheet" href="/index.css" />
+    
+    <!-- Tailwind CDN included for Preview Environment only (Local builds use postcss) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         darkMode: 'class',
@@ -28,6 +34,8 @@
               'blob': 'blob 7s infinite',
               'spin-slow': 'spin 8s linear infinite',
               'wobble': 'wobble 6s ease-in-out infinite',
+              'fade-in': 'fadeIn 0.5s ease-out',
+              'fade-in-up': 'fadeInUp 0.5s ease-out',
             },
             keyframes: {
               blob: {
@@ -39,70 +47,37 @@
               wobble: {
                 '0%, 100%': { transform: 'rotate(-4deg)' },
                 '50%': { transform: 'rotate(4deg)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(10px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
               }
             }
           }
         }
       }
     </script>
-    <style>
-      :root {
-        --color-primary: 6 182 212; /* cyan-500 */
-        --color-secondary: 139 92 246; /* violet-500 */
+
+    <script type="importmap">
+    {
+      "imports": {
+        "vite": "https://aistudiocdn.com/vite@^5.1.5",
+        "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^4.2.1",
+        "react": "https://aistudiocdn.com/react@^18.3.1",
+        "react/": "https://aistudiocdn.com/react@^18.3.1/",
+        "react-dom": "https://aistudiocdn.com/react-dom@^18.3.1",
+        "react-dom/": "https://aistudiocdn.com/react-dom@^18.3.1/",
+        "react-dom/client": "https://aistudiocdn.com/react-dom@^18.3.1/client",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.344.0",
+        "blueimp-md5": "https://aistudiocdn.com/blueimp-md5@^2.19.0"
       }
-      body {
-        background-color: #050505;
-        color: #e5e5e5;
-        overflow: hidden; /* App-like feel */
-      }
-      /* Custom Scrollbar */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #333;
-        border-radius: 3px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #555;
-      }
-      .glass {
-        background: rgba(20, 20, 20, 0.6);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
-      }
-      .glass-strong {
-        background: rgba(10, 10, 10, 0.85);
-        backdrop-filter: blur(20px);
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      /* Input range styling for settings */
-      input[type="color"]::-webkit-color-swatch-wrapper {
-        padding: 0;
-      }
-      input[type="color"]::-webkit-color-swatch {
-        border: none;
-        border-radius: 4px;
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "vite": "https://aistudiocdn.com/vite@^7.2.2",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "blueimp-md5": "https://aistudiocdn.com/blueimp-md5@^2.19.0"
-  }
-}
-</script>
-</head>
+    }
+    </script>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

@@ -478,9 +478,9 @@ export const Player: React.FC = () => {
                  </div>
 
                  {/* Buttons */}
-                 <div className="flex items-center w-full justify-between">
+                 <div className="grid grid-cols-3 items-center w-full">
                      {/* Left Group */}
-                     <div className="flex items-center gap-2 md:gap-4">
+                     <div className="flex items-center justify-start gap-2 md:gap-4">
                           <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`p-2 rounded-full hover:bg-white/10 transition ${currentSong.starred ? 'text-red-500' : 'text-neutral-400'}`}>
                               <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
                           </button>
@@ -506,7 +506,7 @@ export const Player: React.FC = () => {
                      </div>
 
                      {/* Right Group */}
-                     <div className="flex items-center gap-2 md:gap-4">
+                     <div className="flex items-center justify-end gap-2 md:gap-4">
                          <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}>
                               {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                          </button>
