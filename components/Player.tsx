@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { Visualizer } from './Visualizer';
 import { ISong, VisualizerMode } from '../types';
@@ -268,7 +268,7 @@ export const Player: React.FC = () => {
                      {/* Hover Gradient Area to trigger controls */}
                      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                      
-                     <div className="relative z-50 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-8 group-hover:translate-y-0">
+                     <div className="relative z-50 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-8 group-hover:translate-y-0 w-full">
                           {/* Song Info */}
                           <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-2xl text-center px-8">{currentSong.title}</h2>
                           <p className="text-xl md:text-2xl text-neutral-300 mb-8 drop-shadow-lg">{currentSong.artist}</p>
@@ -302,17 +302,35 @@ export const Player: React.FC = () => {
                               </button>
                           </div>
                           
-                          {/* Scrub Bar */}
-                          <div className="w-[80vw] max-w-2xl mt-8 flex items-center gap-4 text-xs font-mono text-neutral-400">
-                              <span className="text-white drop-shadow">{formatTime(currentTime)}</span>
-                              <input 
-                                    type="range" 
-                                    min="0" max="100" step="0.1"
-                                    value={progress}
-                                    onChange={handleScrub}
-                                    className="flex-1 h-1.5 bg-white/20 rounded-full appearance-none cursor-pointer accent-primary hover:h-2 transition-all shadow-lg"
-                               />
-                              <span className="text-white drop-shadow">{formatTime(duration)}</span>
+                          {/* ZEN MODE PROGRESS BAR - REDESIGNED */}
+                          <div className="w-full max-w-4xl mt-12 px-8 flex items-center gap-6 group/scrub">
+                                <span className="text-xs font-mono font-medium text-white/50 w-12 text-right">{formatTime(currentTime)}</span>
+                                
+                                <div className="relative flex-1 h-6 flex items-center cursor-pointer">
+                                     {/* Track Background */}
+                                     <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1.5 bg-white/20 w-full rounded-full transition-all duration-300 group-hover/scrub:bg-white/30 overflow-hidden">
+                                        <div 
+                                            className="h-full bg-gradient-to-r from-primary to-secondary rounded-full relative"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                     </div>
+                                     
+                                     {/* Thumb - Only visible on hover/group hover, aligned with progress */}
+                                     <div 
+                                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] transform scale-0 group-hover/scrub:scale-100 transition-transform duration-200 pointer-events-none"
+                                        style={{ left: `calc(${progress}% - 8px)` }}
+                                     ></div>
+
+                                     <input 
+                                        type="range" 
+                                        min="0" max="100" step="0.01"
+                                        value={progress}
+                                        onChange={handleScrub}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                     />
+                                </div>
+
+                                <span className="text-xs font-mono font-medium text-white/50 w-12">{formatTime(duration)}</span>
                           </div>
                      </div>
                 </div>
@@ -510,16 +528,44 @@ export const Player: React.FC = () => {
                          <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}>
                               {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                          </button>
-                         {/* Permanent Volume Slider for Expanded View (Hidden on smallest screens) */}
-                         <div className="hidden sm:flex items-center gap-2 bg-black/30 rounded-full px-3 py-1.5 border border-white/5">
-                             <Volume2 className="w-4 h-4 text-neutral-400" />
-                             <input 
-                                type="range" 
-                                min="0" max="1" step="0.01"
-                                value={volume}
-                                onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
-                             />
+                         
+                         {/* UPDATED VOLUME SLIDER WITH HIGH QUALITY KNOB - REDUCED WIDTH */}
+                         <div className="hidden sm:flex items-center gap-4 group/vol ml-2">
+                             <button 
+                                onClick={() => setVolume(volume === 0 ? 1 : 0)} 
+                                className="text-neutral-400 hover:text-white transition"
+                             >
+                                {volume === 0 ? <VolumeX className="w-5 h-5" /> : (volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />)}
+                             </button>
+                             
+                             <div className="relative w-20 h-6 flex items-center select-none">
+                                 {/* Background Track */}
+                                 <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1 bg-white/10 rounded-full w-full"></div>
+                                 
+                                 {/* Active Track */}
+                                 <div 
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-white rounded-full pointer-events-none" 
+                                    style={{ width: `${volume * 100}%` }}
+                                 ></div>
+
+                                 {/* Thumb */}
+                                 <div 
+                                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md pointer-events-none transition-transform group-hover/vol:scale-125"
+                                    style={{ 
+                                        left: `${volume * 100}%`,
+                                        transform: 'translate(-50%, -50%)'
+                                    }}
+                                 ></div>
+
+                                 {/* Input */}
+                                 <input 
+                                    type="range" 
+                                    min="0" max="1" step="0.01"
+                                    value={volume}
+                                    onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                 />
+                             </div>
                          </div>
                      </div>
                  </div>
@@ -629,15 +675,39 @@ export const Player: React.FC = () => {
 
           {/* Volume / Extra (Desktop Only) */}
           <div className="hidden md:flex items-center justify-end w-1/3 gap-4" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center group">
-                  <Volume2 className="w-5 h-5 text-neutral-400 mr-2" />
-                  <input 
-                    type="range" 
-                    min="0" max="1" step="0.01"
-                    value={volume}
-                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                    className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer accent-white"
-                  />
+              <div className="flex items-center group/vol">
+                  <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="mr-3 text-neutral-400 hover:text-white transition">
+                      {volume === 0 ? <VolumeX className="w-5 h-5" /> : (volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />)}
+                  </button>
+                  
+                  <div className="relative w-24 h-6 flex items-center select-none group/slide">
+                      {/* Background Track */}
+                      <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1 bg-white/10 rounded-full w-full"></div>
+                      
+                      {/* Active Track */}
+                      <div 
+                        className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-white rounded-full pointer-events-none" 
+                        style={{ width: `${volume * 100}%` }}
+                      ></div>
+
+                      {/* Thumb */}
+                      <div 
+                        className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.5)] border border-neutral-300 pointer-events-none transition-transform group-hover/slide:scale-125"
+                        style={{ 
+                            left: `${volume * 100}%`,
+                            transform: 'translate(-50%, -50%)'
+                        }}
+                      ></div>
+
+                      {/* Input */}
+                      <input 
+                        type="range" 
+                        min="0" max="1" step="0.01"
+                        value={volume}
+                        onChange={(e) => setVolume(parseFloat(e.target.value))}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                  </div>
               </div>
               <button onClick={() => setIsExpanded(true)} className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition">
                   <Maximize2 className="w-5 h-5" />

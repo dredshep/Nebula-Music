@@ -293,8 +293,6 @@ export const LibraryView: React.FC = () => {
   // Pagination State
   const [page, setPage] = useState(0);
   const [allItemsCached, setAllItemsCached] = useState<any[] | null>(null);
-  
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Reset state on view change, but check viewData for sort override
   useEffect(() => {
@@ -328,40 +326,45 @@ export const LibraryView: React.FC = () => {
 
   // Data Fetching
   useEffect(() => {
+    let isActive = true; // Protection against race conditions (e.g. A-Z fetch finishing after Recent fetch)
+
     const load = async () => {
       setIsLoading(true);
       
       // 1. PLAYLISTS
       if (currentView === 'PLAYLISTS') {
-        setItems(playlists);
+        if (isActive) setItems(playlists);
       } 
       // 2. ARTISTS (Client-side filtering mostly)
       else if (currentView === 'ARTISTS') {
         let all = allItemsCached;
         if (!all) {
             all = await service.getArtists();
-            setAllItemsCached(all);
+            if (isActive) setAllItemsCached(all);
         }
       }
       // 3. ALBUMS (Server-side)
       else if (currentView === 'ALBUMS') {
+        let res = [];
         if (filter) {
             // Text Search
-            const res = await service.searchAlbums(filter, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-            setItems(res);
+            res = await service.searchAlbums(filter, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+            if (isActive) setItems(res);
         } else if (selectedGenre) {
             // Genre Filter
-            const res = await service.getAlbumList('byGenre', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { genre: selectedGenre });
-            setItems(res);
+            res = await service.getAlbumList('byGenre', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { genre: selectedGenre });
+            if (isActive) setItems(res);
         } else if (selectedYear) {
             // Year Filter
-            const res = await service.getAlbumList('byYear', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { fromYear: selectedYear, toYear: selectedYear });
-            setItems(res);
+            res = await service.getAlbumList('byYear', ITEMS_PER_PAGE, page * ITEMS_PER_PAGE, { fromYear: selectedYear, toYear: selectedYear });
+            if (isActive) setItems(res);
         } else {
             // Default (Sorted)
-            const res = await service.getAlbumList(sortType, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-            setItems(res);
-            setAllItemsCached(null);
+            res = await service.getAlbumList(sortType, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+            if (isActive) {
+                setItems(res);
+                setAllItemsCached(null);
+            }
         }
       }
       // 4. SONGS (Server-side)
@@ -376,24 +379,28 @@ export const LibraryView: React.FC = () => {
           
           // searchSongs handles pagination and fuzzy search
           const res = await service.searchSongs(query, ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-          setItems(res);
-          setAllItemsCached(null);
+          if (isActive) {
+              setItems(res);
+              setAllItemsCached(null);
+          }
       }
       // 5. LIKED SONGS & ALBUMS (Fetch All, Client Side Paginate)
       else if (currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS') {
           const res = await service.getStarred();
-          if (currentView === 'LIKED_SONGS') {
-             setAllItemsCached(res.songs);
-          } else {
-             setAllItemsCached(res.albums);
+          if (isActive) {
+              if (currentView === 'LIKED_SONGS') {
+                 setAllItemsCached(res.songs);
+              } else {
+                 setAllItemsCached(res.albums);
+              }
           }
       }
       
-      setIsLoading(false);
-      // Scroll to top on page change
-      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+      if (isActive) setIsLoading(false);
     };
     load();
+
+    return () => { isActive = false; };
   }, [currentView, service, playlists, page, filter, selectedGenre, selectedYear, sortType]); 
 
   // Derived Items for Display
@@ -427,13 +434,13 @@ export const LibraryView: React.FC = () => {
   // Handlers
   const handleNextPage = () => {
       setPage(p => p + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePrevPage = () => {
       if (page > 0) {
           setPage(p => p - 1);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
       }
   };
 
@@ -482,7 +489,7 @@ export const LibraryView: React.FC = () => {
   const isSongView = currentView === 'SONGS' || currentView === 'LIKED_SONGS';
 
   return (
-    <div className="p-6 md:p-10 min-h-screen flex flex-col" ref={scrollRef}>
+    <div className="p-6 md:p-10 min-h-screen flex flex-col">
       
       <MobileLibraryTabs />
 

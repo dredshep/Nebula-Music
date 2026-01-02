@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useRef } from 'react';
 import { StoreProvider, useStore } from './context/Store';
 import { Sidebar } from './components/Sidebar';
 import { MobileNav } from './components/MobileNav';
@@ -24,6 +24,8 @@ const AppContent: React.FC = () => {
     visualizerMode, setVisualizerMode, isZenMode, setZenMode,
     settings
   } = useStore();
+
+  const mainRef = useRef<HTMLElement>(null);
 
   const handleGlobalShortcuts = useCallback((e: KeyboardEvent) => {
       // Ignore shortcuts if typing in an input
@@ -60,6 +62,13 @@ const AppContent: React.FC = () => {
       window.addEventListener('keydown', handleGlobalShortcuts);
       return () => window.removeEventListener('keydown', handleGlobalShortcuts);
   }, [handleGlobalShortcuts]);
+
+  // Scroll to top when view changes
+  useEffect(() => {
+    if (mainRef.current) {
+        mainRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentView]);
 
   if (!credentials && !isDemoMode) {
       return <SetupScreen />;
@@ -113,7 +122,7 @@ const AppContent: React.FC = () => {
 
       <Sidebar />
       
-      <main className="flex-1 h-full overflow-y-auto relative z-10 scroll-smooth">
+      <main ref={mainRef} className="flex-1 h-full overflow-y-auto relative z-10 scroll-smooth">
         {/* Top Bar Fade */}
         <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
         
