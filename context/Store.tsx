@@ -356,21 +356,27 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     if (currentSongIndex >= 0 && queue[currentSongIndex]) {
       const song = queue[currentSongIndex];
-      const cover = service.getCoverArtUrl(song.id, 512);
-
+      
       navigator.mediaSession.metadata = new MediaMetadata({
         title: song.title,
         artist: song.artist,
         album: song.album,
         artwork: [
-          { src: cover, sizes: '512x512', type: 'image/jpeg' },
-          { src: cover, sizes: '512x512', type: 'image/png' }
+          { src: service.getCoverArtUrl(song.id, 96), sizes: '96x96', type: 'image/jpeg' },
+          { src: service.getCoverArtUrl(song.id, 128), sizes: '128x128', type: 'image/jpeg' },
+          { src: service.getCoverArtUrl(song.id, 192), sizes: '192x192', type: 'image/jpeg' },
+          { src: service.getCoverArtUrl(song.id, 256), sizes: '256x256', type: 'image/jpeg' },
+          { src: service.getCoverArtUrl(song.id, 384), sizes: '384x384', type: 'image/jpeg' },
+          { src: service.getCoverArtUrl(song.id, 512), sizes: '512x512', type: 'image/jpeg' }
         ]
       });
+    } else {
+        navigator.mediaSession.metadata = null;
     }
 
     navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
     navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
+    navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
     navigator.mediaSession.setActionHandler('previoustrack', prevSong);
     navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
     
@@ -389,7 +395,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
          if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.currentTime + skip, audioRef.current.duration);
     });
     
-  }, [currentSongIndex, queue, service, isPlaying]);
+  }, [currentSongIndex, queue, service, isPlaying, repeatMode]); // Added repeatMode dependency to ensure next track logic uses correct state
 
   // Update Media Session Playback State
   useEffect(() => {

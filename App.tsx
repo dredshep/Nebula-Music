@@ -8,7 +8,7 @@ import { HomeView } from './views/Home';
 import { LibraryView } from './views/Library';
 import { BrowseView } from './views/Browse';
 import { SettingsView } from './views/Settings';
-import { ArtistDetailView } from './views/ArtistDetail';
+import { ArtistDetailView } from './views/ArtistDetailView';
 import { AlbumDetailView } from './views/AlbumDetail';
 import { PlaylistDetailView } from './views/PlaylistDetail';
 import { SearchView } from './views/Search';
@@ -20,7 +20,7 @@ import { VisualizerMode } from './types';
 const AppContent: React.FC = () => {
   const { 
     currentView, setView, credentials, isDemoMode, queue, currentSongIndex, 
-    togglePlay, nextSong, prevSong, toggleRepeat, 
+    togglePlay, nextSong, prevSong, toggleRepeat, isPlaying,
     visualizerMode, setVisualizerMode, isZenMode, setZenMode,
     settings
   } = useStore();
@@ -40,13 +40,19 @@ const AppContent: React.FC = () => {
           return;
       }
 
-      if (key === shortcuts.playPause) {
+      // Add Media Key support explicitly for focused window
+      if (key === shortcuts.playPause || key === 'MediaPlayPause') {
           e.preventDefault();
           togglePlay();
-      } else if (key === shortcuts.next) {
+      } else if (key === shortcuts.next || key === 'MediaTrackNext') {
+          e.preventDefault();
           nextSong();
-      } else if (key === shortcuts.prev) {
+      } else if (key === shortcuts.prev || key === 'MediaTrackPrevious') {
+          e.preventDefault();
           prevSong();
+      } else if (key === 'MediaStop') {
+          e.preventDefault();
+          if (isPlaying) togglePlay();
       } else if (key === shortcuts.loop) {
           toggleRepeat();
       } else if (key === shortcuts.zen) {
@@ -56,7 +62,7 @@ const AppContent: React.FC = () => {
           const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
           setVisualizerMode(modes[nextIndex]);
       }
-  }, [settings, togglePlay, nextSong, prevSong, toggleRepeat, visualizerMode, setVisualizerMode, isZenMode, setZenMode]);
+  }, [settings, togglePlay, nextSong, prevSong, toggleRepeat, visualizerMode, setVisualizerMode, isZenMode, setZenMode, isPlaying]);
 
   useEffect(() => {
       window.addEventListener('keydown', handleGlobalShortcuts);
