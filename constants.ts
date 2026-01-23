@@ -1,6 +1,23 @@
 
 import { IAlbum, IArtist, ISong, IPlaylist } from './types';
 
+export const APP_VERSION = '0.2.0';
+
+export const CHANGELOG = [
+    {
+        version: '0.2.0',
+        date: '2024-05-22',
+        title: 'Responsiveness & Stability Update',
+        changes: [
+            'Fixed M4A/ALAC playback issues by implementing smarter transcoding rules and content-length estimation.',
+            'Enhanced responsiveness: The app now fits perfectly on all screen sizes using dynamic viewport units (100dvh).',
+            'Persistent Library Filters: Sort options, genre, and year filters are now saved between sessions.',
+            'UI Stability: Fixed visual resets in the Home Hero section when interacting with the player.',
+            'Visual Upgrades: Added parallax scrolling effects to Artist Detail views and refined player layouts for smaller screens.'
+        ]
+    }
+];
+
 export const MOCK_ARTISTS: IArtist[] = [
   { id: 'ar1', name: 'Neon Void', albumCount: 2 },
   { id: 'ar2', name: 'Cyber Punkers', albumCount: 1 },

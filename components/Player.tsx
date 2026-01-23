@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
 import { useStore } from '../context/Store';
@@ -236,25 +237,25 @@ export const Player: React.FC = () => {
                  </div>
             )}
             {activeTab === 'playing' && (
-                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl">
-                     <div className="relative aspect-square w-full max-w-[300px] md:max-w-[450px] mb-10 group">
+                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl min-h-0">
+                     <div className="relative aspect-square w-full max-w-[300px] md:max-w-[450px] max-h-[40vh] mb-6 md:mb-10 group shrink-0">
                           <div className={`relative w-full h-full rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-80'}`}>
                               <img src={coverArt} className="w-full h-full object-cover" alt={currentSong.title} />
                               {isVinyl && ( <div className="absolute inset-0 bg-black/10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-40 mix-blend-overlay pointer-events-none"></div> )}
                           </div>
                           <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-secondary rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-1000 -z-10 animate-pulse"></div>
                      </div>
-                     <div className="text-center mb-4 md:mb-10">
-                          <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight">{currentSong.title}</h1>
-                          <div className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block" onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}> {currentSong.artist} </div>
+                     <div className="text-center mb-4 md:mb-10 shrink-0">
+                          <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight line-clamp-2">{currentSong.title}</h1>
+                          <div className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block truncate max-w-2xl" onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}> {currentSong.artist} </div>
                           <div className="flex flex-col items-center gap-1 md:gap-2">
-                              <div className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block" onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}> {currentSong.album} </div>
+                              <div className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block truncate max-w-xl" onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}> {currentSong.album} </div>
                               <div className="mt-1"> {renderQualityBadge(currentSong.suffix, currentSong.bitRate)} </div>
                           </div>
                      </div>
                 </div>
             )}
-            <div className="w-full max-w-4xl bg-neutral-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl mb-8">
+            <div className="w-full max-w-4xl bg-neutral-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl mb-8 shrink-0">
                  <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mb-6">
                      <span>{formatTime(currentTime)}</span>
                      <div className="relative flex-1 h-1.5 bg-white/10 rounded-full group">

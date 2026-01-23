@@ -15,6 +15,7 @@ import { SearchView } from './views/Search';
 import { PlaylistModal } from './components/PlaylistModal';
 import { SearchModal } from './components/SearchModal';
 import { SetupScreen } from './components/SetupScreen';
+import { WhatsNewModal } from './components/WhatsNewModal';
 import { VisualizerMode } from './types';
 
 const AppContent: React.FC = () => {
@@ -119,7 +120,7 @@ const AppContent: React.FC = () => {
   const isPlayerVisible = queue.length > 0 && currentSongIndex >= 0;
 
   return (
-    <div className="flex h-screen w-screen bg-dark text-white overflow-hidden selection:bg-primary selection:text-black font-sans">
+    <div className="flex h-[100dvh] w-screen bg-dark text-white overflow-hidden selection:bg-primary selection:text-black font-sans">
       {/* Background Ambient Light */}
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-primary/10 rounded-full filter blur-[100px] opacity-30 animate-blob transition-colors duration-1000"></div>
@@ -133,7 +134,7 @@ const AppContent: React.FC = () => {
         <div className="sticky top-0 z-30 px-10 py-4 bg-gradient-to-b from-dark to-transparent pointer-events-none h-20"></div>
         
         {/* Content Wrapper with dynamic padding for Player and Mobile Nav */}
-        <div className={`min-h-full transition-all duration-300 ${isPlayerVisible ? 'pb-40 md:pb-32' : 'pb-20 md:pb-0'}`}>
+        <div className={`min-h-full transition-all duration-300 ${isPlayerVisible ? 'pb-40 md:pb-32' : 'pb-24 md:pb-0'}`}>
             <ViewComponent />
         </div>
       </main>
@@ -142,6 +143,7 @@ const AppContent: React.FC = () => {
       <Player />
       <PlaylistModal />
       <SearchModal />
+      <WhatsNewModal />
     </div>
   );
 };

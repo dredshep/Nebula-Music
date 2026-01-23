@@ -40,6 +40,17 @@ Nebula Stream is a modern web music client designed for Subsonic-compatible serv
 *   **Subsonic Integration**: Full support for standard Subsonic API authentication.
 *   **Offline Ready**: Intelligent caching of API responses and images via IndexedDB.
 
+## 📜 Changelog
+
+### v0.2.0
+- **Audio Engine**: Fixed playback issues for M4A and ALAC files by implementing smarter transcoding rules and content-length estimation.
+- **UI/UX**:
+  - Implemented dynamic viewport sizing (`dvh`) to prevent layout shifting on mobile browsers.
+  - Fixed Hero section resetting animation/index when player state changes.
+  - Added parallax scrolling effects to Artist Detail views.
+  - Refined Mini Player and Expanded Player layouts for better responsiveness on small screens.
+- **Persistence**: Library filters (Sort, Genre, Year) are now remembered across sessions.
+
 ## 🛠 Tech Stack
 
 *   **Framework**: React 18

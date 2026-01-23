@@ -294,26 +294,57 @@ export const LibraryView: React.FC = () => {
   const [page, setPage] = useState(0);
   const [allItemsCached, setAllItemsCached] = useState<any[] | null>(null);
 
-  // Reset state on view change, but check viewData for sort override
+  // Helper to generate storage keys
+  const getStorageKey = (view: string, type: string) => `nebula_lib_${view}_${type}`;
+
+  // Reset/Load state on view change
   useEffect(() => {
     setPage(0);
-    setFilter('');
-    setSelectedGenre('');
-    setSelectedYear('');
+    setFilter(''); // We do not persist text search query to avoid confusion
     setItems([]);
     setAllItemsCached(null);
     
-    // Handle Sort from viewData if navigating from "Show More"
+    // Load persisted filters
+    const savedGenre = localStorage.getItem(getStorageKey(currentView, 'genre')) || '';
+    const savedYear = localStorage.getItem(getStorageKey(currentView, 'year')) || '';
+    let savedSort = localStorage.getItem(getStorageKey(currentView, 'sort')) || 'alphabeticalByName';
+
+    // Handle Sort from viewData if navigating from "Show More" (Overrules persistence)
     if (currentView === 'ALBUMS') {
          if (viewData && typeof viewData === 'object' && viewData.sort) {
-             setSortType(viewData.sort);
-         } else if (!viewData) {
-             setSortType('alphabeticalByName');
+             savedSort = viewData.sort;
          }
-    } else {
-         setSortType('alphabeticalByName');
     }
+
+    setSelectedGenre(savedGenre);
+    setSelectedYear(savedYear);
+    setSortType(savedSort);
+
   }, [currentView, viewData]);
+
+  // Wrappers to update state and storage
+  const handleSetSortType = (val: string) => {
+      setSortType(val);
+      localStorage.setItem(getStorageKey(currentView, 'sort'), val);
+  };
+
+  const handleSetSelectedGenre = (val: string) => {
+      setSelectedGenre(val);
+      localStorage.setItem(getStorageKey(currentView, 'genre'), val);
+  };
+
+  const handleSetSelectedYear = (val: string) => {
+      setSelectedYear(val);
+      localStorage.setItem(getStorageKey(currentView, 'year'), val);
+  };
+
+  const resetFilters = () => {
+      setFilter('');
+      handleSetSelectedGenre('');
+      handleSetSelectedYear('');
+      handleSetSortType('alphabeticalByName');
+      setPage(0);
+  };
 
   // Fetch Genres on mount
   useEffect(() => {
@@ -444,14 +475,6 @@ export const LibraryView: React.FC = () => {
       }
   };
 
-  const resetFilters = () => {
-      setFilter('');
-      setSelectedGenre('');
-      setSelectedYear('');
-      setSortType('alphabeticalByName');
-      setPage(0);
-  };
-
   const PaginationControls = () => (
       <div className="flex justify-center items-center space-x-4 my-6">
           <button 
@@ -489,7 +512,7 @@ export const LibraryView: React.FC = () => {
   const isSongView = currentView === 'SONGS' || currentView === 'LIKED_SONGS';
 
   return (
-    <div className="p-6 md:p-10 min-h-screen flex flex-col">
+    <div className="p-6 md:p-10 min-h-full flex flex-col">
       
       <MobileLibraryTabs />
 
@@ -500,11 +523,11 @@ export const LibraryView: React.FC = () => {
                 setFilter={setFilter}
                 setPage={setPage}
                 sortType={sortType}
-                setSortType={setSortType}
+                setSortType={handleSetSortType}
                 selectedGenre={selectedGenre}
-                setSelectedGenre={setSelectedGenre}
+                setSelectedGenre={handleSetSelectedGenre}
                 selectedYear={selectedYear}
-                setSelectedYear={setSelectedYear}
+                setSelectedYear={handleSetSelectedYear}
                 genres={genres}
                 resetFilters={resetFilters}
             />
