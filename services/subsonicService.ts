@@ -39,7 +39,7 @@ export class SubsonicService {
         url.searchParams.set('t', token);
         url.searchParams.set('s', salt);
         url.searchParams.set('v', '1.16.1');
-        url.searchParams.set('c', 'NebulaStream');
+        url.searchParams.set('c', 'NebulaMusic');
         url.searchParams.set('f', 'json');
         
         Object.entries(params).forEach(([k, v]) => {

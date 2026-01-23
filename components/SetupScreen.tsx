@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../context/Store';
 import { Server, CheckCircle, AlertCircle, ArrowRight, Music, ShieldAlert } from 'lucide-react';
@@ -47,7 +48,7 @@ export const SetupScreen: React.FC = () => {
                 <path d="M20 10v4" className="opacity-50" />
               </svg>
            </div>
-           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Welcome to Nebula</h1>
+           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Welcome to Nebula Music</h1>
            <p className="text-neutral-400">Your personal high-fidelity music cloud.</p>
         </div>
 

@@ -1,7 +1,6 @@
-
 <div align="center">
   <br />
-  <img src="./logo.svg" alt="Nebula Stream Logo" width="120" height="120" />
+  <img src="./logo.svg" alt="Nebula Music Logo" width="120" height="120" />
   <h1>Nebula Music</h1>
   <p>A high-fidelity, glassmorphic music client for the modern web.</p>
 </div>
@@ -71,3 +70,7 @@ Nebula Music is a modern web music client designed for Subsonic-compatible serve
     npm run dev
     ```
 3.  Open `http://localhost:3000` in your browser.
+
+## License
+
+MIT
