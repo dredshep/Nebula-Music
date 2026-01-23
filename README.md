@@ -82,6 +82,6 @@ Nebula Stream is a modern web music client designed for Subsonic-compatible serv
     ```
 3.  Open `http://localhost:3000` in your browser.
 
-## icense
+## License
 
 This project is under the MIT License
