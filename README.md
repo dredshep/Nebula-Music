@@ -42,7 +42,7 @@ Nebula Stream is a modern web music client designed for Subsonic-compatible serv
 
 ##  Changelog
 
-### v0.2.0
+### v1.3
 - **Audio Engine**: Fixed playback issues for M4A and ALAC files by implementing smarter transcoding rules and content-length estimation.
 - **UI/UX**:
   - Implemented dynamic viewport sizing (`dvh`) to prevent layout shifting on mobile browsers.
