@@ -1,11 +1,11 @@
 
 import { IAlbum, IArtist, ISong, IPlaylist } from './types';
 
-export const APP_VERSION = '0.2.0';
+export const APP_VERSION = '1.3';
 
 export const CHANGELOG = [
     {
-        version: '0.2.0',
+        version: '1.3',
         date: '2024-05-22',
         title: 'Responsiveness & Stability Update',
         changes: [
