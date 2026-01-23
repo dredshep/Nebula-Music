@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { Home, Disc, Mic2, Music, ListMusic, Settings, Compass, Search, Command, Heart, Star } from 'lucide-react';
 import { useStore } from '../context/Store';
@@ -37,7 +36,7 @@ export const Sidebar: React.FC = () => {
             </div>
             <div>
                 <h1 className="text-xl font-bold text-white tracking-tight leading-none">NEBULA</h1>
-                <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-mono">Stream</p>
+                <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-mono">Music</p>
             </div>
         </div>
 
