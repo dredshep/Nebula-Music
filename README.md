@@ -2,11 +2,11 @@
 <div align="center">
   <br />
   <img src="./logo.svg" alt="Nebula Stream Logo" width="120" height="120" />
-  <h1>Nebula Stream</h1>
+  <h1>Nebula Music</h1>
   <p>A high-fidelity, glassmorphic music client for the modern web.</p>
 </div>
 
-Nebula Stream is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications while fully supporting mobile devices.
+Nebula Music is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications while fully supporting mobile devices.
 
 ## Features
 
