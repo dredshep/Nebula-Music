@@ -210,14 +210,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     
     const onEnded = () => {
-         const { repeatMode } = stateRef.current;
+         // CRITICAL FIX: Destructure fresh values from ref, do not rely on closure scope
+         const { repeatMode, queue, currentSongIndex } = stateRef.current;
+         
          if (repeatMode === 'ONE') {
             if(audioRef.current) { 
                 audioRef.current.currentTime = 0; 
                 audioRef.current.play().catch(e => console.warn("Loop play failed", e)); 
             }
          } else { 
-            nextSong(false); 
+            // Implement next song logic using fresh state values
+            if (queue.length === 0) return;
+            if (currentSongIndex < queue.length - 1) {
+                setCurrentSongIndex(currentSongIndex + 1);
+                setIsPlaying(true);
+            } else {
+                if (repeatMode === 'ALL') {
+                    setCurrentSongIndex(0);
+                    setIsPlaying(true);
+                } else {
+                    setIsPlaying(false);
+                    setCurrentSongIndex(0); 
+                }
+            }
          }
     };
 
