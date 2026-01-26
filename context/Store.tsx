@@ -108,6 +108,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
+  // Use refs for state accessed inside event listeners to avoid constant re-binding
+  const stateRef = useRef({ queue, currentSongIndex, isPlaying, repeatMode });
+
+  useEffect(() => {
+      stateRef.current = { queue, currentSongIndex, isPlaying, repeatMode };
+  }, [queue, currentSongIndex, isPlaying, repeatMode]);
+
   useEffect(() => {
       const init = async () => {
           await db.init();
@@ -155,6 +162,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   }, [currentSongIndex, isPlaying, queue]);
 
+  // Audio Context Initialization
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -165,26 +173,34 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const ana = ctx.createAnalyser();
         ana.fftSize = 2048; 
         ana.smoothingTimeConstant = 0.85;
+        // Connect to source
         const source = ctx.createMediaElementSource(audio);
         source.connect(ana);
         ana.connect(ctx.destination);
+        
         audioContextRef.current = ctx;
         setAnalyser(ana);
     } catch (e) { console.warn("Audio Context init error:", e); }
   }, []);
 
+  // Event Listeners (Optimized)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     
     const handleTimeUpdate = () => {
+        const { queue, currentSongIndex, isPlaying } = stateRef.current;
         const cTime = audio.currentTime;
         const dur = audio.duration || 0;
+
+        // Media Session update
         if ('mediaSession' in navigator && !isNaN(dur) && dur > 0) {
             try {
                 navigator.mediaSession.setPositionState({ duration: dur, playbackRate: audio.playbackRate, position: cTime });
             } catch (e) {}
         }
+
+        // Scrobble Logic
         if (isPlaying && dur > 0 && cTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
            if (cTime > 30 || cTime > dur / 2) {
                service.scrobble(queue[currentSongIndex].id);
@@ -193,20 +209,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
     
-    const handleMetadata = () => {
-         if(audio) {
-             audio.playbackRate = playbackRate;
-             const a = audio as any;
-             if (a.preservesPitch !== undefined) a.preservesPitch = pitchCorrection;
-             else if (a.mozPreservesPitch !== undefined) a.mozPreservesPitch = pitchCorrection;
-             else if (a.webkitPreservesPitch !== undefined) a.webkitPreservesPitch = pitchCorrection;
-         }
-    };
-    
     const onEnded = () => {
+         const { repeatMode } = stateRef.current;
          if (repeatMode === 'ONE') {
-            if(audioRef.current) { audioRef.current.currentTime = 0; audioRef.current.play(); }
-         } else { nextSong(false); }
+            if(audioRef.current) { 
+                audioRef.current.currentTime = 0; 
+                audioRef.current.play().catch(e => console.warn("Loop play failed", e)); 
+            }
+         } else { 
+            nextSong(false); 
+         }
     };
 
     const onError = (e: any) => {
@@ -217,18 +229,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleMetadata);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('error', onError);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleMetadata);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
     };
-  });
+  }, []); // Empty dependency array: bindings are permanent, logic uses refs
 
+  // Handle CSS Variables
   useEffect(() => {
     const hexToRgb = (hex: string) => {
       const r = parseInt(hex.slice(1, 3), 16);
@@ -240,12 +251,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.style.setProperty('--color-secondary', hexToRgb(settings.theme.secondaryColor));
   }, [settings.theme]);
 
+  // Handle Resume Context
   useEffect(() => {
     if (isPlaying && audioContextRef.current?.state === 'suspended') {
       audioContextRef.current.resume();
     }
   }, [isPlaying]);
 
+  // Handle Audio Props Updates (Volume, Rate, Pitch)
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -255,20 +268,56 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       else if (audio.mozPreservesPitch !== undefined) audio.mozPreservesPitch = pitchCorrection;
       else if (audio.webkitPreservesPitch !== undefined) audio.webkitPreservesPitch = pitchCorrection;
     }
-  }, [volume, playbackRate, pitchCorrection, currentSongIndex]);
+  }, [volume, playbackRate, pitchCorrection]);
 
+  // Handle Source Loading & Playback (Imperative)
   useEffect(() => {
-    if (audioRef.current) {
-      if (isPlaying) {
-          audioRef.current.play().catch(e => {
-              console.warn("Play promise failed:", e);
-              setIsPlaying(false);
-          });
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      const song = queue[currentSongIndex];
+      
+      if (song) {
+          const url = service.getStreamUrl(song.id, song.suffix);
+          
+          // Only change source if it's actually different
+          // We use getAttribute('src') because audio.src resolves to full absolute URL
+          if (audio.src !== url) {
+              audio.src = url;
+              // Explicit load calls are critical for long-running apps to clear buffers
+              audio.load();
+              
+              // Apply playback rate again after load
+              audio.playbackRate = playbackRate;
+              const a = audio as any;
+              if (a.preservesPitch !== undefined) a.preservesPitch = pitchCorrection;
+
+              if (isPlaying) {
+                 const playPromise = audio.play();
+                 if (playPromise !== undefined) {
+                     playPromise.catch(e => {
+                         // Abort errors are common when skipping quickly, ignore them
+                         if (e.name !== 'AbortError') {
+                             console.warn("Play failed", e);
+                         }
+                     });
+                 }
+              }
+          } else {
+              // URL same, just check play state
+              if (isPlaying && audio.paused) {
+                  audio.play().catch(e => console.warn("Resume failed", e));
+              } else if (!isPlaying && !audio.paused) {
+                  audio.pause();
+              }
+          }
       } else {
-          audioRef.current.pause();
+          // No song
+          audio.pause();
+          audio.removeAttribute('src');
+          audio.load(); // Release resources
       }
-    }
-  }, [isPlaying, currentSongIndex]);
+  }, [currentSongIndex, queue, service, isPlaying]); // Intentionally grouped to manage play state alongside source
 
   const playSong = (song: ISong, contextQueue?: ISong[]) => {
     if (contextQueue) {
@@ -311,6 +360,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Media Session Handler
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
     if (currentSongIndex >= 0 && queue[currentSongIndex]) {
@@ -328,6 +378,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ]
       });
     } else { navigator.mediaSession.metadata = null; }
+    
     navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
     navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
     navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
@@ -427,8 +478,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return sorted.map(item => item.song);
   }, [playHistory]);
 
-  const currentSong = queue[currentSongIndex];
-
   return (
     <StoreContext.Provider value={{
       currentView, setView, viewData, queue, currentSongIndex, isPlaying, volume, playbackRate, pitchCorrection, visualizerMode, repeatMode,
@@ -442,7 +491,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
       <audio 
         ref={audioRef} 
-        src={currentSong ? service.getStreamUrl(currentSong.id, currentSong.suffix) : undefined} 
         crossOrigin="anonymous"
         preload="auto"
       />
