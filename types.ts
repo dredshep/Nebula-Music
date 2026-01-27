@@ -67,6 +67,15 @@ export interface IPlaylist {
   songs?: ISong[];
 }
 
+export interface HomeData {
+    randomSongs: ISong[];
+    recentAlbums: IAlbum[];
+    newestAlbums: IAlbum[];
+    exploreAlbums: IAlbum[];
+    recommendedTracks: ISong[];
+    lastFetched: number;
+}
+
 export interface SubsonicCredentials {
   serverUrl: string;
   username: string;
@@ -132,4 +141,8 @@ export interface AppState {
   // Zen Mode State (Global to allow shortcuts)
   isZenMode: boolean;
   setZenMode: (enabled: boolean) => void;
+
+  // Caching
+  homeData: HomeData;
+  cachedArtists: IArtist[];
 }
