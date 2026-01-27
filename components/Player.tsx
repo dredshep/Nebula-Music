@@ -245,11 +245,11 @@ export const Player: React.FC = () => {
                           </div>
                           <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-secondary rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-1000 -z-10 animate-pulse"></div>
                      </div>
-                     <div className="text-center mb-4 md:mb-10 shrink-0">
+                     <div className="text-center mb-4 md:mb-10 shrink-0 w-full px-12 md:px-32 max-w-4xl mx-auto">
                           <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight line-clamp-2">{currentSong.title}</h1>
-                          <div className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block truncate max-w-2xl" onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}> {currentSong.artist} </div>
+                          <div className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block truncate max-w-2xl mx-auto" onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}> {currentSong.artist} </div>
                           <div className="flex flex-col items-center gap-1 md:gap-2">
-                              <div className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block truncate max-w-xl" onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}> {currentSong.album} </div>
+                              <div className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block truncate max-w-xl mx-auto" onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}> {currentSong.album} </div>
                               <div className="mt-1"> {renderQualityBadge(currentSong.suffix, currentSong.bitRate)} </div>
                           </div>
                      </div>
@@ -268,93 +268,90 @@ export const Player: React.FC = () => {
                      </div>
                      <span>{formatTime(duration)}</span>
                  </div>
-                 <div className="grid grid-cols-3 items-center w-full">
-                     <div className="flex items-center justify-start gap-2 md:gap-4">
-                          <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`p-2 rounded-full hover:bg-white/10 transition ${currentSong.starred ? 'text-red-500' : 'text-neutral-400'}`}> <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} /> </button>
-                          <button onClick={(e) => { e.stopPropagation(); openPlaylistModal(currentSong); }} className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"> <ListPlus className="w-5 h-5" /> </button>
+
+                 <div className="flex items-center justify-between gap-4 md:gap-8">
+                     <button onClick={toggleVinylMode} className={`p-2 rounded-full transition ${isVinyl ? 'bg-primary/20 text-primary border border-primary/30' : 'text-neutral-500 hover:text-white'}`} title="Vinyl Mode (Pitch varies with speed)">
+                         <Disc className={`w-5 h-5 ${isVinyl ? 'animate-spin-slow' : ''}`} />
+                     </button>
+                     
+                     <div className="flex items-center gap-4 md:gap-8 flex-1 justify-center">
+                         <button onClick={prevSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
+                             <SkipBack className="w-8 h-8 fill-current" />
+                         </button>
+                         <button 
+                             onClick={togglePlay} 
+                             className="w-16 h-16 md:w-20 md:h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-xl shadow-white/10"
+                         >
+                             {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                         </button>
+                         <button onClick={nextSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
+                             <SkipForward className="w-8 h-8 fill-current" />
+                         </button>
                      </div>
-                     <div className="flex items-center justify-center gap-6 md:gap-8">
-                          <button onClick={prevSong} className="p-2 text-neutral-300 hover:text-white hover:scale-110 transition"> <SkipBack className="w-8 h-8 fill-current" /> </button>
-                          <button onClick={togglePlay} className="w-14 h-14 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-lg shadow-white/10"> {isPlaying ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current ml-1" />} </button>
-                          <button onClick={nextSong} className="p-2 text-neutral-300 hover:text-white hover:scale-110 transition"> <SkipForward className="w-8 h-8 fill-current" /> </button>
-                     </div>
-                     <div className="flex items-center justify-end gap-2 md:gap-4">
-                         <button onClick={toggleRepeat} className={`p-2 rounded-full hover:bg-white/10 transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-400'}`}> {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />} </button>
-                         <div className="hidden sm:flex items-center gap-4 group/vol ml-2">
-                             <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-400 hover:text-white transition"> {volume === 0 ? <VolumeX className="w-5 h-5" /> : (volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />)} </button>
-                             <div className="relative w-20 h-6 flex items-center select-none">
-                                 <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1 bg-white/10 rounded-full w-full"></div>
-                                 <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-white rounded-full pointer-events-none" style={{ width: `${volume * 100}%` }}></div>
-                                 <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md pointer-events-none transition-transform group-hover/vol:scale-125" style={{ left: `${volume * 100}%`, transform: 'translate(-50%, -50%)' }}></div>
-                                 <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+
+                     <div className="flex items-center gap-4">
+                         <div className="hidden md:flex items-center group/vol">
+                             <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-500 hover:text-white mr-2">
+                                 {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                             </button>
+                             <div className="w-0 overflow-hidden group-hover/vol:w-24 transition-all duration-300">
+                                 <input 
+                                     type="range" 
+                                     min="0" 
+                                     max="1" 
+                                     step="0.01" 
+                                     value={volume} 
+                                     onChange={(e) => setVolume(parseFloat(e.target.value))} 
+                                     className="w-24 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full cursor-pointer"
+                                 />
                              </div>
                          </div>
+                         <button onClick={toggleRepeat} className={`transition ${repeatMode === 'OFF' ? 'text-neutral-500 hover:text-white' : 'text-primary'}`}>
+                             {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
+                         </button>
                      </div>
-                 </div>
-                 <div className="mt-6 flex justify-center gap-4 md:gap-8 border-t border-white/5 pt-4">
-                      <div className="flex flex-col items-center w-24 md:w-32">
-                          <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Speed</label>
-                          <div className="flex items-center justify-center bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px]">
-                              <button onClick={() => setPlaybackRate(Math.max(0.5, playbackRate - 0.1))} className="px-2 text-neutral-400 hover:text-white">-</button>
-                              <span className="flex-1 text-center text-xs font-mono">{playbackRate.toFixed(1)}x</span>
-                              <button onClick={() => setPlaybackRate(Math.min(2.0, playbackRate + 0.1))} className="px-2 text-neutral-400 hover:text-white">+</button>
-                          </div>
-                      </div>
-                      <div className="flex flex-col items-center w-24 md:w-32">
-                          <label className="text-[10px] uppercase tracking-wider text-neutral-500 mb-1">Vinyl Mode</label>
-                          <div className="bg-black/30 border border-transparent rounded-lg p-1 w-full h-[32px] flex">
-                              <button onClick={toggleVinylMode} className={`flex-1 flex items-center justify-center rounded transition ${isVinyl ? 'bg-white/10' : ''} group`}> <span className={`text-xs font-bold transition ${isVinyl ? 'text-orange-500' : 'text-neutral-400 group-hover:text-white'}`}> {isVinyl ? 'ANALOG' : 'DIGITAL'} </span> </button>
-                          </div>
-                      </div>
                  </div>
             </div>
         </div>
       </div>
-      <div className={`fixed left-0 right-0 bg-black/90 backdrop-blur-xl border-t border-white/10 h-20 md:h-24 px-4 md:px-8 flex items-center justify-between z-40 transition-all duration-300 bottom-16 md:bottom-0 ${isExpanded ? 'translate-y-[200%]' : 'translate-y-0'} ${isZenMode ? 'translate-y-[200%]' : ''}`} onClick={() => setIsExpanded(true)}>
-          <div className="flex items-center w-2/3 md:w-1/3 min-w-0 cursor-pointer group">
-              <div className="relative w-12 h-12 md:w-14 md:h-14 mr-3 md:mr-4 shrink-0">
-                  <img src={coverArt} className="w-full h-full rounded-lg object-cover shadow-md group-hover:scale-105 transition" alt="" />
-                  <div className="absolute inset-0 bg-black/20 rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center justify-center"> <Maximize2 className="w-5 h-5 text-white" /> </div>
-              </div>
-              <div className="min-w-0 flex flex-col justify-center">
-                  <h4 className="text-white font-bold truncate group-hover:text-primary transition text-sm md:text-base">{currentSong.title}</h4>
-                  <div className="flex items-center text-xs text-neutral-400 truncate">
-                      <span className="truncate">{currentSong.artist}</span>
-                      {currentSong.suffix && ( <> <span className="mx-1 opacity-50">|</span> {renderQualityBadge(currentSong.suffix, currentSong.bitRate, true)} </> )}
+
+      {/* Mini Player Bar */}
+      {!isExpanded && !isZenMode && (
+          <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/90 backdrop-blur-xl border-t border-white/10 p-3 z-50 flex items-center gap-4 pb-safe transition-transform duration-300 animate-fade-in-up" onClick={() => setIsExpanded(true)}>
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 group cursor-pointer shadow-lg">
+                  <img src={coverArt} className="w-full h-full object-cover" alt="" />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Maximize2 className="w-5 h-5 text-white" />
                   </div>
               </div>
-              <button onClick={(e) => { e.stopPropagation(); toggleLike(currentSong); }} className={`hidden md:block ml-4 p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${currentSong.starred ? 'text-red-500 opacity-100' : 'text-neutral-400'}`}> <Heart className={`w-4 h-4 ${currentSong.starred ? 'fill-current' : ''}`} /> </button>
-          </div>
-          <div className="flex flex-col items-center w-1/3 md:w-1/3">
-              <div className="flex items-center justify-end md:justify-center gap-4 md:gap-6 w-full">
-                  <button onClick={(e) => { e.stopPropagation(); toggleRepeat(); }} className={`hidden md:block transition ${repeatMode !== 'OFF' ? 'text-primary' : 'text-neutral-500 hover:text-white'}`}> <Repeat className="w-4 h-4" /> </button>
-                  <button onClick={(e) => { e.stopPropagation(); prevSong(); }} className="hidden md:block text-neutral-300 hover:text-white hover:scale-110 transition"> <SkipBack className="w-5 h-5 fill-current" /> </button>
-                  <button onClick={(e) => { e.stopPropagation(); togglePlay(); }} className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-lg"> {isPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current ml-0.5" />} </button>
-                  <button onClick={(e) => { e.stopPropagation(); nextSong(); }} className="text-neutral-300 hover:text-white hover:scale-110 transition"> <SkipForward className="w-5 h-5 fill-current" /> </button>
-                  <button onClick={(e) => { e.stopPropagation(); setZenMode(true); }} className="hidden md:block text-neutral-500 hover:text-white transition" title="Zen Mode"> <Eye className="w-4 h-4" /> </button>
+              
+              <div className="flex-1 min-w-0 cursor-pointer overflow-hidden">
+                  <div className="font-bold text-white truncate text-sm">{currentSong.title}</div>
+                  <div className="text-xs text-neutral-400 truncate">{currentSong.artist}</div>
               </div>
-              <div className="hidden md:flex w-full max-w-md items-center gap-3 text-[10px] font-mono text-neutral-500 mt-1">
-                  <span>{formatTime(currentTime)}</span>
-                  <div className="relative flex-1 h-1 bg-white/10 rounded-full group" onClick={(e) => e.stopPropagation()}>
-                      <div className="absolute inset-0 rounded-full overflow-hidden"> <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }}></div> </div>
-                      <input type="range" min="0" max="100" step="0.1" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  </div>
-                  <span>{formatTime(duration)}</span>
+
+              <div className="flex items-center gap-3 md:gap-6 mr-2">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); prevSong(); }} 
+                    className="hidden md:block text-neutral-400 hover:text-white transition"
+                  >
+                      <SkipBack className="w-5 h-5 fill-current" />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
+                    className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg"
+                  >
+                      {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); nextSong(); }} 
+                    className="text-neutral-400 hover:text-white transition"
+                  >
+                      <SkipForward className="w-5 h-5 fill-current" />
+                  </button>
               </div>
           </div>
-          <div className="hidden md:flex items-center justify-end w-1/3 gap-4" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center group/vol">
-                  <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="mr-3 text-neutral-400 hover:text-white transition"> {volume === 0 ? <VolumeX className="w-5 h-5" /> : (volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />)} </button>
-                  <div className="relative w-24 h-6 flex items-center select-none group/slide">
-                      <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1 bg-white/10 rounded-full w-full"></div>
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-white rounded-full pointer-events-none" style={{ width: `${volume * 100}%` }}></div>
-                      <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-[0_1px_3px_rgba(0,0,0,0.5)] border border-neutral-300 pointer-events-none transition-transform group-hover/slide:scale-125" style={{ left: `${volume * 100}%`, transform: 'translate(-50%, -50%)' }}></div>
-                      <input type="range" min="0" max="1" step="0.01" value={volume} onChange={(e) => setVolume(parseFloat(e.target.value))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
-                  </div>
-              </div>
-              <button onClick={() => setIsExpanded(true)} className="p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"> <Maximize2 className="w-5 h-5" /> </button>
-          </div>
-      </div>
+      )}
     </>
   );
 };
