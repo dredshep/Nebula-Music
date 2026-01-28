@@ -64,80 +64,61 @@ export const BrowseView: React.FC = () => {
   const [newAlbums, setNewAlbums] = useState<IAlbum[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const generateDaily = useCallback(async (force = false) => {
-      const today = new Date().toDateString();
-      const storedDate = localStorage.getItem('nebula_browse_daily_date');
-      const storedData = localStorage.getItem('nebula_browse_daily_data');
+  const loadData = useCallback(async (force = false) => {
+      setIsLoading(true);
+      
+      const CACHE_KEY = 'nebula_browse_cache_v2';
+      const TS_KEY = 'nebula_browse_ts_v2';
+      const ONE_DAY = 24 * 60 * 60 * 1000;
+      
+      const cached = localStorage.getItem(CACHE_KEY);
+      const ts = localStorage.getItem(TS_KEY);
 
-      if (!force && storedDate === today && storedData) {
-          try {
-              setDailyAlbums(JSON.parse(storedData));
-              return;
-          } catch(e) {}
-      }
-
-      // Analyze habits
-      const mostPlayed = getMostPlayedSongs();
-      let params = {};
-      let strategy = 'random';
-
-      if (mostPlayed.length > 0) {
-          // Find top genre
-          const genreCounts: Record<string, number> = {};
-          mostPlayed.forEach(s => {
-              if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
-          });
-          const topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
-          
-          if (topGenre && Math.random() > 0.3) {
-              strategy = 'byGenre';
-              params = { genre: topGenre };
-          } else {
-              strategy = 'frequent'; 
+      if (!force && cached && ts) {
+          const age = Date.now() - parseInt(ts);
+          if (age < ONE_DAY) {
+              try {
+                  const data = JSON.parse(cached);
+                  
+                  // Rehydrate icons based on ID patterns
+                  const mixes = data.mixes.map((m: any) => {
+                      let Icon = Music;
+                      if (m.id.includes('flow')) Icon = Zap;
+                      else if (m.id.includes('oldies')) Icon = Radio;
+                      return { ...m, icon: Icon };
+                  });
+                  
+                  setGeneratedMixes(mixes);
+                  setDailyAlbums(data.daily);
+                  setNewAlbums(data.new);
+                  setRecommendedAlbums(data.recommended);
+                  setIsLoading(false);
+                  return;
+              } catch(e) {
+                  console.error("Cache parse error", e);
+              }
           }
       }
 
-      let results = await service.getAlbumList(strategy, 5, Math.floor(Math.random() * 20), params);
+      // --- Fetch Data ---
       
-      // Fallback if empty
-      if (results.length < 5) {
-          const fill = await service.getAlbumList('random', 5 - results.length);
-          results = [...results, ...fill];
+      // 1. Analyze Habits
+      const mostPlayed = getMostPlayedSongs();
+      let topGenre = '';
+      if (mostPlayed.length > 0) {
+          const genreCounts: Record<string, number> = {};
+          mostPlayed.forEach(s => { if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1; });
+          topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
       }
-      
-      // Shuffle results for variety
-      results = results.sort(() => 0.5 - Math.random());
 
-      setDailyAlbums(results);
-      localStorage.setItem('nebula_browse_daily_date', today);
-      localStorage.setItem('nebula_browse_daily_data', JSON.stringify(results));
+      // 2. Mixes
+      const [oldiesSongs, flowSongs, dailySongs] = await Promise.all([
+          service.getRandomSongs(20, { toYear: new Date().getFullYear() - 10 }),
+          service.getRandomSongs(20, topGenre ? { genre: topGenre } : {}),
+          service.getRandomSongs(20)
+      ]);
 
-  }, [service, getMostPlayedSongs]);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    
-    // 1. Analyze listening habits
-    const mostPlayed = getMostPlayedSongs();
-    let topGenre = '';
-    if (mostPlayed.length > 0) {
-        const genreCounts: Record<string, number> = {};
-        mostPlayed.forEach(s => { if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1; });
-        topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
-    }
-
-    // 2. Generate Mixes based on logic
-    // Mix 1: Nostalgia Trip - Songs older than 10 years
-    const oldiesSongs = await service.getRandomSongs(20, { toYear: new Date().getFullYear() - 10 });
-    
-    // Mix 2: Flow State - Genre specific or random if no genre
-    const flowSongs = await service.getRandomSongs(20, topGenre ? { genre: topGenre } : {});
-    
-    // Mix 3: Daily Mix - Blend of most played artists/genre + random
-    // Just grab random for now but heavily weighted
-    const dailySongs = await service.getRandomSongs(20);
-    
-    const createMix = (idSuffix: string, title: string, desc: string, icon: any, songs: ISong[]) => ({
+      const createMix = (idSuffix: string, title: string, desc: string, icon: any, songs: ISong[]) => ({
         id: `generated-${idSuffix}-${Date.now()}`,
         name: title,
         desc,
@@ -147,39 +128,78 @@ export const BrowseView: React.FC = () => {
         created: new Date().toISOString(),
         coverArt: songs[0]?.coverArt || songs[0]?.id, 
         songs
-    });
+      });
 
-    setGeneratedMixes([
+      const mixes = [
         createMix('flow', 'Flow State', topGenre ? `Focus generated based on ${topGenre}` : 'Focus generated just for you', Zap, flowSongs),
         createMix('oldies', 'Nostalgia Trip', 'Rediscover favorites from the past', Radio, oldiesSongs),
         createMix('daily', 'Daily Mix', 'Fresh tracks to start your day', Music, dailySongs),
-    ]);
+      ];
 
-    await generateDaily();
+      // 3. Daily Albums
+      let dailyStrategy = 'random';
+      let dailyParams = {};
+      if (topGenre && Math.random() > 0.3) {
+          dailyStrategy = 'byGenre';
+          dailyParams = { genre: topGenre };
+      } else if (mostPlayed.length > 0) {
+          dailyStrategy = 'frequent';
+      }
+      
+      let daily = await service.getAlbumList(dailyStrategy, 5, Math.floor(Math.random() * 20), dailyParams);
+      if (daily.length < 5) {
+          const fill = await service.getAlbumList('random', 5 - daily.length);
+          daily = [...daily, ...fill];
+      }
+      daily = daily.sort(() => 0.5 - Math.random());
 
-    // 3. New Albums (Recently Added)
-    setNewAlbums(await service.getAlbumList('newest', 10));
+      // 4. New & Recommended
+      const [newRes, recRes] = await Promise.all([
+          service.getAlbumList('newest', 10),
+          topGenre ? service.getAlbumList('byGenre', 10, 0, { genre: topGenre }) : service.getAlbumList('frequent', 10)
+      ]);
 
-    // 4. Recommended (Based on Genre)
-    if (topGenre) {
-        setRecommendedAlbums(await service.getAlbumList('byGenre', 10, 0, { genre: topGenre }));
-    } else {
-        setRecommendedAlbums(await service.getAlbumList('frequent', 10));
-    }
-    
-    setIsLoading(false);
-  };
+      // Set State
+      setGeneratedMixes(mixes);
+      setDailyAlbums(daily);
+      setNewAlbums(newRes);
+      setRecommendedAlbums(recRes);
+      
+      // Cache (Strip icons before saving as they are functions)
+      const cacheMixes = mixes.map(({ icon, ...rest }) => rest);
+      
+      const cacheData = {
+          mixes: cacheMixes,
+          daily,
+          new: newRes,
+          recommended: recRes
+      };
+      
+      localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+      localStorage.setItem(TS_KEY, Date.now().toString());
+      
+      setIsLoading(false);
+  }, [service, getMostPlayedSongs]);
 
   useEffect(() => {
-    loadData();
-  }, [service]);
+      loadData();
+  }, [loadData]);
+
+  if (isLoading) {
+      return (
+          <div className="p-10 flex flex-col items-center justify-center h-[50vh] animate-fade-in">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-neutral-400 font-medium">Curating your experience...</p>
+          </div>
+      );
+  }
 
   return (
-    <div className="p-10 pb-32">
+    <div className="p-10 pb-32 animate-fade-in">
       <div className="flex items-center justify-between mb-8">
          <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-neutral-500">Browse & Discover</h2>
-         <button onClick={loadData} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition">
-             <RefreshCw className={`w-5 h-5 text-neutral-400 ${isLoading ? 'animate-spin' : ''}`} />
+         <button onClick={() => loadData(true)} className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition">
+             <RefreshCw className="w-5 h-5 text-neutral-400" />
          </button>
       </div>
 
@@ -208,7 +228,7 @@ export const BrowseView: React.FC = () => {
                 <Calendar className="w-5 h-5 text-primary mr-2" /> Daily Recommendations
             </h3>
             <button 
-                onClick={() => generateDaily(true)}
+                onClick={() => loadData(true)}
                 className="text-xs font-bold text-neutral-400 hover:text-white flex items-center bg-white/5 px-3 py-1.5 rounded-full transition"
             >
                 <RefreshCw className="w-3 h-3 mr-1.5" /> Refresh Picks

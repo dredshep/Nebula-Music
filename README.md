@@ -41,16 +41,14 @@ Nebula Music is a modern web music client designed for Subsonic-compatible serve
 
 ## Changelog
 
-### v1.4
-
-- **Redesigned Expanded Player:** Now features a sleek side-by-side layout on larger screens with significantly larger album art.
-
-- **Mini Player Update:** Added a fully seekable progress bar with hover controls and a dedicated time display.
-
-- **Metadata Detail:** Expanded player now displays detailed track info including Genre, Year, and Audio Quality specifics.
-
-- **Visual Polish:** Improved animations and layout spacing for a more immersive listening experience.
-
+### v1.3
+- **Audio Engine**: Fixed playback issues for M4A and ALAC files by implementing smarter transcoding rules and content-length estimation.
+- **UI/UX**:
+  - Implemented dynamic viewport sizing (`dvh`) to prevent layout shifting on mobile browsers.
+  - Fixed Hero section resetting animation/index when player state changes.
+  - Added parallax scrolling effects to Artist Detail views.
+  - Refined Mini Player and Expanded Player layouts for better responsiveness on small screens.
+- **Persistence**: Library filters (Sort, Genre, Year) are now remembered across sessions.
 
 ## Tech Stack
 

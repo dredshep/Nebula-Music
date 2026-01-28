@@ -476,17 +476,14 @@ export const Player: React.FC = () => {
 
       {/* Mini Player Bar */}
       {!isExpanded && !isZenMode && (
-          <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 z-50 flex flex-col pb-safe transition-transform duration-300 animate-fade-in-up">
+          <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/95 backdrop-blur-xl border-t border-white/5 z-50 flex flex-col pb-safe transition-transform duration-300 animate-fade-in-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+              
               {/* Seekable Progress Bar */}
-              <div className="w-full h-1.5 bg-white/5 relative group cursor-pointer touch-none" onClick={(e) => e.stopPropagation()}>
-                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="w-full h-1 bg-white/5 relative group cursor-pointer touch-none" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div 
                     className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-100 ease-linear" 
                     style={{ width: `${progress}%` }} 
-                  ></div>
-                  <div 
-                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                    style={{ left: `${progress}%`, marginLeft: '-6px' }}
                   ></div>
                   <input 
                     type="range" 
@@ -496,49 +493,86 @@ export const Player: React.FC = () => {
                     value={progress} 
                     onChange={handleScrub}
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer group-hover:h-4 group-hover:-top-1.5 transition-all"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer group-hover:h-3 group-hover:-top-1 transition-all"
                   />
               </div>
 
-              <div className="flex items-center gap-4 p-3 h-16" onClick={() => setIsExpanded(true)}>
-                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 group cursor-pointer shadow-lg">
-                      <img src={coverArt} className="w-full h-full object-cover" alt="" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                          <Maximize2 className="w-5 h-5 text-white" />
+              <div className="flex items-center justify-between px-4 h-16 md:h-20" onClick={() => setIsExpanded(true)}>
+                  
+                  {/* LEFT: Info */}
+                  <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 max-w-[40%] md:max-w-[30%]">
+                      <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 group cursor-pointer shadow-lg">
+                          <img src={coverArt} className="w-full h-full object-cover" alt="" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                              <Maximize2 className="w-5 h-5 text-white" />
+                          </div>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0 cursor-pointer overflow-hidden">
+                          <div className="font-bold text-white truncate text-xs md:text-sm">{currentSong.title}</div>
+                          <div className="text-[10px] md:text-xs text-neutral-400 truncate">{currentSong.artist}</div>
                       </div>
                   </div>
-                  
-                  <div className="flex-1 min-w-0 cursor-pointer overflow-hidden">
-                      <div className="font-bold text-white truncate text-sm">{currentSong.title}</div>
-                      <div className="text-xs text-neutral-400 truncate">{currentSong.artist}</div>
-                  </div>
 
-                  <div className="hidden sm:flex flex-col items-center justify-center px-2 min-w-[80px]">
-                      <span className="text-xs font-mono text-neutral-400 font-medium">
-                        {formatTime(currentTime)} / {formatTime(duration)}
-                      </span>
-                  </div>
-
-                  <div className="flex items-center gap-3 md:gap-6 mr-2">
+                  {/* CENTER: Controls (Absolute on Desktop, Flex on Mobile) */}
+                  <div 
+                    className="flex items-center gap-4 md:gap-6 md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2" 
+                    onClick={(e) => e.stopPropagation()}
+                  >
                       <button 
                         onClick={(e) => { e.stopPropagation(); prevSong(); }} 
-                        className="hidden md:block text-neutral-400 hover:text-white transition"
+                        className="hidden md:block text-neutral-400 hover:text-white transition hover:scale-110"
                       >
                           <SkipBack className="w-5 h-5 fill-current" />
                       </button>
+                      
                       <button 
                         onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
-                        className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg"
+                        className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg hover:scale-105"
                       >
                           {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                       </button>
+                      
                       <button 
                         onClick={(e) => { e.stopPropagation(); nextSong(); }} 
-                        className="text-neutral-400 hover:text-white transition"
+                        className="text-neutral-400 hover:text-white transition hover:scale-110"
                       >
                           <SkipForward className="w-5 h-5 fill-current" />
                       </button>
                   </div>
+
+                  {/* RIGHT: Volume & Time */}
+                  <div className="hidden md:flex items-center gap-4 flex-1 justify-end max-w-[30%]">
+                       <span className="text-xs font-mono text-neutral-500 font-medium">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                       </span>
+
+                       {/* New Volume Slider */}
+                       <div className="flex items-center gap-2 group/vol w-32" onClick={(e) => e.stopPropagation()}>
+                           <button 
+                               onClick={() => setVolume(volume === 0 ? 1 : 0)} 
+                               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+                           >
+                               {volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 0.5 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                           </button>
+                           <div className="flex-1 h-1.5 group/slider relative flex items-center">
+                               <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <div className="h-full bg-white group-hover/vol:bg-primary transition-colors" style={{ width: `${volume * 100}%` }}></div>
+                               </div>
+                               <div className="absolute w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover/vol:opacity-100 transition-opacity pointer-events-none" style={{ left: `${volume * 100}%`, transform: 'translateX(-50%)' }}></div>
+                               <input 
+                                   type="range" 
+                                   min="0" 
+                                   max="1" 
+                                   step="0.01" 
+                                   value={volume} 
+                                   onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                               />
+                           </div>
+                       </div>
+                  </div>
+
               </div>
           </div>
       )}
