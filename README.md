@@ -42,7 +42,6 @@ Nebula Music is a modern web music client designed for Subsonic-compatible serve
 ## Changelog
 
 ### v1.4
-v1.4
 
 - **Redesigned Expanded Player:** Now features a sleek side-by-side layout on larger screens with significantly larger album art.
 
