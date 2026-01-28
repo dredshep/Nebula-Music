@@ -108,20 +108,23 @@ export const Player: React.FC = () => {
     setVisualizerMode(modes[nextIndex]);
   }, [visualizerMode, setVisualizerMode]);
 
-  const renderQualityBadge = (suffix?: string, bitrate?: number, small = false) => {
+  const renderQualityBadge = (suffix?: string, bitrate?: number, large = false) => {
       if (!suffix) return null;
       const s = suffix.toUpperCase();
-      // Expanded support for lossless and high-quality browser supported formats
       const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV' || s === 'AIFF' || s === 'AIF';
       const isHighQuality = isLossless || s === 'AAC' || s === 'M4A' || s === 'MP4' || (bitrate && bitrate >= 256);
       
+      const badgePadding = large ? 'px-3 py-1.5' : 'px-1 py-0.5';
+      const badgeTextSize = large ? 'text-sm font-bold' : 'text-[9px] font-bold';
+      const bitrateTextSize = large ? 'text-sm font-mono' : 'text-[9px] font-mono';
+
       return (
-          <div className={`flex items-center gap-1.5 ${small ? 'opacity-70' : ''}`}>
-              <span className={`px-1 py-0.5 rounded text-[9px] font-bold border ${isLossless ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : (isHighQuality ? 'border-primary/50 text-primary bg-primary/10' : 'border-neutral-600 text-neutral-400 bg-neutral-800')}`}>
+          <div className={`flex items-center gap-2.5 ${!large ? 'opacity-70' : ''}`}>
+              <span className={`${badgePadding} rounded-md ${badgeTextSize} border ${isLossless ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : (isHighQuality ? 'border-primary/50 text-primary bg-primary/10' : 'border-neutral-600 text-neutral-400 bg-neutral-800')}`}>
                   {s}
               </span>
               {bitrate && (
-                  <span className={`text-[9px] font-mono ${small ? 'text-neutral-500' : 'text-neutral-400'}`}>{bitrate}k</span>
+                  <span className={`${bitrateTextSize} ${large ? 'text-neutral-300' : 'text-neutral-500'}`}>{bitrate}k</span>
               )}
           </div>
       );
@@ -142,7 +145,7 @@ export const Player: React.FC = () => {
   const coverArt = service.getCoverArtUrl(currentSong.id, 600);
   const handleScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
      const newTime = (parseFloat(e.target.value) / 100) * duration;
-     const audio = document.querySelector('audio');
+     const audio = audioRef.current;
      if(audio) audio.currentTime = newTime;
      setCurrentTime(newTime);
   };
@@ -184,7 +187,7 @@ export const Player: React.FC = () => {
                      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
                      <div className="relative z-50 flex flex-col items-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-8 group-hover:translate-y-0 w-full">
                           <h2 className="text-3xl md:text-5xl font-bold text-white mb-2 drop-shadow-2xl text-center px-8">{currentSong.title}</h2>
-                          <p className="text-xl md:text-2xl text-neutral-300 mb-8 drop-shadow-lg">{currentSong.artist}</p>
+                          <p className="text-xl md:text-2xl text-neutral-300 mb-8 drop-shadow-lg text-center px-8">{currentSong.artist}</p>
                           <div className="flex items-center gap-8 md:gap-12 p-4">
                               <button onClick={toggleRepeat} className={`transition hover:scale-110 drop-shadow-md ${repeatMode === 'OFF' ? 'text-neutral-400 hover:text-white' : 'text-primary'}`}> {repeatMode === 'ONE' ? <Repeat1 className="w-6 h-6" /> : <Repeat className="w-6 h-6" />} </button>
                               <button onClick={prevSong} className="text-white hover:text-primary transition hover:scale-110 drop-shadow-md"> <SkipBack className="w-10 h-10 fill-current" /> </button>
@@ -198,7 +201,10 @@ export const Player: React.FC = () => {
                                      <div className="absolute inset-0 top-1/2 -translate-y-1/2 h-1.5 bg-white/20 w-full rounded-full transition-all duration-300 group-hover/scrub:bg-white/30 overflow-hidden">
                                         <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full relative" style={{ width: `${progress}%` }} />
                                      </div>
-                                     <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] transform scale-0 group-hover/scrub:scale-100 transition-transform duration-200 pointer-events-none" style={{ left: `calc(${progress}% - 8px)` }}></div>
+                                     <div 
+                                        className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-[0_0_15px_rgba(255,255,255,1)] transform scale-0 group-hover/scrub:scale-100 transition-[transform] duration-200 pointer-events-none" 
+                                        style={{ left: `calc(${progress}% - 8px)` }}
+                                     ></div>
                                      <input type="range" min="0" max="100" step="0.01" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                 </div>
                                 <span className="text-xs font-mono font-medium text-white/50 w-12">{formatTime(duration)}</span>
@@ -244,9 +250,9 @@ export const Player: React.FC = () => {
                  </div>
             )}
             {activeTab === 'playing' && (
-                <div className="flex-1 flex flex-col md:flex-row items-center justify-center w-full max-w-7xl gap-8 md:gap-16 min-h-0 px-6 md:px-12 pb-6">
-                     {/* Left: Album Art */}
-                     <div className="relative shrink-0 flex justify-center items-center h-[40vh] md:h-[55vh] aspect-square max-w-full">
+                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl gap-6 md:gap-10 min-h-0 px-6 md:px-12 py-4">
+                     {/* Top: Album Art */}
+                     <div className="relative shrink-0 flex justify-center items-center h-[35vh] md:h-[45vh] lg:h-[50vh] aspect-square max-w-full">
                           <div className="relative w-full h-full flex items-center justify-center">
                               <div className="absolute -inset-6 bg-gradient-to-tr from-primary/30 to-secondary/30 rounded-full blur-3xl opacity-30 animate-pulse"></div>
                               <div className={`relative w-full h-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-neutral-900 border border-white/10 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-90'}`}>
@@ -261,26 +267,28 @@ export const Player: React.FC = () => {
                           </div>
                      </div>
 
-                     {/* Right: Metadata */}
-                     <div className="flex flex-col justify-center text-center md:text-left w-full md:flex-1 min-w-0 md:pl-4">
-                          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-6 leading-tight drop-shadow-lg line-clamp-3">{currentSong.title}</h1>
+                     {/* Bottom: Metadata - Now centered below art */}
+                     <div className="flex flex-col items-center text-center w-full max-w-4xl overflow-hidden px-4">
+                          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-6 leading-tight drop-shadow-lg line-clamp-2 break-words text-center py-2">
+                            {currentSong.title}
+                          </h1>
                           
-                          <div className="space-y-3 md:space-y-5">
+                          <div className="space-y-2 md:space-y-4 w-full flex flex-col items-center">
                               <div 
-                                className="text-xl md:text-3xl text-neutral-200 font-bold cursor-pointer hover:text-primary transition block truncate" 
+                                className="text-xl md:text-3xl text-neutral-200 font-bold cursor-pointer hover:text-primary transition block truncate text-center w-full px-4" 
                                 onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}
                               > 
                                 {currentSong.artist} 
                               </div>
                               
                               <div 
-                                className="text-lg md:text-2xl text-neutral-400 font-medium cursor-pointer hover:text-white transition block truncate" 
+                                className="text-lg md:text-2xl text-neutral-400 font-medium cursor-pointer hover:text-white transition block truncate text-center w-full px-4" 
                                 onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}
                               > 
                                 {currentSong.album} 
                               </div>
 
-                              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm md:text-base text-neutral-500 font-medium mt-2 md:mt-4">
+                              <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base text-neutral-500 font-medium mt-2 md:mt-4">
                                   {currentSong.genre && (
                                     <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                                       {currentSong.genre}
@@ -293,8 +301,8 @@ export const Player: React.FC = () => {
                                   )}
                               </div>
 
-                              <div className="flex items-center justify-center md:justify-start mt-2"> 
-                                {renderQualityBadge(currentSong.suffix, currentSong.bitRate)} 
+                              <div className="flex items-center justify-center mt-2"> 
+                                {renderQualityBadge(currentSong.suffix, currentSong.bitRate, true)} 
                               </div>
                           </div>
                      </div>
@@ -304,9 +312,9 @@ export const Player: React.FC = () => {
                  <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mb-6">
                      <span>{formatTime(currentTime)}</span>
                      <div className="relative flex-1 h-1.5 bg-white/10 rounded-full group">
-                         <div className="absolute inset-0 rounded-full overflow-hidden">
-                             <div className="h-full bg-gradient-to-r from-primary to-secondary rounded-full relative" style={{ width: `${progress}%` }}>
-                                 <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                         <div className="absolute inset-0 rounded-full flex items-center">
+                             <div className="h-full bg-gradient-to-r from-primary to-secondary relative flex items-center justify-end" style={{ width: `${progress}%` }}>
+                                 <div className="absolute right-[-6px] w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
                              </div>
                          </div>
                          <input type="range" min="0" max="100" step="0.1" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -478,13 +486,24 @@ export const Player: React.FC = () => {
       {!isExpanded && !isZenMode && (
           <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/95 backdrop-blur-xl border-t border-white/5 z-50 flex flex-col pb-safe transition-transform duration-300 animate-fade-in-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
               
-              {/* Seekable Progress Bar */}
-              <div className="w-full h-1 bg-white/5 relative group cursor-pointer touch-none" onClick={(e) => e.stopPropagation()}>
+              {/* Seekable Progress Bar - Enhanced Hover Experience */}
+              <div 
+                className="w-full h-1 bg-white/5 relative group cursor-pointer touch-none transition-[height] duration-300 hover:h-6" 
+                onClick={(e) => e.stopPropagation()}
+              >
                   <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  
+                  {/* Pinned Fill & Thumb Container */}
                   <div 
-                    className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-100 ease-linear" 
+                    className="absolute left-0 top-0 bottom-0 bg-primary flex items-center justify-end" 
                     style={{ width: `${progress}%` }} 
-                  ></div>
+                  >
+                      {/* Visual Thumb for Seek Feedback - Grows significantly on hover and pinned to end of fill */}
+                      <div 
+                        className="w-3 h-3 bg-white rounded-full shadow-[0_0_12px_rgba(255,255,255,1)] opacity-0 group-hover:opacity-100 group-hover:w-5 group-hover:h-5 transition-[width,height,opacity] duration-200 pointer-events-none translate-x-1/2"
+                      ></div>
+                  </div>
+
                   <input 
                     type="range" 
                     min="0" 
@@ -493,7 +512,7 @@ export const Player: React.FC = () => {
                     value={progress} 
                     onChange={handleScrub}
                     onClick={(e) => e.stopPropagation()}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer group-hover:h-3 group-hover:-top-1 transition-all"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
               </div>
 
@@ -514,52 +533,55 @@ export const Player: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* CENTER: Controls (Absolute on Desktop, Flex on Mobile) */}
+                  {/* CENTER: Controls (Dead Centered on Desktop) */}
                   <div 
-                    className="flex items-center gap-4 md:gap-6 md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2" 
+                    className="flex items-center gap-4 md:gap-8 md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2" 
                     onClick={(e) => e.stopPropagation()}
                   >
                       <button 
                         onClick={(e) => { e.stopPropagation(); prevSong(); }} 
-                        className="hidden md:block text-neutral-400 hover:text-white transition hover:scale-110"
+                        className="hidden md:block text-neutral-400 hover:text-white transition hover:scale-125"
                       >
-                          <SkipBack className="w-5 h-5 fill-current" />
+                          <SkipBack className="w-6 h-6 fill-current" />
                       </button>
                       
                       <button 
                         onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
-                        className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg hover:scale-105"
+                        className="w-10 h-10 md:w-12 md:h-12 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg hover:scale-110 active:scale-95"
                       >
-                          {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                          {isPlaying ? <Pause className="w-5 h-5 md:w-6 md:h-6 fill-current" /> : <Play className="w-5 h-5 md:w-6 md:h-6 fill-current ml-0.5" />}
                       </button>
                       
                       <button 
                         onClick={(e) => { e.stopPropagation(); nextSong(); }} 
-                        className="text-neutral-400 hover:text-white transition hover:scale-110"
+                        className="text-neutral-400 hover:text-white transition hover:scale-125"
                       >
-                          <SkipForward className="w-5 h-5 fill-current" />
+                          <SkipForward className="w-6 h-6 fill-current" />
                       </button>
                   </div>
 
                   {/* RIGHT: Volume & Time */}
-                  <div className="hidden md:flex items-center gap-4 flex-1 justify-end max-w-[30%]">
-                       <span className="text-xs font-mono text-neutral-500 font-medium">
+                  <div className="hidden md:flex items-center gap-6 flex-1 justify-end max-w-[30%]">
+                       <span className="text-xs font-mono text-neutral-500 font-bold">
                         {formatTime(currentTime)} / {formatTime(duration)}
                        </span>
 
-                       {/* New Volume Slider */}
-                       <div className="flex items-center gap-2 group/vol w-32" onClick={(e) => e.stopPropagation()}>
+                       {/* Enhanced Volume Slider */}
+                       <div className="flex items-center gap-3 group/vol w-32 xl:w-40" onClick={(e) => e.stopPropagation()}>
                            <button 
                                onClick={() => setVolume(volume === 0 ? 1 : 0)} 
-                               className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+                               className="w-9 h-9 flex items-center justify-center rounded-full bg-white/5 border border-white/5 hover:bg-white/10 hover:border-white/10 text-neutral-400 hover:text-white transition"
                            >
                                {volume === 0 ? <VolumeX className="w-4 h-4" /> : volume < 0.5 ? <Volume1 className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                            </button>
-                           <div className="flex-1 h-1.5 group/slider relative flex items-center">
-                               <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-white group-hover/vol:bg-primary transition-colors" style={{ width: `${volume * 100}%` }}></div>
+                           <div className="flex-1 h-4 relative flex items-center group/track">
+                               <div className="w-full h-1 bg-white/10 rounded-full overflow-hidden transition-all group-hover/track:h-1.5">
+                                    <div className="h-full bg-white group-hover/vol:bg-primary transition-colors duration-300" style={{ width: `${volume * 100}%` }}></div>
                                </div>
-                               <div className="absolute w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover/vol:opacity-100 transition-opacity pointer-events-none" style={{ left: `${volume * 100}%`, transform: 'translateX(-50%)' }}></div>
+                               <div 
+                                    className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)] opacity-0 group-hover/vol:opacity-100 transition-all duration-200 pointer-events-none scale-0 group-hover/vol:scale-100" 
+                                    style={{ left: `calc(${volume * 100}%)` }}
+                               ></div>
                                <input 
                                    type="range" 
                                    min="0" 
@@ -567,7 +589,7 @@ export const Player: React.FC = () => {
                                    step="0.01" 
                                    value={volume} 
                                    onChange={(e) => setVolume(parseFloat(e.target.value))}
-                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                />
                            </div>
                        </div>

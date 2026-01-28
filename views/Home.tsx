@@ -232,7 +232,7 @@ export const HomeView: React.FC = () => {
     <div className="p-6 md:p-10 pb-32 max-w-[1600px] mx-auto">
       <HeroSection songs={randomSongs} />
       
-      {/* Adjusted height to 600px to fit 2 rows of cards symmetrically */}
+      {/* Quick Picks (Top Left) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[600px]">
           {/* Quick Picks (Top Left) */}
           <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
@@ -248,14 +248,19 @@ export const HomeView: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
                   {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
-                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-neutral-800 shadow-md">
-                              <img src={service.getCoverArtUrl(song.coverArt || song.id, 200)} className="w-full h-full object-cover" alt="" />
+                          {/* Framed Album Art */}
+                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-black/30 border border-white/10 shadow-md">
+                              <img 
+                                src={service.getCoverArtUrl(song.coverArt || song.id, 200)} 
+                                className="w-full h-full object-cover" 
+                                alt={song.album} 
+                              />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
                                   <Play className="w-8 h-8 text-white fill-current" />
                               </div>
                           </div>
                           
-                          <div className="min-w-0 w-full">
+                          <div className="min-w-0 w-full px-1">
                               <h4 className="text-sm font-bold text-white truncate group-hover:text-primary transition">{song.title}</h4>
                               <p className="text-xs text-neutral-400 truncate">{song.artist}</p>
                           </div>
@@ -343,7 +348,7 @@ export const HomeView: React.FC = () => {
                      >
                          <div className="aspect-square rounded-lg overflow-hidden mb-3 relative shadow-lg bg-neutral-800">
                              <img src={service.getCoverArtUrl(album.coverArt || album.id, 200)} className="w-full h-full object-cover transition duration-500 group-hover/card:opacity-90" alt="" />
-                             <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
                                 <Play className="w-8 h-8 text-white fill-white drop-shadow-lg" />
                              </div>
                          </div>
