@@ -1,9 +1,20 @@
 
 import { IAlbum, IArtist, ISong, IPlaylist } from './types';
 
-export const APP_VERSION = '1.3';
+export const APP_VERSION = '1.4';
 
 export const CHANGELOG = [
+    {
+        version: '1.4',
+        date: '2024-05-24',
+        title: 'Player Experience Upgrade',
+        changes: [
+            'Redesigned Expanded Player: Now features a sleek side-by-side layout on larger screens with significantly larger album art.',
+            'Mini Player Power-Up: Added a fully seekable progress bar with hover controls and a dedicated time display.',
+            'Metadata Detail: Expanded player now displays detailed track info including Genre, Year, and Audio Quality specifics.',
+            'Visual Polish: Improved animations and layout spacing for a more immersive listening experience.'
+        ]
+    },
     {
         version: '1.3',
         date: '2024-05-22',

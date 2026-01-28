@@ -166,104 +166,32 @@ const AlbumRow = ({ albums }: { albums: IAlbum[] }) => {
 };
 
 export const HomeView: React.FC = () => {
-  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs } = useStore();
-  const [randomSongs, setRandomSongs] = useState<ISong[]>([]);
-  const [recentlyAddedAlbums, setRecentlyAddedAlbums] = useState<IAlbum[]>([]);
-  const [recentlyPlayedAlbums, setRecentlyPlayedAlbums] = useState<IAlbum[]>([]);
-  const [exploreAlbums, setExploreAlbums] = useState<IAlbum[]>([]);
+  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs, homeData, refreshHomeData } = useStore();
+  
   const [loadingExplore, setLoadingExplore] = useState(false);
   
   // Tabbed Box State
   const [activeTab, setActiveTab] = useState<'played' | 'recommended'>('played');
-  const [recommendedTracks, setRecommendedTracks] = useState<ISong[]>([]);
   const mostPlayedTracks = getMostPlayedSongs().slice(0, 50);
 
-  const loadExplore = useCallback(async (force = false) => {
-      setLoadingExplore(true);
-      const today = new Date().toDateString();
-      const storedDate = localStorage.getItem('nebula_explore_date');
-      const storedData = localStorage.getItem('nebula_explore_data');
-
-      if (!force && storedDate === today && storedData) {
-          try {
-              setExploreAlbums(JSON.parse(storedData));
-              setLoadingExplore(false);
-              return;
-          } catch (e) {}
-      }
-
-      let strategy = 'random';
-      let params = {};
-      
-      const topSongs = getMostPlayedSongs();
-      if (topSongs.length > 0) {
-          const genreCounts: Record<string, number> = {};
-          topSongs.forEach(s => {
-              if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
-          });
-          const topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
-          if(topGenre) {
-              strategy = 'byGenre';
-              params = { genre: topGenre };
-          }
-      }
-
-      // If forcing refresh and using genre, vary offset to get new results
-      const offset = (force && strategy !== 'random') ? Math.floor(Math.random() * 50) : 0;
-
-      let results = await service.getAlbumList(strategy, 10, offset, params);
-      
-      // Fallback if empty
-      if (results.length < 5) {
-          const fill = await service.getAlbumList('random', 10 - results.length);
-          results = [...results, ...fill];
-      }
-      
-      setExploreAlbums(results);
-      // Only store if not forced refresh to keep daily consistency unless requested
-      if (!force) {
-          localStorage.setItem('nebula_explore_date', today);
-          localStorage.setItem('nebula_explore_data', JSON.stringify(results));
-      }
-      setLoadingExplore(false);
-  }, [service, getMostPlayedSongs]);
-
-  const loadRecommended = async () => {
-      const topSongs = getMostPlayedSongs();
-      let topGenre = '';
-      if (topSongs.length > 0) {
-          const genreCounts: Record<string, number> = {};
-          topSongs.forEach(s => {
-              if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
-          });
-          topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
-      }
-      
-      // Fetch recommended tracks based on genre or random
-      const recs = await service.getRandomSongs(50, topGenre ? { genre: topGenre } : {});
-      setRecommendedTracks(recs);
-  };
-
-  const loadData = async () => {
-      setRandomSongs(await service.getRandomSongs(20));
-      setRecentlyAddedAlbums(await service.getAlbumList('newest', 5)); // Recently Added
-      setRecentlyPlayedAlbums(await service.getAlbumList('recent', 5)); // Recently Played
-      await loadExplore();
-      await loadRecommended();
-  };
-
   useEffect(() => {
-    loadData();
-    
-    // Poll for updates every hour (3600000 ms)
+    const init = async () => {
+        setLoadingExplore(true);
+        await refreshHomeData();
+        setLoadingExplore(false);
+    };
+    init();
+
+    // Poll for updates every hour (3600000 ms) handled by store logic mostly but trigger doesn't hurt
     const interval = setInterval(() => {
-        loadData();
+        refreshHomeData();
     }, 3600000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshHomeData]);
 
-  const displaySongs = activeTab === 'played' ? mostPlayedTracks : recommendedTracks;
+  const displaySongs = activeTab === 'played' ? mostPlayedTracks : homeData.recommendedTracks;
+  const { randomSongs, exploreAlbums, recentAlbums, newestAlbums } = homeData;
 
   return (
     <div className="p-6 md:p-10 pb-32 max-w-[1600px] mx-auto">
@@ -277,12 +205,11 @@ export const HomeView: React.FC = () => {
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
                     className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1"
-                    onClick={async () => setRandomSongs(await service.getRandomSongs(20))}
+                    onClick={async () => refreshHomeData(true)}
                    >
                     <RefreshCw className="w-3 h-3" /> Refresh
                   </button>
               </div>
-              {/* Added overflow-y-auto and pr-2 to handle overflow elegantly */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
                   {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
@@ -366,7 +293,7 @@ export const HomeView: React.FC = () => {
             title="Daily Discovery" 
             icon={Compass} 
             onShowMore={() => setView('ALBUMS', { sort: 'random' })} 
-            onRefresh={() => loadExplore(true)} 
+            onRefresh={() => refreshHomeData(true)} 
             loading={loadingExplore}
       />
       <div className="relative group">
@@ -397,10 +324,10 @@ export const HomeView: React.FC = () => {
       </div>
       
       <SectionHeader title="Recently Played" icon={Clock} onShowMore={() => setView('ALBUMS', { sort: 'recent' })} />
-      <AlbumRow albums={recentlyPlayedAlbums} />
+      <AlbumRow albums={recentAlbums} />
 
       <SectionHeader title="Recently Added" icon={Plus} onShowMore={() => setView('ALBUMS', { sort: 'newest' })} />
-      <AlbumRow albums={recentlyAddedAlbums} />
+      <AlbumRow albums={newestAlbums} />
     </div>
   );
 };

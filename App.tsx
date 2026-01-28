@@ -23,7 +23,7 @@ const AppContent: React.FC = () => {
     currentView, setView, credentials, isDemoMode, queue, currentSongIndex, 
     togglePlay, nextSong, prevSong, toggleRepeat, isPlaying,
     visualizerMode, setVisualizerMode, isZenMode, setZenMode,
-    settings
+    settings, volume, setVolume
   } = useStore();
 
   const mainRef = useRef<HTMLElement>(null);
@@ -62,8 +62,14 @@ const AppContent: React.FC = () => {
           const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON'];
           const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
           setVisualizerMode(modes[nextIndex]);
+      } else if (key === 'ArrowUp') {
+          e.preventDefault();
+          setVolume(Math.min(1, volume + 0.05));
+      } else if (key === 'ArrowDown') {
+          e.preventDefault();
+          setVolume(Math.max(0, volume - 0.05));
       }
-  }, [settings, togglePlay, nextSong, prevSong, toggleRepeat, visualizerMode, setVisualizerMode, isZenMode, setZenMode, isPlaying]);
+  }, [settings, togglePlay, nextSong, prevSong, toggleRepeat, visualizerMode, setVisualizerMode, isZenMode, setZenMode, isPlaying, volume, setVolume]);
 
   useEffect(() => {
       window.addEventListener('keydown', handleGlobalShortcuts);

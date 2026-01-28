@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
-import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode, IArtist, IAlbum } from '../types';
+import { AppState, ISong, View, SubsonicCredentials, AppSettings, IPlaylist, VisualizerMode, RepeatMode, IArtist, IAlbum, HomeData } from '../types';
 import { SubsonicService } from '../services/subsonicService';
 import { MOCK_PLAYLISTS } from '../constants';
 import { db } from '../services/db';
@@ -45,6 +45,10 @@ interface StoreContextType extends AppState {
   service: SubsonicService;
   audioRef: React.RefObject<HTMLAudioElement>;
   analyser: AnalyserNode | null;
+
+  // Data Fetching
+  refreshHomeData: (force?: boolean) => Promise<void>;
+  fetchArtists: (force?: boolean) => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -104,6 +108,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const lastPlayedSongIdRef = useRef<string | null>(null);
   const hasScrobbledRef = useRef(false);
 
+  // Caching State
+  const [homeData, setHomeData] = useState<HomeData>({
+    randomSongs: [],
+    recentAlbums: [],
+    newestAlbums: [],
+    exploreAlbums: [],
+    recommendedTracks: [],
+    lastFetched: 0
+  });
+  const [cachedArtists, setCachedArtists] = useState<IArtist[]>([]);
+
   const audioRef = useRef<HTMLAudioElement>(null);
   const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -115,6 +130,99 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       stateRef.current = { queue, currentSongIndex, isPlaying, repeatMode };
   }, [queue, currentSongIndex, isPlaying, repeatMode]);
 
+  const getMostPlayedSongs = useCallback(() => {
+    const historyItems = Object.values(playHistory) as { count: number, song: ISong }[];
+    const sorted = historyItems.sort((a, b) => b.count - a.count);
+    return sorted.map(item => item.song);
+  }, [playHistory]);
+
+  // Data Fetching Logic for Home
+  const refreshHomeData = useCallback(async (force = false) => {
+    // If data is less than 1 hour old and not forced, don't refresh
+    if (!force && homeData.lastFetched > 0 && (Date.now() - homeData.lastFetched) < 3600000) {
+        return;
+    }
+
+    // Load Explore Logic
+    const loadExplore = async () => {
+        const today = new Date().toDateString();
+        const storedDate = localStorage.getItem('nebula_explore_date');
+        const storedData = localStorage.getItem('nebula_explore_data');
+
+        if (!force && storedDate === today && storedData) {
+            try {
+                return JSON.parse(storedData);
+            } catch (e) {}
+        }
+
+        let strategy = 'random';
+        let params = {};
+        
+        const topSongs = getMostPlayedSongs();
+        if (topSongs.length > 0) {
+            const genreCounts: Record<string, number> = {};
+            topSongs.forEach(s => {
+                if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
+            });
+            const topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
+            if(topGenre) {
+                strategy = 'byGenre';
+                params = { genre: topGenre };
+            }
+        }
+
+        const offset = (force && strategy !== 'random') ? Math.floor(Math.random() * 50) : 0;
+        let results = await service.getAlbumList(strategy, 10, offset, params);
+        
+        if (results.length < 5) {
+            const fill = await service.getAlbumList('random', 10 - results.length);
+            results = [...results, ...fill];
+        }
+        
+        if (!force) {
+            localStorage.setItem('nebula_explore_date', today);
+            localStorage.setItem('nebula_explore_data', JSON.stringify(results));
+        }
+        return results;
+    };
+
+    const loadRecommended = async () => {
+        const topSongs = getMostPlayedSongs();
+        let topGenre = '';
+        if (topSongs.length > 0) {
+            const genreCounts: Record<string, number> = {};
+            topSongs.forEach(s => {
+                if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
+            });
+            topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
+        }
+        return await service.getRandomSongs(50, topGenre ? { genre: topGenre } : {});
+    };
+
+    const [random, recent, newest, explore, recs] = await Promise.all([
+        service.getRandomSongs(20),
+        service.getAlbumList('recent', 5),
+        service.getAlbumList('newest', 5),
+        loadExplore(),
+        loadRecommended()
+    ]);
+
+    setHomeData({
+        randomSongs: random,
+        recentAlbums: recent,
+        newestAlbums: newest,
+        exploreAlbums: explore,
+        recommendedTracks: recs,
+        lastFetched: Date.now()
+    });
+  }, [service, homeData.lastFetched, getMostPlayedSongs]);
+
+  const fetchArtists = useCallback(async (force = false) => {
+    if (!force && cachedArtists.length > 0) return;
+    const artists = await service.getArtists();
+    setCachedArtists(artists);
+  }, [service, cachedArtists.length]);
+
   useEffect(() => {
       const init = async () => {
           await db.init();
@@ -125,6 +233,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
              setIsDemoMode(false);
              service.getPing();
              service.getPlaylists().then(setPlaylists);
+             // Pre-fetch critical data on load
+             fetchArtists(); 
           }
           const savedSettings = await db.get('settings', 'user_settings');
           if (savedSettings) {
@@ -138,7 +248,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch (e) {}
       };
       init();
-  }, [service]);
+  }, [service]); // fetchArtists dependency omitted to prevent cycles, service is stable
 
   useEffect(() => {
       if (isPlaying && currentSongIndex >= 0 && queue[currentSongIndex]) {
@@ -210,7 +320,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     
     const onEnded = () => {
-         // CRITICAL FIX: Destructure fresh values from ref, do not rely on closure scope
          const { repeatMode, queue, currentSongIndex } = stateRef.current;
          
          if (repeatMode === 'ONE') {
@@ -219,7 +328,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 audioRef.current.play().catch(e => console.warn("Loop play failed", e)); 
             }
          } else { 
-            // Implement next song logic using fresh state values
             if (queue.length === 0) return;
             if (currentSongIndex < queue.length - 1) {
                 setCurrentSongIndex(currentSongIndex + 1);
@@ -252,7 +360,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
     };
-  }, []); // Empty dependency array: bindings are permanent, logic uses refs
+  }, []);
 
   // Handle CSS Variables
   useEffect(() => {
@@ -295,14 +403,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (song) {
           const url = service.getStreamUrl(song.id, song.suffix);
           
-          // Only change source if it's actually different
-          // We use getAttribute('src') because audio.src resolves to full absolute URL
           if (audio.src !== url) {
               audio.src = url;
-              // Explicit load calls are critical for long-running apps to clear buffers
               audio.load();
               
-              // Apply playback rate again after load
               audio.playbackRate = playbackRate;
               const a = audio as any;
               if (a.preservesPitch !== undefined) a.preservesPitch = pitchCorrection;
@@ -311,7 +415,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                  const playPromise = audio.play();
                  if (playPromise !== undefined) {
                      playPromise.catch(e => {
-                         // Abort errors are common when skipping quickly, ignore them
                          if (e.name !== 'AbortError') {
                              console.warn("Play failed", e);
                          }
@@ -319,7 +422,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                  }
               }
           } else {
-              // URL same, just check play state
               if (isPlaying && audio.paused) {
                   audio.play().catch(e => console.warn("Resume failed", e));
               } else if (!isPlaying && !audio.paused) {
@@ -327,12 +429,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               }
           }
       } else {
-          // No song
           audio.pause();
           audio.removeAttribute('src');
-          audio.load(); // Release resources
+          audio.load();
       }
-  }, [currentSongIndex, queue, service, isPlaying]); // Intentionally grouped to manage play state alongside source
+  }, [currentSongIndex, queue, service, isPlaying]);
 
   const playSong = (song: ISong, contextQueue?: ISong[]) => {
     if (contextQueue) {
@@ -444,7 +545,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const creds: SubsonicCredentials = { serverUrl: url, username: user, token, salt };
     service.setCredentials(creds);
     const success = await service.getPing();
-    if (success) { setCredentialsState(creds); setIsDemoMode(false); db.saveCredentials(creds); service.getPlaylists().then(setPlaylists); return true; }
+    if (success) { 
+        setCredentialsState(creds); 
+        setIsDemoMode(false); 
+        db.saveCredentials(creds); 
+        service.getPlaylists().then(setPlaylists);
+        // Trigger initial data fetches
+        fetchArtists(true);
+        return true; 
+    }
     else { service.setCredentials(null as any); return false; }
   };
   
@@ -452,6 +561,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       service.setCredentials(null as any); setCredentialsState(null);
       await db.clear('settings'); await db.clear('api_cache');
       setQueue([]); setPlaylists([]); setCurrentSongIndex(-1); setIsPlaying(false); setIsDemoMode(false); 
+      setHomeData({ randomSongs: [], recentAlbums: [], newestAlbums: [], exploreAlbums: [], recommendedTracks: [], lastFetched: 0 });
+      setCachedArtists([]);
   };
 
   const enableDemoMode = () => { setIsDemoMode(true); setPlaylists(MOCK_PLAYLISTS); };
@@ -487,11 +598,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return pl;
     }));
   };
-  const getMostPlayedSongs = useCallback(() => {
-      const historyItems = Object.values(playHistory) as { count: number, song: ISong }[];
-      const sorted = historyItems.sort((a, b) => b.count - a.count);
-      return sorted.map(item => item.song);
-  }, [playHistory]);
 
   return (
     <StoreContext.Provider value={{
@@ -501,7 +607,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       connectToSubsonic, disconnect, enableDemoMode, addToQueue, updateSettings,
       openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
-      getMostPlayedSongs, history, service, audioRef, analyser, isZenMode, setZenMode
+      getMostPlayedSongs, history, service, audioRef, analyser, isZenMode, setZenMode,
+      homeData, cachedArtists, refreshHomeData, fetchArtists
     }}>
       {children}
       <audio 

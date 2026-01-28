@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2 } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, Volume1, VolumeX, ChevronDown, Shuffle, Maximize2, Heart, ListPlus, Eye, EyeOff, Disc, Repeat, Repeat1, Activity, Mic2, Zap, RotateCcw, SlidersHorizontal, Plus, Minus, X } from 'lucide-react';
 import { useStore } from '../context/Store';
 import { Visualizer } from './Visualizer';
 import { ISong, VisualizerMode } from '../types';
@@ -26,6 +26,7 @@ export const Player: React.FC = () => {
   const [lyrics, setLyrics] = useState('');
   const [syncedLyrics, setSyncedLyrics] = useState<SyncedLine[]>([]);
   const [loadingLyrics, setLoadingLyrics] = useState(false);
+  const [showSpeedModal, setShowSpeedModal] = useState(false);
   
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -126,6 +127,12 @@ export const Player: React.FC = () => {
       );
   };
 
+  const changeSpeed = (delta: number, vinylMode: boolean) => {
+    const newRate = Math.max(0.5, Math.min(2, Math.round((playbackRate + delta) * 10) / 10));
+    setPlaybackRate(newRate);
+    setPitchCorrection(!vinylMode);
+  };
+
   if (!currentSong) return null;
   const progress = duration ? (currentTime / duration) * 100 : 0;
   const formatTime = (s: number) => {
@@ -139,7 +146,7 @@ export const Player: React.FC = () => {
      if(audio) audio.currentTime = newTime;
      setCurrentTime(newTime);
   };
-  const toggleVinylMode = () => setPitchCorrection(!pitchCorrection); 
+  
   const isVinyl = !pitchCorrection;
 
   return (
@@ -237,20 +244,58 @@ export const Player: React.FC = () => {
                  </div>
             )}
             {activeTab === 'playing' && (
-                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-4xl min-h-0">
-                     <div className="relative aspect-square w-full max-w-[300px] md:max-w-[450px] max-h-[40vh] mb-6 md:mb-10 group shrink-0">
-                          <div className={`relative w-full h-full rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-80'}`}>
-                              <img src={coverArt} className="w-full h-full object-cover" alt={currentSong.title} />
-                              {isVinyl && ( <div className="absolute inset-0 bg-black/10 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-40 mix-blend-overlay pointer-events-none"></div> )}
+                <div className="flex-1 flex flex-col md:flex-row items-center justify-center w-full max-w-7xl gap-8 md:gap-16 min-h-0 px-6 md:px-12 pb-6">
+                     {/* Left: Album Art */}
+                     <div className="relative shrink-0 flex justify-center items-center h-[40vh] md:h-[55vh] aspect-square max-w-full">
+                          <div className="relative w-full h-full flex items-center justify-center">
+                              <div className="absolute -inset-6 bg-gradient-to-tr from-primary/30 to-secondary/30 rounded-full blur-3xl opacity-30 animate-pulse"></div>
+                              <div className={`relative w-full h-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-neutral-900 border border-white/10 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-90'}`}>
+                                  <img src={coverArt} className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-50 rounded-2xl" alt="" />
+                                  <img 
+                                    src={coverArt} 
+                                    className="relative z-10 w-full h-full rounded-2xl object-cover shadow-2xl"
+                                    alt={currentSong.title} 
+                                  />
+                                  {isVinyl && ( <div className="absolute inset-0 z-20 rounded-2xl bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div> )}
+                              </div>
                           </div>
-                          <div className="absolute -inset-4 bg-gradient-to-tr from-primary to-secondary rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition duration-1000 -z-10 animate-pulse"></div>
                      </div>
-                     <div className="text-center mb-4 md:mb-10 shrink-0 w-full px-12 md:px-32 max-w-4xl mx-auto">
-                          <h1 className="text-2xl md:text-5xl font-bold text-white mb-2 md:mb-4 drop-shadow-lg leading-tight line-clamp-2">{currentSong.title}</h1>
-                          <div className="text-lg md:text-3xl text-neutral-300 font-bold cursor-pointer hover:text-primary transition mb-1 md:mb-2 block truncate max-w-2xl mx-auto" onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}> {currentSong.artist} </div>
-                          <div className="flex flex-col items-center gap-1 md:gap-2">
-                              <div className="text-base md:text-xl text-neutral-500 font-medium cursor-pointer hover:text-white transition block truncate max-w-xl mx-auto" onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}> {currentSong.album} </div>
-                              <div className="mt-1"> {renderQualityBadge(currentSong.suffix, currentSong.bitRate)} </div>
+
+                     {/* Right: Metadata */}
+                     <div className="flex flex-col justify-center text-center md:text-left w-full md:flex-1 min-w-0 md:pl-4">
+                          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-6 leading-tight drop-shadow-lg line-clamp-3">{currentSong.title}</h1>
+                          
+                          <div className="space-y-3 md:space-y-5">
+                              <div 
+                                className="text-xl md:text-3xl text-neutral-200 font-bold cursor-pointer hover:text-primary transition block truncate" 
+                                onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}
+                              > 
+                                {currentSong.artist} 
+                              </div>
+                              
+                              <div 
+                                className="text-lg md:text-2xl text-neutral-400 font-medium cursor-pointer hover:text-white transition block truncate" 
+                                onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}
+                              > 
+                                {currentSong.album} 
+                              </div>
+
+                              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm md:text-base text-neutral-500 font-medium mt-2 md:mt-4">
+                                  {currentSong.genre && (
+                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                      {currentSong.genre}
+                                    </span>
+                                  )}
+                                  {currentSong.year && (
+                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                      {currentSong.year}
+                                    </span>
+                                  )}
+                              </div>
+
+                              <div className="flex items-center justify-center md:justify-start mt-2"> 
+                                {renderQualityBadge(currentSong.suffix, currentSong.bitRate)} 
+                              </div>
                           </div>
                      </div>
                 </div>
@@ -270,9 +315,103 @@ export const Player: React.FC = () => {
                  </div>
 
                  <div className="flex items-center justify-between gap-4 md:gap-8">
-                     <button onClick={toggleVinylMode} className={`p-2 rounded-full transition ${isVinyl ? 'bg-primary/20 text-primary border border-primary/30' : 'text-neutral-500 hover:text-white'}`} title="Vinyl Mode (Pitch varies with speed)">
-                         <Disc className={`w-5 h-5 ${isVinyl ? 'animate-spin-slow' : ''}`} />
-                     </button>
+                     {/* Speed & Pitch Control Modal Trigger */}
+                     <div className="flex items-center gap-4 w-1/3 min-w-0 relative">
+                        <button 
+                            onClick={() => setShowSpeedModal(!showSpeedModal)}
+                            className={`p-3 rounded-full transition ${showSpeedModal ? 'bg-primary text-black' : 'bg-white/10 text-neutral-400 hover:text-white'}`}
+                            title="Playback Controls"
+                        >
+                            <SlidersHorizontal className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="flex flex-col hidden sm:flex">
+                            <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                {playbackRate.toFixed(1)}x
+                            </span>
+                            <span className="text-[10px] text-neutral-500 font-mono">
+                                {isVinyl ? 'Pitch' : 'Tempo'}
+                            </span>
+                        </div>
+
+                        {showSpeedModal && (
+                            <div className="absolute bottom-full left-0 mb-6 w-72 bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-fade-in-up">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="font-bold text-white">Playback Control</h3>
+                                    <button onClick={() => setShowSpeedModal(false)} className="text-neutral-500 hover:text-white">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {/* Tempo Control */}
+                                <div className="mb-6">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
+                                            <Zap className="w-3 h-3 mr-2" /> Tempo
+                                        </span>
+                                        {!isVinyl && playbackRate !== 1 && (
+                                            <span className="text-[10px] text-primary">Active</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
+                                        <button 
+                                            onClick={() => changeSpeed(-0.1, false)}
+                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                        <div className="flex-1 text-center font-mono font-bold text-lg">
+                                            {(!isVinyl ? playbackRate : 1.0).toFixed(1)}x
+                                        </div>
+                                        <button 
+                                            onClick={() => changeSpeed(0.1, false)}
+                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed, preserves pitch.</p>
+                                </div>
+
+                                {/* Pitch Control */}
+                                <div>
+                                     <div className="flex justify-between items-center mb-2">
+                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
+                                            <Disc className="w-3 h-3 mr-2" /> Pitch
+                                        </span>
+                                        {isVinyl && playbackRate !== 1 && (
+                                            <span className="text-[10px] text-primary">Active</span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
+                                        <button 
+                                            onClick={() => changeSpeed(-0.1, true)}
+                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                        >
+                                            <Minus className="w-4 h-4" />
+                                        </button>
+                                        <div className="flex-1 text-center font-mono font-bold text-lg">
+                                             {(isVinyl ? playbackRate : 1.0).toFixed(1)}x
+                                        </div>
+                                        <button 
+                                            onClick={() => changeSpeed(0.1, true)}
+                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                     <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed and pitch (Vinyl).</p>
+                                </div>
+                                
+                                <button 
+                                    onClick={() => { setPlaybackRate(1); setPitchCorrection(true); }}
+                                    className="w-full mt-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition flex items-center justify-center"
+                                >
+                                    <RotateCcw className="w-3 h-3 mr-2" /> Reset
+                                </button>
+                            </div>
+                        )}
+                     </div>
                      
                      <div className="flex items-center gap-4 md:gap-8 flex-1 justify-center">
                          <button onClick={prevSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
@@ -289,12 +428,13 @@ export const Player: React.FC = () => {
                          </button>
                      </div>
 
-                     <div className="flex items-center gap-4">
-                         <div className="hidden md:flex items-center group/vol">
-                             <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-500 hover:text-white mr-2">
+                     <div className="flex items-center gap-4 w-1/3 justify-end">
+                         <div className="hidden md:flex items-center group/vol relative">
+                             <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-500 hover:text-white mr-2 p-2 rounded-full hover:bg-white/10 transition">
                                  {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                              </button>
-                             <div className="w-0 overflow-hidden group-hover/vol:w-24 transition-all duration-300">
+                             
+                             <div className="w-0 overflow-hidden group-hover/vol:w-32 transition-all duration-300 ease-out flex items-center">
                                  <input 
                                      type="range" 
                                      min="0" 
@@ -302,7 +442,26 @@ export const Player: React.FC = () => {
                                      step="0.01" 
                                      value={volume} 
                                      onChange={(e) => setVolume(parseFloat(e.target.value))} 
-                                     className="w-24 h-1 bg-white/20 rounded-full appearance-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full cursor-pointer"
+                                     className={`
+                                      w-full h-1.5 bg-neutral-800 rounded-full appearance-none cursor-pointer focus:outline-none
+                                      [&::-webkit-slider-thumb]:appearance-none 
+                                      [&::-webkit-slider-thumb]:w-3.5 
+                                      [&::-webkit-slider-thumb]:h-3.5 
+                                      [&::-webkit-slider-thumb]:bg-white 
+                                      [&::-webkit-slider-thumb]:rounded-full 
+                                      [&::-webkit-slider-thumb]:shadow-md
+                                      [&::-webkit-slider-thumb]:transition-transform
+                                      [&::-webkit-slider-thumb]:hover:scale-125
+                                      [&::-moz-range-thumb]:w-3.5 
+                                      [&::-moz-range-thumb]:h-3.5 
+                                      [&::-moz-range-thumb]:bg-white 
+                                      [&::-moz-range-thumb]:border-none
+                                      [&::-moz-range-thumb]:rounded-full
+                                      [&::-moz-range-thumb]:hover:scale-125
+                                     `}
+                                     style={{
+                                         backgroundImage: `linear-gradient(to right, white ${volume * 100}%, rgba(255,255,255,0.1) ${volume * 100}%)`
+                                     }}
                                  />
                              </div>
                          </div>
@@ -317,38 +476,69 @@ export const Player: React.FC = () => {
 
       {/* Mini Player Bar */}
       {!isExpanded && !isZenMode && (
-          <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/90 backdrop-blur-xl border-t border-white/10 p-3 z-50 flex items-center gap-4 pb-safe transition-transform duration-300 animate-fade-in-up" onClick={() => setIsExpanded(true)}>
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 group cursor-pointer shadow-lg">
-                  <img src={coverArt} className="w-full h-full object-cover" alt="" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <Maximize2 className="w-5 h-5 text-white" />
-                  </div>
-              </div>
-              
-              <div className="flex-1 min-w-0 cursor-pointer overflow-hidden">
-                  <div className="font-bold text-white truncate text-sm">{currentSong.title}</div>
-                  <div className="text-xs text-neutral-400 truncate">{currentSong.artist}</div>
+          <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/95 backdrop-blur-xl border-t border-white/10 z-50 flex flex-col pb-safe transition-transform duration-300 animate-fade-in-up">
+              {/* Seekable Progress Bar */}
+              <div className="w-full h-1.5 bg-white/5 relative group cursor-pointer touch-none" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div 
+                    className="absolute left-0 top-0 bottom-0 bg-primary transition-all duration-100 ease-linear" 
+                    style={{ width: `${progress}%` }} 
+                  ></div>
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                    style={{ left: `${progress}%`, marginLeft: '-6px' }}
+                  ></div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="0.1" 
+                    value={progress} 
+                    onChange={handleScrub}
+                    onClick={(e) => e.stopPropagation()}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer group-hover:h-4 group-hover:-top-1.5 transition-all"
+                  />
               </div>
 
-              <div className="flex items-center gap-3 md:gap-6 mr-2">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); prevSong(); }} 
-                    className="hidden md:block text-neutral-400 hover:text-white transition"
-                  >
-                      <SkipBack className="w-5 h-5 fill-current" />
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
-                    className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg"
-                  >
-                      {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
-                  </button>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); nextSong(); }} 
-                    className="text-neutral-400 hover:text-white transition"
-                  >
-                      <SkipForward className="w-5 h-5 fill-current" />
-                  </button>
+              <div className="flex items-center gap-4 p-3 h-16" onClick={() => setIsExpanded(true)}>
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 group cursor-pointer shadow-lg">
+                      <img src={coverArt} className="w-full h-full object-cover" alt="" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <Maximize2 className="w-5 h-5 text-white" />
+                      </div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0 cursor-pointer overflow-hidden">
+                      <div className="font-bold text-white truncate text-sm">{currentSong.title}</div>
+                      <div className="text-xs text-neutral-400 truncate">{currentSong.artist}</div>
+                  </div>
+
+                  <div className="hidden sm:flex flex-col items-center justify-center px-2 min-w-[80px]">
+                      <span className="text-xs font-mono text-neutral-400 font-medium">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 md:gap-6 mr-2">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); prevSong(); }} 
+                        className="hidden md:block text-neutral-400 hover:text-white transition"
+                      >
+                          <SkipBack className="w-5 h-5 fill-current" />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); togglePlay(); }} 
+                        className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center hover:bg-primary hover:text-white transition shadow-lg"
+                      >
+                          {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); nextSong(); }} 
+                        className="text-neutral-400 hover:text-white transition"
+                      >
+                          <SkipForward className="w-5 h-5 fill-current" />
+                      </button>
+                  </div>
               </div>
           </div>
       )}

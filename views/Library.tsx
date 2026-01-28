@@ -276,7 +276,7 @@ const FilterBar: React.FC<{
 );
 
 export const LibraryView: React.FC = () => {
-  const { currentView, setView, viewData, service, playSong, openPlaylistModal, playlists, createPlaylist } = useStore();
+  const { currentView, setView, viewData, service, playSong, openPlaylistModal, playlists, createPlaylist, cachedArtists, fetchArtists } = useStore();
   
   const [items, setItems] = useState<any[]>([]);
   const [newPlName, setNewPlName] = useState('');
@@ -357,7 +357,7 @@ export const LibraryView: React.FC = () => {
 
   // Data Fetching
   useEffect(() => {
-    let isActive = true; // Protection against race conditions (e.g. A-Z fetch finishing after Recent fetch)
+    let isActive = true;
 
     const load = async () => {
       setIsLoading(true);
@@ -366,12 +366,14 @@ export const LibraryView: React.FC = () => {
       if (currentView === 'PLAYLISTS') {
         if (isActive) setItems(playlists);
       } 
-      // 2. ARTISTS (Client-side filtering mostly)
+      // 2. ARTISTS (Using Store Cache)
       else if (currentView === 'ARTISTS') {
-        let all = allItemsCached;
-        if (!all) {
-            all = await service.getArtists();
-            if (isActive) setAllItemsCached(all);
+        if (cachedArtists.length > 0) {
+            // Already in RAM
+            if (isActive) setAllItemsCached(cachedArtists);
+        } else {
+            // Fetch and update Store
+            await fetchArtists();
         }
       }
       // 3. ALBUMS (Server-side)
@@ -432,7 +434,7 @@ export const LibraryView: React.FC = () => {
     load();
 
     return () => { isActive = false; };
-  }, [currentView, service, playlists, page, filter, selectedGenre, selectedYear, sortType]); 
+  }, [currentView, service, playlists, page, filter, selectedGenre, selectedYear, sortType, cachedArtists, fetchArtists]); 
 
   // Derived Items for Display
   const displayItems = useMemo(() => {
@@ -441,8 +443,10 @@ export const LibraryView: React.FC = () => {
           return items.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
       }
 
-      const isLikedView = currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS';
-      if ((currentView === 'ARTISTS' || isLikedView) && allItemsCached) {
+      // If we are viewing Artists and we have cachedArtists (via allItemsCached logic above)
+      // or Liked views which also use allItemsCached
+      const isClientSideView = currentView === 'ARTISTS' || currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS';
+      if (isClientSideView && allItemsCached) {
           let filtered = allItemsCached;
           if (filter) {
               const q = filter.toLowerCase();
@@ -500,20 +504,13 @@ export const LibraryView: React.FC = () => {
   );
 
   const isClientSideView = currentView === 'ARTISTS' || currentView === 'LIKED_SONGS' || currentView === 'LIKED_ALBUMS';
-  
-  // Logic for pagination visibility
-  // 1. Server Side views (ALBUMS, SONGS): Check if items present or not on first page
   const showPaginationServer = !isClientSideView && currentView !== 'PLAYLISTS' && (displayItems.length > 0 || page > 0);
-  
-  // 2. Client Side views: Check total items cached length vs page size
   const showPaginationClient = isClientSideView && !filter && (allItemsCached?.length || 0) > ITEMS_PER_PAGE;
-
   const shouldShowPagination = showPaginationServer || showPaginationClient;
   const isSongView = currentView === 'SONGS' || currentView === 'LIKED_SONGS';
 
   return (
     <div className="p-6 md:p-10 min-h-full flex flex-col">
-      
       <MobileLibraryTabs />
 
       <ViewHeader currentView={currentView}>
@@ -565,7 +562,6 @@ export const LibraryView: React.FC = () => {
 
       {shouldShowPagination && <PaginationControls />}
 
-      {/* CONTENT GRID/LIST - Render conditionally but keep header mounted */}
       {isLoading && !displayItems.length ? (
           <div className="flex flex-col items-center justify-center h-64 text-neutral-500">
               <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
@@ -662,7 +658,6 @@ export const LibraryView: React.FC = () => {
                             </div>
                         )}
                         
-                        {/* Hover Play Overlay */}
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px] pointer-events-none">
                             {currentView === 'ARTISTS' ? (
                                 <span className="px-4 py-1.5 bg-white text-black rounded-full text-xs font-bold uppercase tracking-wider transform scale-90 group-hover:scale-100 transition-transform">View</span>
