@@ -3,6 +3,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useStore } from '../context/Store';
 import { ISong, IAlbum } from '../types';
 import { Play, Plus, Clock, Flame, Compass, Music, ListPlus, ArrowRight, RefreshCw, Disc, ListMusic, BarChart2, Star } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
     const { service, playSong, setView } = useStore();
@@ -26,68 +27,102 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
 
     return (
       <div 
-        className="relative w-full min-h-[550px] lg:min-h-[450px] lg:h-[450px] rounded-3xl overflow-hidden mb-12 group shadow-2xl shadow-black/50 border border-white/5 transition-all flex flex-col justify-center"
+        className="relative w-full min-h-[550px] lg:min-h-[450px] lg:h-[450px] rounded-3xl overflow-hidden mb-12 group shadow-2xl shadow-black/50 border border-white/5 transition-all flex flex-col justify-center bg-neutral-900"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-         <div key={featured.id + '-bg'} className="absolute inset-0 animate-fade-in">
-            <img 
-                src={bgUrl} 
-                className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-60 scale-110" 
-                alt="" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent/30" />
-         </div>
+         {/* Background Slideshow */}
+         <AnimatePresence mode="popLayout">
+             <motion.div 
+                key={featured.id}
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute inset-0 z-0"
+             >
+                <img 
+                    src={bgUrl} 
+                    className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-60" 
+                    alt="" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-transparent/30" />
+             </motion.div>
+         </AnimatePresence>
 
          <div className="relative z-10 w-full flex flex-col lg:flex-row items-center p-6 md:p-12 lg:p-16 gap-8 lg:gap-16">
-             <div key={featured.id + '-img'} className="shrink-0 animate-fade-in-up mt-8 lg:mt-0">
-                 <div className="w-48 h-48 md:w-64 md:h-64 lg:w-64 lg:h-64 rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900 relative group/art cursor-pointer" onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}>
-                     <img 
-                        src={artUrl} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover/art:scale-105 transform-gpu" 
-                        alt={featured.album} 
-                     />
-                     <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50 pointer-events-none" />
-                 </div>
+             {/* Album Art Container */}
+             <div className="shrink-0 mt-8 lg:mt-0 relative w-48 h-48 md:w-64 md:h-64 lg:w-64 lg:h-64">
+                 <AnimatePresence mode="wait">
+                     <motion.div
+                        key={featured.id + '-img'}
+                        initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -30, scale: 0.9 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="absolute inset-0"
+                     >
+                         <div className="w-full h-full rounded-xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 bg-neutral-900 relative group/art cursor-pointer h-full" onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}>
+                             <img 
+                                src={artUrl} 
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover/art:scale-105 transform-gpu" 
+                                alt={featured.album} 
+                             />
+                             <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50 pointer-events-none" />
+                         </div>
+                     </motion.div>
+                 </AnimatePresence>
              </div>
 
-             <div key={featured.id + '-text'} className="flex-1 text-center lg:text-left animate-fade-in flex flex-col justify-center items-center lg:items-start w-full min-w-0 mb-12 lg:mb-0">
-                 <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider text-white mb-6">
-                     <Flame className="w-3 h-3 mr-2 text-orange-500" /> Featured Track
-                 </div>
-                 
-                 <h1 
-                    className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 leading-tight drop-shadow-lg cursor-pointer hover:text-primary transition line-clamp-2 py-2 pr-4"
-                    onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
-                 >
-                     {featured.title}
-                 </h1>
-                 
-                 <div className="flex flex-col lg:flex-row items-center gap-2 md:gap-4 text-lg md:text-xl text-neutral-200 mb-8 font-medium drop-shadow-md">
-                     <span 
-                        className="hover:text-white cursor-pointer hover:underline"
-                        onClick={() => { if(featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
+             {/* Text Content */}
+             <div className="flex-1 w-full min-w-0 mb-12 lg:mb-0 relative min-h-[250px] lg:min-h-auto flex items-center">
+                 <AnimatePresence mode="wait">
+                     <motion.div
+                        key={featured.id + '-text'}
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -30 }}
+                        transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
+                        className="w-full text-center lg:text-left flex flex-col justify-center items-center lg:items-start absolute lg:static"
                      >
-                         {featured.artist}
-                     </span>
-                     <span className="hidden lg:inline text-neutral-500">•</span>
-                     <span className="text-neutral-400">{featured.album}</span>
-                 </div>
+                         <div className="inline-flex items-center px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-xs font-bold uppercase tracking-wider text-white mb-6">
+                             <Flame className="w-3 h-3 mr-2 text-orange-500" /> Featured Track
+                         </div>
+                         
+                         <h1 
+                            className="text-3xl md:text-5xl lg:text-6xl font-bold text-white mb-2 leading-tight drop-shadow-lg cursor-pointer hover:text-primary transition line-clamp-2 py-2 pr-4"
+                            onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
+                         >
+                             {featured.title}
+                         </h1>
+                         
+                         <div className="flex flex-col lg:flex-row items-center gap-2 md:gap-4 text-lg md:text-xl text-neutral-200 mb-8 font-medium drop-shadow-md">
+                             <span 
+                                className="hover:text-white cursor-pointer hover:underline"
+                                onClick={() => { if(featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
+                             >
+                                 {featured.artist}
+                             </span>
+                             <span className="hidden lg:inline text-neutral-500">•</span>
+                             <span className="text-neutral-400">{featured.album}</span>
+                         </div>
 
-                 <div className="flex flex-wrap justify-center lg:justify-start gap-4">
-                     <button 
-                         onClick={() => playSong(featured, heroSongs)}
-                         className="flex items-center px-8 py-3.5 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg hover:scale-105 active:scale-95 duration-200"
-                     >
-                         <Play className="w-5 h-5 mr-2 fill-current" /> Listen Now
-                     </button>
-                     <button 
-                         onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
-                         className="flex items-center px-8 py-3.5 bg-white/10 text-white rounded-full font-bold hover:bg-white/20 transition backdrop-blur-md border border-white/10"
-                     >
-                         <Disc className="w-5 h-5 mr-2" /> View Album
-                     </button>
-                 </div>
+                         <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+                             <button 
+                                 onClick={() => playSong(featured, heroSongs)}
+                                 className="flex items-center px-8 py-3.5 bg-white text-black rounded-full font-bold hover:bg-primary hover:text-white transition shadow-lg hover:scale-105 active:scale-95 duration-200"
+                             >
+                                 <Play className="w-5 h-5 mr-2 fill-current" /> Listen Now
+                             </button>
+                             <button 
+                                 onClick={() => { if(featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
+                                 className="flex items-center px-8 py-3.5 bg-white/10 text-white rounded-full font-bold hover:bg-white/20 transition backdrop-blur-md border border-white/10"
+                             >
+                                 <Disc className="w-5 h-5 mr-2" /> View Album
+                             </button>
+                         </div>
+                     </motion.div>
+                 </AnimatePresence>
              </div>
          </div>
 
