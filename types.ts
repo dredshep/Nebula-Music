@@ -1,5 +1,4 @@
 
-
 export interface ISong {
   id: string;
   parent?: string;
@@ -110,7 +109,7 @@ export interface AppSettings {
 
 export type PlaybackMode = 'normal' | 'shuffle';
 export type RepeatMode = 'OFF' | 'ALL' | 'ONE';
-export type VisualizerMode = 'BARS' | 'WAVE' | 'CIRCLE' | 'MIRROR' | 'SPECTRUM' | 'PARTICLES' | 'HEXAGON';
+export type VisualizerMode = 'BARS' | 'WAVE' | 'CIRCLE' | 'MIRROR' | 'SPECTRUM' | 'PARTICLES' | 'HEXAGON' | 'CUBE' | 'GRID';
 export type View = 'HOME' | 'BROWSE' | 'ARTISTS' | 'ALBUMS' | 'SONGS' | 'PLAYLISTS' | 'SETTINGS' | 'PLAYLIST_DETAIL' | 'ARTIST_DETAIL' | 'ALBUM_DETAIL' | 'SEARCH' | 'LIKED_SONGS' | 'LIKED_ALBUMS';
 
 export interface AppState {

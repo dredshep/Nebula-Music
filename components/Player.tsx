@@ -103,7 +103,7 @@ export const Player: React.FC = () => {
   }, [activeLineIndex, activeTab]);
 
   const cycleVisualizerMode = useCallback(() => {
-    const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON'];
+    const modes: VisualizerMode[] = ['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON', 'CUBE', 'GRID'];
     const nextIndex = (modes.indexOf(visualizerMode) + 1) % modes.length;
     setVisualizerMode(modes[nextIndex]);
   }, [visualizerMode, setVisualizerMode]);
@@ -213,9 +213,9 @@ export const Player: React.FC = () => {
                 </div>
             </>
         )}
-        <div className={`relative z-10 flex-1 flex flex-col items-center px-4 md:px-8 w-full max-w-7xl mx-auto min-h-0 ${isZenMode ? 'hidden' : ''}`}>
+        <div className={`relative z-10 flex-1 flex flex-col items-center w-full max-w-7xl mx-auto min-h-0 overflow-hidden ${isZenMode ? 'hidden' : ''}`}>
             {activeTab === 'queue' && (
-                <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden">
+                <div className="w-full max-w-3xl flex-1 min-h-0 mb-8 bg-black/20 rounded-3xl border border-white/5 backdrop-blur-md flex flex-col overflow-hidden mx-4 md:mx-8">
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
                         <h3 className="text-xl font-bold text-white mb-4 sticky top-0 bg-neutral-900/90 backdrop-blur p-3 -mx-2 rounded-lg z-20 shadow-lg border-b border-white/5">Up Next</h3>
                         <div className="space-y-2 pb-4">
@@ -234,7 +234,7 @@ export const Player: React.FC = () => {
                 </div>
             )}
             {activeTab === 'lyrics' && (
-                 <div className="w-full max-w-6xl flex-1 min-h-0 mb-8 relative">
+                 <div className="w-full max-w-6xl flex-1 min-h-0 mb-8 relative mx-4 md:mx-8">
                     <div className="absolute inset-0 overflow-y-auto custom-scrollbar scroll-smooth" ref={lyricsContainerRef}>
                         <div className="min-h-full flex flex-col items-center justify-center py-32 px-6 md:px-16 text-center">
                             {loadingLyrics ? ( <div className="flex flex-col items-center"> <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div> <span className="text-neutral-400">Fetching lyrics...</span> </div> ) : syncedLyrics.length > 0 ? (
@@ -250,234 +250,230 @@ export const Player: React.FC = () => {
                  </div>
             )}
             {activeTab === 'playing' && (
-                <div className="flex-1 flex flex-col items-center justify-center w-full max-w-5xl gap-6 md:gap-10 min-h-0 px-6 md:px-12 py-4">
-                     {/* Top: Album Art */}
-                     <div className="relative shrink-0 flex justify-center items-center h-[35vh] md:h-[45vh] lg:h-[50vh] aspect-square max-w-full">
-                          <div className="relative w-full h-full flex items-center justify-center">
-                              <div className="absolute -inset-6 bg-gradient-to-tr from-primary/30 to-secondary/30 rounded-full blur-3xl opacity-30 animate-pulse"></div>
-                              <div className={`relative w-full h-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-neutral-900 border border-white/10 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-90'}`}>
-                                  <img src={coverArt} className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-50 rounded-2xl" alt="" />
-                                  <img 
-                                    src={coverArt} 
-                                    className="relative z-10 w-full h-full rounded-2xl object-cover shadow-2xl"
-                                    alt={currentSong.title} 
-                                  />
-                                  {isVinyl && ( <div className="absolute inset-0 z-20 rounded-2xl bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div> )}
-                              </div>
+                <div className="flex-1 w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-20 px-8 py-4 overflow-y-auto custom-scrollbar">
+                     {/* Left: Album Art - Responsive Size */}
+                     <div className="relative shrink-0 w-full max-w-[320px] md:max-w-[400px] lg:max-w-[480px] xl:max-w-[550px] aspect-square flex items-center justify-center">
+                          <div className={`relative w-full h-full rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-neutral-900 border border-white/10 transition-transform duration-700 ${isPlaying ? 'scale-100' : 'scale-95 opacity-90'}`}>
+                              <img src={coverArt} className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-50 rounded-2xl" alt="" />
+                              <img 
+                                src={coverArt} 
+                                className="relative z-10 w-full h-full rounded-2xl object-cover shadow-2xl"
+                                alt={currentSong.title} 
+                              />
+                              {isVinyl && ( <div className="absolute inset-0 z-20 rounded-2xl bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 mix-blend-overlay pointer-events-none"></div> )}
                           </div>
                      </div>
 
-                     {/* Bottom: Metadata - Now centered below art */}
-                     <div className="flex flex-col items-center text-center w-full max-w-4xl overflow-hidden px-4">
-                          <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-2 md:mb-6 leading-tight drop-shadow-lg line-clamp-2 break-words text-center py-2">
+                     {/* Right: Metadata - Responsive Text */}
+                     <div className="flex flex-col items-center lg:items-start text-center lg:text-left w-full lg:flex-1 min-w-0 max-w-2xl">
+                          <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black text-white mb-6 leading-tight drop-shadow-xl break-words w-full">
                             {currentSong.title}
                           </h1>
                           
-                          <div className="space-y-2 md:space-y-4 w-full flex flex-col items-center">
+                          <div className="space-y-4 w-full flex flex-col items-center lg:items-start">
                               <div 
-                                className="text-xl md:text-3xl text-neutral-200 font-bold cursor-pointer hover:text-primary transition block truncate text-center w-full px-4" 
+                                className="text-xl md:text-2xl lg:text-3xl text-neutral-200 font-bold cursor-pointer hover:text-primary transition w-full break-words leading-snug" 
                                 onClick={() => { if (currentSong.artistId) { setView('ARTIST_DETAIL', currentSong.artistId); setIsExpanded(false); } }}
                               > 
                                 {currentSong.artist} 
                               </div>
                               
                               <div 
-                                className="text-lg md:text-2xl text-neutral-400 font-medium cursor-pointer hover:text-white transition block truncate text-center w-full px-4" 
+                                className="text-lg md:text-xl lg:text-2xl text-neutral-400 font-medium cursor-pointer hover:text-white transition w-full break-words leading-snug" 
                                 onClick={() => { if (currentSong.albumId) { setView('ALBUM_DETAIL', currentSong.albumId); setIsExpanded(false); } }}
                               > 
                                 {currentSong.album} 
                               </div>
 
-                              <div className="flex flex-wrap items-center justify-center gap-3 text-sm md:text-base text-neutral-500 font-medium mt-2 md:mt-4">
+                              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-3 text-sm font-medium mt-4 pt-4 border-t border-white/5 w-full lg:w-auto">
                                   {currentSong.genre && (
-                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-neutral-300">
                                       {currentSong.genre}
                                     </span>
                                   )}
                                   {currentSong.year && (
-                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                                    <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-neutral-300">
                                       {currentSong.year}
                                     </span>
                                   )}
-                              </div>
-
-                              <div className="flex items-center justify-center mt-2"> 
-                                {renderQualityBadge(currentSong.suffix, currentSong.bitRate, true)} 
+                                  {renderQualityBadge(currentSong.suffix, currentSong.bitRate, true)} 
                               </div>
                           </div>
                      </div>
                 </div>
             )}
-            <div className="w-full max-w-4xl bg-neutral-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl mb-8 shrink-0">
-                 <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mb-6">
-                     <span>{formatTime(currentTime)}</span>
-                     <div className="relative flex-1 h-1.5 bg-white/10 rounded-full group">
-                         <div className="absolute inset-0 rounded-full flex items-center">
-                             <div className="h-full bg-gradient-to-r from-primary to-secondary relative flex items-center justify-end" style={{ width: `${progress}%` }}>
-                                 <div className="absolute right-[-6px] w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            <div className="w-full flex-none px-4 md:px-8 pb-8 pt-2">
+                 <div className="w-full max-w-4xl mx-auto bg-neutral-900/80 backdrop-blur-xl rounded-3xl border border-white/10 p-6 md:p-8 shadow-2xl">
+                     <div className="flex items-center gap-4 text-xs font-mono text-neutral-400 mb-6">
+                         <span>{formatTime(currentTime)}</span>
+                         <div className="relative flex-1 h-1.5 bg-white/10 rounded-full group">
+                             <div className="absolute inset-0 rounded-full flex items-center">
+                                 <div className="h-full bg-gradient-to-r from-primary to-secondary relative flex items-center justify-end" style={{ width: `${progress}%` }}>
+                                     <div className="absolute right-[-6px] w-3 h-3 bg-white rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                 </div>
                              </div>
+                             <input type="range" min="0" max="100" step="0.1" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                          </div>
-                         <input type="range" min="0" max="100" step="0.1" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+                         <span>{formatTime(duration)}</span>
                      </div>
-                     <span>{formatTime(duration)}</span>
-                 </div>
 
-                 <div className="flex items-center justify-between gap-4 md:gap-8">
-                     {/* Speed & Pitch Control Modal Trigger */}
-                     <div className="flex items-center gap-4 w-1/3 min-w-0 relative">
-                        <button 
-                            onClick={() => setShowSpeedModal(!showSpeedModal)}
-                            className={`p-3 rounded-full transition ${showSpeedModal ? 'bg-primary text-black' : 'bg-white/10 text-neutral-400 hover:text-white'}`}
-                            title="Playback Controls"
-                        >
-                            <SlidersHorizontal className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="flex flex-col hidden sm:flex">
-                            <span className="text-xs font-bold text-white uppercase tracking-wider">
-                                {playbackRate.toFixed(1)}x
-                            </span>
-                            <span className="text-[10px] text-neutral-500 font-mono">
-                                {isVinyl ? 'Pitch' : 'Tempo'}
-                            </span>
-                        </div>
+                     <div className="flex items-center justify-between gap-4 md:gap-8">
+                         {/* Speed & Pitch Control Modal Trigger */}
+                         <div className="flex items-center gap-4 w-1/3 min-w-0 relative">
+                            <button 
+                                onClick={() => setShowSpeedModal(!showSpeedModal)}
+                                className={`p-3 rounded-full transition ${showSpeedModal ? 'bg-primary text-black' : 'bg-white/10 text-neutral-400 hover:text-white'}`}
+                                title="Playback Controls"
+                            >
+                                <SlidersHorizontal className="w-5 h-5" />
+                            </button>
+                            
+                            <div className="flex flex-col hidden sm:flex">
+                                <span className="text-xs font-bold text-white uppercase tracking-wider">
+                                    {playbackRate.toFixed(1)}x
+                                </span>
+                                <span className="text-[10px] text-neutral-500 font-mono">
+                                    {isVinyl ? 'Pitch' : 'Tempo'}
+                                </span>
+                            </div>
 
-                        {showSpeedModal && (
-                            <div className="absolute bottom-full left-0 mb-6 w-72 bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-fade-in-up">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-bold text-white">Playback Control</h3>
-                                    <button onClick={() => setShowSpeedModal(false)} className="text-neutral-500 hover:text-white">
-                                        <X className="w-4 h-4" />
+                            {showSpeedModal && (
+                                <div className="absolute bottom-full left-0 mb-6 w-72 bg-neutral-900/95 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl z-50 animate-fade-in-up">
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="font-bold text-white">Playback Control</h3>
+                                        <button onClick={() => setShowSpeedModal(false)} className="text-neutral-500 hover:text-white">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* Tempo Control */}
+                                    <div className="mb-6">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
+                                                <Zap className="w-3 h-3 mr-2" /> Tempo
+                                            </span>
+                                            {!isVinyl && playbackRate !== 1 && (
+                                                <span className="text-[10px] text-primary">Active</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
+                                            <button 
+                                                onClick={() => changeSpeed(-0.1, false)}
+                                                className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                            </button>
+                                            <div className="flex-1 text-center font-mono font-bold text-lg">
+                                                {(!isVinyl ? playbackRate : 1.0).toFixed(1)}x
+                                            </div>
+                                            <button 
+                                                onClick={() => changeSpeed(0.1, false)}
+                                                className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed, preserves pitch.</p>
+                                    </div>
+
+                                    {/* Pitch Control */}
+                                    <div>
+                                         <div className="flex justify-between items-center mb-2">
+                                            <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
+                                                <Disc className="w-3 h-3 mr-2" /> Pitch
+                                            </span>
+                                            {isVinyl && playbackRate !== 1 && (
+                                                <span className="text-[10px] text-primary">Active</span>
+                                            )}
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
+                                            <button 
+                                                onClick={() => changeSpeed(-0.1, true)}
+                                                className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                            >
+                                                <Minus className="w-4 h-4" />
+                                            </button>
+                                            <div className="flex-1 text-center font-mono font-bold text-lg">
+                                                 {(isVinyl ? playbackRate : 1.0).toFixed(1)}x
+                                            </div>
+                                            <button 
+                                                onClick={() => changeSpeed(0.1, true)}
+                                                className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                         <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed and pitch (Vinyl).</p>
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => { setPlaybackRate(1); setPitchCorrection(true); }}
+                                        className="w-full mt-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition flex items-center justify-center"
+                                    >
+                                        <RotateCcw className="w-3 h-3 mr-2" /> Reset
                                     </button>
                                 </div>
-
-                                {/* Tempo Control */}
-                                <div className="mb-6">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
-                                            <Zap className="w-3 h-3 mr-2" /> Tempo
-                                        </span>
-                                        {!isVinyl && playbackRate !== 1 && (
-                                            <span className="text-[10px] text-primary">Active</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
-                                        <button 
-                                            onClick={() => changeSpeed(-0.1, false)}
-                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
-                                        >
-                                            <Minus className="w-4 h-4" />
-                                        </button>
-                                        <div className="flex-1 text-center font-mono font-bold text-lg">
-                                            {(!isVinyl ? playbackRate : 1.0).toFixed(1)}x
-                                        </div>
-                                        <button 
-                                            onClick={() => changeSpeed(0.1, false)}
-                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed, preserves pitch.</p>
-                                </div>
-
-                                {/* Pitch Control */}
-                                <div>
-                                     <div className="flex justify-between items-center mb-2">
-                                        <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider flex items-center">
-                                            <Disc className="w-3 h-3 mr-2" /> Pitch
-                                        </span>
-                                        {isVinyl && playbackRate !== 1 && (
-                                            <span className="text-[10px] text-primary">Active</span>
-                                        )}
-                                    </div>
-                                    <div className="flex items-center gap-3 bg-black/20 rounded-2xl p-1.5 border border-white/5">
-                                        <button 
-                                            onClick={() => changeSpeed(-0.1, true)}
-                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
-                                        >
-                                            <Minus className="w-4 h-4" />
-                                        </button>
-                                        <div className="flex-1 text-center font-mono font-bold text-lg">
-                                             {(isVinyl ? playbackRate : 1.0).toFixed(1)}x
-                                        </div>
-                                        <button 
-                                            onClick={() => changeSpeed(0.1, true)}
-                                            className="p-3 hover:bg-white/10 rounded-xl text-neutral-400 hover:text-white transition"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                     <p className="text-[10px] text-neutral-600 mt-2 text-center">Changes speed and pitch (Vinyl).</p>
-                                </div>
-                                
-                                <button 
-                                    onClick={() => { setPlaybackRate(1); setPitchCorrection(true); }}
-                                    className="w-full mt-6 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold uppercase tracking-wider text-neutral-400 hover:text-white transition flex items-center justify-center"
-                                >
-                                    <RotateCcw className="w-3 h-3 mr-2" /> Reset
-                                </button>
-                            </div>
-                        )}
-                     </div>
-                     
-                     <div className="flex items-center gap-4 md:gap-8 flex-1 justify-center">
-                         <button onClick={prevSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
-                             <SkipBack className="w-8 h-8 fill-current" />
-                         </button>
-                         <button 
-                             onClick={togglePlay} 
-                             className="w-16 h-16 md:w-20 md:h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-xl shadow-white/10"
-                         >
-                             {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
-                         </button>
-                         <button onClick={nextSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
-                             <SkipForward className="w-8 h-8 fill-current" />
-                         </button>
-                     </div>
-
-                     <div className="flex items-center gap-4 w-1/3 justify-end">
-                         <div className="hidden md:flex items-center group/vol relative">
-                             <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-500 hover:text-white mr-2 p-2 rounded-full hover:bg-white/10 transition">
-                                 {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                             </button>
-                             
-                             <div className="w-0 overflow-hidden group-hover/vol:w-32 transition-all duration-300 ease-out flex items-center">
-                                 <input 
-                                     type="range" 
-                                     min="0" 
-                                     max="1" 
-                                     step="0.01" 
-                                     value={volume} 
-                                     onChange={(e) => setVolume(parseFloat(e.target.value))} 
-                                     className={`
-                                      w-full h-1.5 bg-neutral-800 rounded-full appearance-none cursor-pointer focus:outline-none
-                                      [&::-webkit-slider-thumb]:appearance-none 
-                                      [&::-webkit-slider-thumb]:w-3.5 
-                                      [&::-webkit-slider-thumb]:h-3.5 
-                                      [&::-webkit-slider-thumb]:bg-white 
-                                      [&::-webkit-slider-thumb]:rounded-full 
-                                      [&::-webkit-slider-thumb]:shadow-md
-                                      [&::-webkit-slider-thumb]:transition-transform
-                                      [&::-webkit-slider-thumb]:hover:scale-125
-                                      [&::-moz-range-thumb]:w-3.5 
-                                      [&::-moz-range-thumb]:h-3.5 
-                                      [&::-moz-range-thumb]:bg-white 
-                                      [&::-moz-range-thumb]:border-none
-                                      [&::-moz-range-thumb]:rounded-full
-                                      [&::-moz-range-thumb]:hover:scale-125
-                                     `}
-                                     style={{
-                                         backgroundImage: `linear-gradient(to right, white ${volume * 100}%, rgba(255,255,255,0.1) ${volume * 100}%)`
-                                     }}
-                                 />
-                             </div>
+                            )}
                          </div>
-                         <button onClick={toggleRepeat} className={`transition ${repeatMode === 'OFF' ? 'text-neutral-500 hover:text-white' : 'text-primary'}`}>
-                             {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
-                         </button>
+                         
+                         <div className="flex items-center gap-4 md:gap-8 flex-1 justify-center">
+                             <button onClick={prevSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
+                                 <SkipBack className="w-8 h-8 fill-current" />
+                             </button>
+                             <button 
+                                 onClick={togglePlay} 
+                                 className="w-16 h-16 md:w-20 md:h-20 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 hover:bg-primary hover:text-white transition shadow-xl shadow-white/10"
+                             >
+                                 {isPlaying ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
+                             </button>
+                             <button onClick={nextSong} className="text-neutral-300 hover:text-white transition hover:scale-110">
+                                 <SkipForward className="w-8 h-8 fill-current" />
+                             </button>
+                         </div>
+
+                         <div className="flex items-center gap-4 w-1/3 justify-end">
+                             <div className="hidden md:flex items-center group/vol relative">
+                                 <button onClick={() => setVolume(volume === 0 ? 1 : 0)} className="text-neutral-500 hover:text-white mr-2 p-2 rounded-full hover:bg-white/10 transition">
+                                     {volume === 0 ? <VolumeX className="w-5 h-5" /> : volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                 </button>
+                                 
+                                 <div className="w-0 overflow-hidden group-hover/vol:w-32 transition-all duration-300 ease-out flex items-center">
+                                     <input 
+                                         type="range" 
+                                         min="0" 
+                                         max="1" 
+                                         step="0.01" 
+                                         value={volume} 
+                                         onChange={(e) => setVolume(parseFloat(e.target.value))} 
+                                         className={`
+                                          w-full h-1.5 bg-neutral-800 rounded-full appearance-none cursor-pointer focus:outline-none
+                                          [&::-webkit-slider-thumb]:appearance-none 
+                                          [&::-webkit-slider-thumb]:w-3.5 
+                                          [&::-webkit-slider-thumb]:h-3.5 
+                                          [&::-webkit-slider-thumb]:bg-white 
+                                          [&::-webkit-slider-thumb]:rounded-full 
+                                          [&::-webkit-slider-thumb]:shadow-md
+                                          [&::-webkit-slider-thumb]:transition-transform
+                                          [&::-webkit-slider-thumb]:hover:scale-125
+                                          [&::-moz-range-thumb]:w-3.5 
+                                          [&::-moz-range-thumb]:h-3.5 
+                                          [&::-moz-range-thumb]:bg-white 
+                                          [&::-moz-range-thumb]:border-none
+                                          [&::-moz-range-thumb]:rounded-full
+                                          [&::-moz-range-thumb]:hover:scale-125
+                                         `}
+                                         style={{
+                                             backgroundImage: `linear-gradient(to right, white ${volume * 100}%, rgba(255,255,255,0.1) ${volume * 100}%)`
+                                         }}
+                                     />
+                                 </div>
+                             </div>
+                             <button onClick={toggleRepeat} className={`transition ${repeatMode === 'OFF' ? 'text-neutral-500 hover:text-white' : 'text-primary'}`}>
+                                 {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
+                             </button>
+                         </div>
                      </div>
-                 </div>
+                </div>
             </div>
         </div>
       </div>
@@ -486,9 +482,9 @@ export const Player: React.FC = () => {
       {!isExpanded && !isZenMode && (
           <div className="fixed bottom-0 left-0 right-0 md:left-64 bg-neutral-900/95 backdrop-blur-xl border-t border-white/5 z-50 flex flex-col pb-safe transition-transform duration-300 animate-fade-in-up shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
               
-              {/* Seekable Progress Bar - Enhanced Hover Experience */}
+              {/* Seekable Progress Bar - Absolute positioning to prevent layout shift */}
               <div 
-                className="w-full h-1 bg-white/5 relative group cursor-pointer touch-none transition-[height] duration-300 hover:h-6" 
+                className="absolute top-0 left-0 right-0 h-1 bg-white/5 group cursor-pointer touch-none transition-all duration-300 hover:h-6 hover:-top-5 z-50" 
                 onClick={(e) => e.stopPropagation()}
               >
                   <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -516,7 +512,7 @@ export const Player: React.FC = () => {
                   />
               </div>
 
-              <div className="flex items-center justify-between px-4 h-16 md:h-20" onClick={() => setIsExpanded(true)}>
+              <div className="flex items-center justify-between px-4 h-16 md:h-20 mt-1" onClick={() => setIsExpanded(true)}>
                   
                   {/* LEFT: Info */}
                   <div className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 max-w-[40%] md:max-w-[30%]">
@@ -579,8 +575,8 @@ export const Player: React.FC = () => {
                                     <div className="h-full bg-white group-hover/vol:bg-primary transition-colors duration-300" style={{ width: `${volume * 100}%` }}></div>
                                </div>
                                <div 
-                                    className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)] opacity-0 group-hover/vol:opacity-100 transition-all duration-200 pointer-events-none scale-0 group-hover/vol:scale-100" 
-                                    style={{ left: `calc(${volume * 100}%)` }}
+                                    className="absolute w-3.5 h-3.5 bg-white rounded-full shadow-[0_0_8px_rgba(255,255,255,0.6)] opacity-0 group-hover/vol:opacity-100 transition-opacity duration-200 pointer-events-none scale-0 group-hover/vol:scale-100" 
+                                    style={{ left: `calc(${volume * 100}% - 7px)` }}
                                ></div>
                                <input 
                                    type="range" 

@@ -138,12 +138,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Data Fetching Logic for Home
   const refreshHomeData = useCallback(async (force = false) => {
-    // If data is less than 1 hour old and not forced, don't refresh
     if (!force && homeData.lastFetched > 0 && (Date.now() - homeData.lastFetched) < 3600000) {
         return;
     }
 
-    // Load Explore Logic
     const loadExplore = async () => {
         const today = new Date().toDateString();
         const storedDate = localStorage.getItem('nebula_explore_date');
@@ -233,7 +231,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
              setIsDemoMode(false);
              service.getPing();
              service.getPlaylists().then(setPlaylists);
-             // Pre-fetch critical data on load
              fetchArtists(); 
           }
           const savedSettings = await db.get('settings', 'user_settings');
@@ -248,7 +245,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         } catch (e) {}
       };
       init();
-  }, [service]); // fetchArtists dependency omitted to prevent cycles, service is stable
+  }, [service]); 
 
   useEffect(() => {
       if (isPlaying && currentSongIndex >= 0 && queue[currentSongIndex]) {
@@ -272,18 +269,29 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   }, [currentSongIndex, isPlaying, queue]);
 
-  // Audio Context Initialization
-  useEffect(() => {
+  // Audio Context Initialization (Lazy)
+  const initAudioContext = useCallback(() => {
+    // If context exists, ensure it's running
+    if (audioContextRef.current) {
+        if (audioContextRef.current.state === 'suspended') {
+            audioContextRef.current.resume().catch(e => console.warn("Context resume failed", e));
+        }
+        return;
+    }
+    
     const audio = audioRef.current;
     if (!audio) return;
-    if (audioContextRef.current) return; 
+
     try {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
         const ctx = new AudioContext();
         const ana = ctx.createAnalyser();
         ana.fftSize = 2048; 
         ana.smoothingTimeConstant = 0.85;
+        
         // Connect to source
+        // Note: this can fail if called multiple times on same element in some browsers/versions
+        // but react refs + useRef guard usually prevents it.
         const source = ctx.createMediaElementSource(audio);
         source.connect(ana);
         ana.connect(ctx.destination);
@@ -293,7 +301,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (e) { console.warn("Audio Context init error:", e); }
   }, []);
 
-  // Event Listeners (Optimized)
+  // Event Listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -303,14 +311,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const cTime = audio.currentTime;
         const dur = audio.duration || 0;
 
-        // Media Session update
         if ('mediaSession' in navigator && !isNaN(dur) && dur > 0) {
             try {
                 navigator.mediaSession.setPositionState({ duration: dur, playbackRate: audio.playbackRate, position: cTime });
             } catch (e) {}
         }
 
-        // Scrobble Logic
         if (isPlaying && dur > 0 && cTime > 0 && !hasScrobbledRef.current && queue[currentSongIndex]) {
            if (cTime > 30 || cTime > dur / 2) {
                service.scrobble(queue[currentSongIndex].id);
@@ -321,7 +327,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     const onEnded = () => {
          const { repeatMode, queue, currentSongIndex } = stateRef.current;
-         
          if (repeatMode === 'ONE') {
             if(audioRef.current) { 
                 audioRef.current.currentTime = 0; 
@@ -351,18 +356,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
     };
 
+    const onPlayEvent = () => {
+        initAudioContext();
+    };
+
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', onEnded);
     audio.addEventListener('error', onError);
+    audio.addEventListener('play', onPlayEvent);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', onEnded);
       audio.removeEventListener('error', onError);
+      audio.removeEventListener('play', onPlayEvent);
     };
-  }, []);
+  }, [initAudioContext]);
 
-  // Handle CSS Variables
   useEffect(() => {
     const hexToRgb = (hex: string) => {
       const r = parseInt(hex.slice(1, 3), 16);
@@ -374,14 +384,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.style.setProperty('--color-secondary', hexToRgb(settings.theme.secondaryColor));
   }, [settings.theme]);
 
-  // Handle Resume Context
-  useEffect(() => {
-    if (isPlaying && audioContextRef.current?.state === 'suspended') {
-      audioContextRef.current.resume();
-    }
-  }, [isPlaying]);
-
-  // Handle Audio Props Updates (Volume, Rate, Pitch)
+  // Ensure volume/rate/pitch are synced
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
@@ -393,7 +396,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [volume, playbackRate, pitchCorrection]);
 
-  // Handle Source Loading & Playback (Imperative)
+  // Handle Playback State
   useEffect(() => {
       const audio = audioRef.current;
       if (!audio) return;
@@ -415,15 +418,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                  const playPromise = audio.play();
                  if (playPromise !== undefined) {
                      playPromise.catch(e => {
-                         if (e.name !== 'AbortError') {
-                             console.warn("Play failed", e);
-                         }
+                         if (e.name !== 'AbortError') console.warn("Play failed", e);
                      });
                  }
+                 initAudioContext(); // Ensure context is ready
               }
           } else {
               if (isPlaying && audio.paused) {
-                  audio.play().catch(e => console.warn("Resume failed", e));
+                  audio.play().then(() => initAudioContext()).catch(e => console.warn("Resume failed", e));
               } else if (!isPlaying && !audio.paused) {
                   audio.pause();
               }
@@ -433,7 +435,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           audio.removeAttribute('src');
           audio.load();
       }
-  }, [currentSongIndex, queue, service, isPlaying]);
+  }, [currentSongIndex, queue, service, isPlaying, initAudioContext]);
 
   const playSong = (song: ISong, contextQueue?: ISong[]) => {
     if (contextQueue) {
@@ -445,11 +447,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setCurrentSongIndex(0);
     }
     setIsPlaying(true);
+    // Audio context will be init by useEffect or onPlayEvent
   };
 
-  const togglePlay = () => setIsPlaying(!isPlaying);
+  const togglePlay = () => {
+      setIsPlaying(!isPlaying);
+  };
   
-  const nextSong = (isManual = true) => {
+  const nextSong = () => {
     if (queue.length === 0) return;
     if (currentSongIndex < queue.length - 1) {
       setCurrentSongIndex(currentSongIndex + 1);
@@ -476,7 +481,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Media Session Handler
+  // Media Session Updates
   useEffect(() => {
     if (!('mediaSession' in navigator)) return;
     if (currentSongIndex >= 0 && queue[currentSongIndex]) {
@@ -486,24 +491,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         artist: song.artist,
         album: song.album,
         artwork: [
-          { src: service.getCoverArtUrl(song.id, 96), sizes: '96x96', type: 'image/jpeg' },
-          { src: service.getCoverArtUrl(song.id, 128), sizes: '128x128', type: 'image/jpeg' },
-          { src: service.getCoverArtUrl(song.id, 192), sizes: '192x192', type: 'image/jpeg' },
-          { src: service.getCoverArtUrl(song.id, 256), sizes: '256x256', type: 'image/jpeg' },
           { src: service.getCoverArtUrl(song.id, 512), sizes: '512x512', type: 'image/jpeg' }
         ]
       });
     } else { navigator.mediaSession.metadata = null; }
     
-    navigator.mediaSession.setActionHandler('play', () => setIsPlaying(true));
+    navigator.mediaSession.setActionHandler('play', () => { setIsPlaying(true); initAudioContext(); });
     navigator.mediaSession.setActionHandler('pause', () => setIsPlaying(false));
-    navigator.mediaSession.setActionHandler('stop', () => setIsPlaying(false));
     navigator.mediaSession.setActionHandler('previoustrack', prevSong);
     navigator.mediaSession.setActionHandler('nexttrack', () => nextSong());
     navigator.mediaSession.setActionHandler('seekto', (details) => { if (details.seekTime !== undefined && audioRef.current) audioRef.current.currentTime = details.seekTime; });
-    navigator.mediaSession.setActionHandler('seekbackward', (details) => { const skip = details.seekOffset || 10; if (audioRef.current) audioRef.current.currentTime = Math.max(audioRef.current.currentTime - skip, 0); });
-    navigator.mediaSession.setActionHandler('seekforward', (details) => { const skip = details.seekOffset || 10; if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.currentTime + skip, audioRef.current.duration); });
-  }, [currentSongIndex, queue, service, isPlaying, repeatMode]);
+  }, [currentSongIndex, queue, service, isPlaying, initAudioContext]);
 
   useEffect(() => {
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
@@ -550,7 +548,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsDemoMode(false); 
         db.saveCredentials(creds); 
         service.getPlaylists().then(setPlaylists);
-        // Trigger initial data fetches
         fetchArtists(true);
         return true; 
     }

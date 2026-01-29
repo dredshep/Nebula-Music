@@ -170,7 +170,7 @@ const SectionHeader = ({ title, icon: Icon, onShowMore, onRefresh, loading }: { 
 const AlbumRow = ({ albums }: { albums: IAlbum[] }) => {
     const { service, setView } = useStore();
     return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
       {albums.map((album) => (
         <div 
             key={album.id} 
@@ -229,7 +229,7 @@ export const HomeView: React.FC = () => {
   const { randomSongs, exploreAlbums, recentAlbums, newestAlbums } = homeData;
 
   return (
-    <div className="p-6 md:p-10 pb-32 max-w-[1600px] mx-auto">
+    <div className="p-6 md:p-10 pb-32 w-full mx-auto">
       <HeroSection songs={randomSongs} />
       
       {/* Quick Picks (Top Left) */}

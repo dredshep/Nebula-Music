@@ -240,7 +240,7 @@ export const SettingsView: React.FC = () => {
                     <Activity className="w-5 h-5 mr-2 text-primary" /> Visualizer Style
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
-                    {(['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON'] as VisualizerMode[]).map((mode) => (
+                    {(['BARS', 'WAVE', 'CIRCLE', 'MIRROR', 'SPECTRUM', 'PARTICLES', 'HEXAGON', 'CUBE', 'GRID'] as VisualizerMode[]).map((mode) => (
                         <button
                             key={mode}
                             onClick={() => setVisualizerMode(mode)}

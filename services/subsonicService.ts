@@ -215,6 +215,11 @@ export class SubsonicService {
       const songs = MOCK_SONGS.filter(s => s.album === album.name || s.albumId === id);
       return { ...album, songs, info: { notes: "A journey through digital soundscapes." }, starred: false };
     }
+    
+    const cacheKey = `album_detail_${id}`;
+    const cached = await db.getCachedResponse(cacheKey, 60); // Cache for 1 hour
+    if (cached) return cached;
+
     try {
       const res = await fetch(this.buildUrl('getAlbum.view', { id }));
       const data = await res.json();
@@ -234,7 +239,10 @@ export class SubsonicService {
              };
          }
       } catch(e) {}
-      return { ...albumData, songs, info, starred: albumData.starred !== undefined };
+      
+      const result = { ...albumData, songs, info, starred: albumData.starred !== undefined };
+      await db.cacheResponse(cacheKey, result);
+      return result;
     } catch (e) { return null; }
   }
 
@@ -262,6 +270,11 @@ export class SubsonicService {
         const albums = MOCK_ALBUMS.filter(a => a.artistId === id || a.artist === artist.name);
         return { artist, albums };
     }
+    
+    const cacheKey = `artist_detail_${id}`;
+    const cached = await db.getCachedResponse(cacheKey, 60);
+    if (cached) return cached;
+
     try {
         const res = await fetch(this.buildUrl('getArtist.view', { id }));
         const data = await res.json();
@@ -270,15 +283,23 @@ export class SubsonicService {
         if (artistData.album) {
             albums = Array.isArray(artistData.album) ? artistData.album : [artistData.album];
         }
-        return {
+        
+        const result = {
             artist: { id: artistData.id, name: artistData.name, albumCount: artistData.albumCount, coverArt: artistData.coverArt },
             albums
         };
+        await db.cacheResponse(cacheKey, result);
+        return result;
     } catch(e) { return { artist: { id, name: 'Unknown' }, albums: [] }; }
   }
 
   async getArtistInfo(id: string, name?: string): Promise<{ bio?: string, image?: string }> {
       if (this.isDemo) return { bio: "A legendary entity formed in the digital void.", image: "https://picsum.photos/1200/600?grayscale" };
+      
+      const cacheKey = `artist_info_${id}`;
+      const cached = await db.getCachedResponse(cacheKey, 1440); // 24 hours
+      if (cached) return cached;
+
       let bio, image;
       try {
           const res = await fetch(this.buildUrl('getArtistInfo2.view', { id }));
@@ -300,16 +321,26 @@ export class SubsonicService {
               }
           } catch (e) {}
       }
-      return { bio, image };
+      
+      const result = { bio, image };
+      if (bio || image) await db.cacheResponse(cacheKey, result);
+      return result;
   }
 
   async getTopSongs(artistName: string, count: number = 10): Promise<ISong[]> {
       if (this.isDemo) return MOCK_SONGS.filter(s => s.artist === artistName).slice(0, count);
+      
+      const cacheKey = `top_songs_${artistName}_${count}`;
+      const cached = await db.getCachedResponse(cacheKey, 1440);
+      if (cached) return cached;
+
       try {
           const res = await fetch(this.buildUrl('getTopSongs.view', { artist: artistName, count: count.toString() }));
           const data = await res.json();
           const songs = data['subsonic-response'].topSongs?.song || [];
-          return songs.map((s: any) => this.mapSong(s));
+          const result = songs.map((s: any) => this.mapSong(s));
+          if (result.length > 0) await db.cacheResponse(cacheKey, result);
+          return result;
       } catch (e) { return []; }
   }
   
