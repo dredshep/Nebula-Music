@@ -350,9 +350,9 @@ export const HomeView: React.FC = () => {
             loading={loadingExplore}
       />
       
-      {/* Daily Discovery: Updated to single-row adaptive grid */}
-      <div className="relative group">
-          <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition duration-1000"></div>
+      {/* Daily Discovery: Updated to single-row adaptive grid with named group to isolate hover */}
+      <div className="relative group/discovery">
+          <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl blur-xl opacity-50 group-hover/discovery:opacity-75 transition duration-1000"></div>
           <div className="relative bg-neutral-900/80 border border-white/5 rounded-2xl p-6 overflow-hidden">
              {loadingExplore && exploreAlbums.length === 0 ? (
                  <div className="flex flex-col items-center justify-center py-12">
