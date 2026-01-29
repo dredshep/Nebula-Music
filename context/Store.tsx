@@ -199,8 +199,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const [random, recent, newest, explore, recs] = await Promise.all([
         service.getRandomSongs(20),
-        service.getAlbumList('recent', 5),
-        service.getAlbumList('newest', 5),
+        service.getAlbumList('recent', 24),
+        service.getAlbumList('newest', 24),
         loadExplore(),
         loadRecommended()
     ]);

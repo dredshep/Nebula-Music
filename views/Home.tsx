@@ -169,12 +169,25 @@ const SectionHeader = ({ title, icon: Icon, onShowMore, onRefresh, loading }: { 
 
 const AlbumRow = ({ albums }: { albums: IAlbum[] }) => {
     const { service, setView } = useStore();
+    
+    // We map breakpoints to ensure exactly one row of content is shown.
+    // Extra items are hidden via CSS classes to prevent wrapping.
+    // 2 (mobile) -> 3 (sm) -> 4 (md) -> 5 (lg) -> 6 (xl) -> 8 (2xl)
+    
     return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-      {albums.map((album) => (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+      {albums.map((album, i) => (
         <div 
             key={album.id} 
-            className="group cursor-pointer space-y-3"
+            className={`group cursor-pointer space-y-3 ${
+                i >= 8 ? 'hidden' : 
+                i >= 6 ? 'hidden 2xl:block' : 
+                i >= 5 ? 'hidden xl:block' : 
+                i >= 4 ? 'hidden lg:block' : 
+                i >= 3 ? 'hidden md:block' : 
+                i >= 2 ? 'hidden sm:block' : 
+                'block'
+            }`}
             onClick={() => setView('ALBUM_DETAIL', album.id)}
         >
           <div className="relative aspect-square rounded-xl overflow-hidden bg-neutral-800 shadow-xl border border-white/5">
