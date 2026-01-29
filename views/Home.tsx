@@ -246,26 +246,26 @@ export const HomeView: React.FC = () => {
       <HeroSection songs={randomSongs} />
       
       {/* Quick Picks (Top Left) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           {/* Quick Picks (Top Left) */}
-          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
+          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm flex flex-col overflow-hidden">
               <div className="flex items-center justify-between mb-4 shrink-0">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
                     className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1"
                     onClick={async () => refreshHomeData(true)}
                    >
-                    <RefreshCw className="w-3 h-3" /> Refresh
+                    <RefreshCw className="text-[10px] w-3 h-3" /> Refresh
                   </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1">
                   {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
-                          {/* Framed Album Art */}
-                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-black/30 border border-white/10 shadow-md">
+                          {/* Framed Album Art - Fix for cropping */}
+                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-black/30 border border-white/10 shadow-md flex items-center justify-center">
                               <img 
                                 src={service.getCoverArtUrl(song.coverArt || song.id, 200)} 
-                                className="w-full h-full object-cover" 
+                                className="w-full h-full object-contain" 
                                 alt={song.album} 
                               />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
@@ -291,7 +291,7 @@ export const HomeView: React.FC = () => {
           </div>
 
           {/* Tabbed Box: Most Played / Recommended (Top Right) */}
-          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col h-full">
+          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col min-h-[400px]">
                <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-around shrink-0">
                    <button 
                         onClick={() => setActiveTab('played')}
@@ -349,30 +349,21 @@ export const HomeView: React.FC = () => {
             onRefresh={() => refreshHomeData(true)} 
             loading={loadingExplore}
       />
+      
+      {/* Daily Discovery: Updated to single-row adaptive grid */}
       <div className="relative group">
           <div className="absolute -inset-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-xl blur-xl opacity-50 group-hover:opacity-75 transition duration-1000"></div>
           <div className="relative bg-neutral-900/80 border border-white/5 rounded-2xl p-6 overflow-hidden">
-             <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide snap-x">
-                 {exploreAlbums.map((album) => (
-                     <div 
-                        key={album.id} 
-                        className="flex-shrink-0 w-40 snap-start cursor-pointer group/card"
-                        onClick={() => setView('ALBUM_DETAIL', album.id)}
-                     >
-                         <div className="aspect-square rounded-lg overflow-hidden mb-3 relative shadow-lg bg-neutral-800">
-                             <img src={service.getCoverArtUrl(album.coverArt || album.id, 200)} className="w-full h-full object-cover transition duration-500 group-hover/card:opacity-90" alt="" />
-                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                <Play className="w-8 h-8 text-white fill-white drop-shadow-lg" />
-                             </div>
-                         </div>
-                         <h4 className="font-bold text-white text-xs truncate group-hover/card:text-primary transition">{album.name}</h4>
-                         <p className="text-xs text-neutral-400 truncate">{album.artist}</p>
-                     </div>
-                 ))}
-                 {exploreAlbums.length === 0 && !loadingExplore && (
-                     <div className="text-neutral-500 text-sm p-4">No recommendations available today. Try playing some music first!</div>
-                 )}
-             </div>
+             {loadingExplore && exploreAlbums.length === 0 ? (
+                 <div className="flex flex-col items-center justify-center py-12">
+                     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                 </div>
+             ) : (
+                 <AlbumRow albums={exploreAlbums} />
+             )}
+             {exploreAlbums.length === 0 && !loadingExplore && (
+                 <div className="text-neutral-500 text-sm p-4 text-center">No recommendations available today. Try playing some music first!</div>
+             )}
           </div>
       </div>
       
