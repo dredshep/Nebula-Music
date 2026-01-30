@@ -48,6 +48,8 @@ interface StoreContextType extends AppState {
 
   // Data Fetching
   refreshHomeData: (force?: boolean) => Promise<void>;
+  refreshQuickPicks: () => Promise<void>;
+  refreshDiscovery: () => Promise<void>;
   fetchArtists: (force?: boolean) => Promise<void>;
 }
 
@@ -136,6 +138,40 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return sorted.map(item => item.song);
   }, [playHistory]);
 
+  const refreshQuickPicks = useCallback(async () => {
+    const random = await service.getRandomSongs(20);
+    setHomeData(prev => ({ ...prev, randomSongs: random }));
+  }, [service]);
+
+  const refreshDiscovery = useCallback(async () => {
+    let strategy = 'random';
+    let params = {};
+    
+    const topSongs = getMostPlayedSongs();
+    if (topSongs.length > 0) {
+        const genreCounts: Record<string, number> = {};
+        topSongs.forEach(s => {
+            if(s.genre) genreCounts[s.genre] = (genreCounts[s.genre] || 0) + 1;
+        });
+        const topGenre = Object.keys(genreCounts).sort((a,b) => genreCounts[b] - genreCounts[a])[0];
+        if(topGenre) {
+            strategy = 'byGenre';
+            params = { genre: topGenre };
+        }
+    }
+
+    const offset = Math.floor(Math.random() * 50);
+    let results = await service.getAlbumList(strategy, 10, offset, params);
+    
+    // Ensure we have enough items to fill the row (max 8)
+    if (results.length < 10) {
+        const fill = await service.getAlbumList('random', 10 - results.length);
+        results = [...results, ...fill];
+    }
+    
+    setHomeData(prev => ({ ...prev, exploreAlbums: results }));
+  }, [service, getMostPlayedSongs]);
+
   // Data Fetching Logic for Home
   const refreshHomeData = useCallback(async (force = false) => {
     if (!force && homeData.lastFetched > 0 && (Date.now() - homeData.lastFetched) < 3600000) {
@@ -172,7 +208,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const offset = (force && strategy !== 'random') ? Math.floor(Math.random() * 50) : 0;
         let results = await service.getAlbumList(strategy, 10, offset, params);
         
-        if (results.length < 5) {
+        // Ensure we have enough items to fill the row
+        if (results.length < 10) {
             const fill = await service.getAlbumList('random', 10 - results.length);
             results = [...results, ...fill];
         }
@@ -605,7 +642,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,
       getMostPlayedSongs, history, service, audioRef, analyser, isZenMode, setZenMode,
-      homeData, cachedArtists, refreshHomeData, fetchArtists
+      homeData, cachedArtists, refreshHomeData, refreshQuickPicks, refreshDiscovery, fetchArtists
     }}>
       {children}
       <audio 
