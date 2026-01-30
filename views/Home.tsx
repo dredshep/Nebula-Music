@@ -214,9 +214,10 @@ const AlbumRow = ({ albums }: { albums: IAlbum[] }) => {
 };
 
 export const HomeView: React.FC = () => {
-  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs, homeData, refreshHomeData } = useStore();
+  const { service, playSong, setView, openPlaylistModal, getMostPlayedSongs, homeData, refreshHomeData, refreshQuickPicks, refreshDiscovery } = useStore();
   
   const [loadingExplore, setLoadingExplore] = useState(false);
+  const [loadingQuickPicks, setLoadingQuickPicks] = useState(false);
   
   // Tabbed Box State
   const [activeTab, setActiveTab] = useState<'played' | 'recommended'>('played');
@@ -248,50 +249,58 @@ export const HomeView: React.FC = () => {
       {/* Responsive Grid Container: 55vh min 480 max 650 for adaptability */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 lg:h-[55vh] lg:min-h-[480px] lg:max-h-[650px]">
           {/* Quick Picks (Top Left) */}
-          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-4 sm:p-5 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between mb-2 shrink-0 px-2">
+          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-5 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden relative">
+              <div className="flex items-center justify-between mb-3 shrink-0">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
-                    className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1"
-                    onClick={async () => refreshHomeData(true)}
+                    className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1 bg-white/5 px-2 py-1 rounded-full transition-colors"
+                    onClick={async () => {
+                        setLoadingQuickPicks(true);
+                        await refreshQuickPicks();
+                        setLoadingQuickPicks(false);
+                    }}
                    >
-                    <RefreshCw className="text-[10px] w-3 h-3" /> Refresh
+                    <RefreshCw className={`text-[10px] w-3 h-3 ${loadingQuickPicks ? 'animate-spin' : ''}`} /> Refresh
                   </button>
               </div>
               
-              {/* Flexible Grid that fits exactly 8 items without scroll */}
-              {/* Reduced gap from gap-3 sm:gap-4 to gap-2 md:gap-3 for tighter packing */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-2 md:gap-3 h-full w-full min-h-0">
+              {/* Strict Grid Layout */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-2 md:gap-4 h-full w-full min-h-0 pb-1">
                   {randomSongs.slice(0, 8).map((song, i) => (
-                      <div key={song.id} className="group cursor-pointer flex items-center justify-center w-full h-full" onClick={() => playSong(song, randomSongs)}>
-                           {/* Centered Wrapper with Aspect Ratio to ensure width matches height layout */}
-                           <div className="flex flex-col h-full aspect-[3/4] max-w-full relative">
-                                <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-800 shadow-xl border border-white/5 relative flex-shrink-0">
-                                    <img 
-                                        src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
-                                        className="w-full h-full object-cover transition-opacity" 
-                                        alt={song.album} 
-                                    />
-                                    {/* Hover Overlay */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                                        <button className="p-2 lg:p-3 bg-white rounded-full text-black shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 pointer-events-none">
-                                            <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
-                                        </button>
-                                    </div>
-                                    {/* Playlist Button - Positioned safely inside frame */}
-                                    <button 
-                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary z-20 backdrop-blur-md hover:scale-110"
-                                            title="Add to Playlist"
-                                        >
-                                            <ListPlus className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
+                      <div 
+                        key={`${song.id}-${i}`} /* Key fix: Ensures uniqueness even if song object is reused */
+                        className="group relative flex flex-col items-center justify-center w-full h-full cursor-pointer min-h-0"
+                        onClick={() => playSong(song, randomSongs)}
+                      >
+                           {/* Album Art: Adjusted percentage heights (60-70%) to ensure text fits comfortably below */}
+                           <div className="relative h-[60%] md:h-[65%] xl:h-[70%] w-auto aspect-square max-w-full rounded-lg overflow-hidden bg-neutral-800 shadow-md border border-white/5 shrink-0">
+                                <img 
+                                    src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                                    alt={song.album} 
+                                />
                                 
-                                <div className="mt-2 w-full px-0.5 min-h-0 flex flex-col justify-start">
-                                    <h4 className="font-semibold text-white truncate text-xs lg:text-sm group-hover:text-primary transition">{song.title}</h4>
-                                    <p className="text-[10px] lg:text-xs text-neutral-400 truncate">{song.artist}</p>
+                                {/* Hover Overlay */}
+                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[1px]">
+                                    <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-xl">
+                                        <Play className="w-4 h-4 fill-black text-black ml-0.5" />
+                                    </div>
                                 </div>
+
+                                {/* Playlist Button - Positioned Strict */}
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                    className="absolute top-1.5 right-1.5 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary z-20 backdrop-blur-md hover:scale-110"
+                                    title="Add to Playlist"
+                                >
+                                    <ListPlus className="w-3.5 h-3.5" />
+                                </button>
+                           </div>
+                           
+                           {/* Text Info - Flex 1 allows it to take remaining space, line-clamp ensures fit */}
+                           <div className="flex-1 flex flex-col items-center justify-center text-center w-full px-1 min-h-0 mt-2">
+                                <h4 className="font-bold text-white w-full text-xs md:text-sm group-hover:text-primary transition leading-tight line-clamp-1">{song.title}</h4>
+                                <p className="text-[10px] md:text-xs text-neutral-400 w-full leading-tight mt-1 line-clamp-1">{song.artist}</p>
                            </div>
                       </div>
                   ))}
@@ -354,7 +363,11 @@ export const HomeView: React.FC = () => {
             title="Daily Discovery" 
             icon={Compass} 
             onShowMore={() => setView('ALBUMS', { sort: 'random' })} 
-            onRefresh={() => refreshHomeData(true)} 
+            onRefresh={async () => {
+                setLoadingExplore(true);
+                await refreshDiscovery();
+                setLoadingExplore(false);
+            }} 
             loading={loadingExplore}
       />
       
