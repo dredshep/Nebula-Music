@@ -245,8 +245,8 @@ export const HomeView: React.FC = () => {
     <div className="p-6 md:p-10 pb-32 w-full mx-auto">
       <HeroSection songs={randomSongs} />
       
-      {/* Quick Picks (Top Left) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[600px]">
+      {/* Responsive Grid Container: 55vh min 480 max 650 for adaptability */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[55vh] lg:min-h-[480px] lg:max-h-[650px]">
           {/* Quick Picks (Top Left) */}
           <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
               <div className="flex items-center justify-between mb-4 shrink-0">
@@ -258,33 +258,41 @@ export const HomeView: React.FC = () => {
                     <RefreshCw className="text-[10px] w-3 h-3" /> Refresh
                   </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
+              
+              {/* Flexible Grid that fits exactly 8 items without scroll */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-4 h-full w-full min-h-0">
                   {randomSongs.slice(0, 8).map((song, i) => (
-                      <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
-                          {/* Framed Album Art - Fixed to stretch and fill frame */}
-                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shadow-md">
-                              <img 
-                                src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
-                                className="w-full h-full object-cover" 
-                                alt={song.album} 
-                              />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
-                                  <Play className="w-8 h-8 text-white fill-current" />
-                              </div>
+                      <div key={song.id} className="group cursor-pointer flex flex-col relative w-full h-full" onClick={() => playSong(song, randomSongs)}>
+                          {/* Image Container: Flexes to fill available height, centers content */}
+                          <div className="flex-1 min-h-0 w-full flex items-center justify-center relative">
+                               <div className="relative aspect-square h-auto w-auto max-h-full max-w-full rounded-xl overflow-hidden bg-neutral-800 shadow-xl border border-white/5">
+                                    <img 
+                                        src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
+                                        className="w-full h-full object-cover transition-opacity" 
+                                        alt={song.album} 
+                                    />
+                                    {/* Hover Overlay */}
+                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                                        <button className="p-2 lg:p-3 bg-white rounded-full text-black shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 pointer-events-none">
+                                            <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-1" />
+                                        </button>
+                                    </div>
+                               </div>
+                               {/* Playlist Button */}
+                               <button 
+                                    onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                    className="absolute top-1 right-1 lg:top-2 lg:right-2 p-1.5 lg:p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary z-10"
+                                    title="Add to Playlist"
+                                >
+                                    <ListPlus className="w-3 h-3 lg:w-4 lg:h-4" />
+                                </button>
                           </div>
                           
-                          <div className="min-w-0 w-full px-1">
-                              <h4 className="text-sm font-bold text-white truncate group-hover:text-primary transition">{song.title}</h4>
-                              <p className="text-xs text-neutral-400 truncate">{song.artist}</p>
+                          {/* Text Info */}
+                          <div className="mt-2 w-full text-left px-1">
+                              <h4 className="font-semibold text-white truncate text-xs lg:text-sm group-hover:text-primary transition">{song.title}</h4>
+                              <p className="text-[10px] lg:text-xs text-neutral-400 truncate">{song.artist}</p>
                           </div>
-
-                          <button 
-                                onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                className="absolute top-2 right-2 p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary"
-                                title="Add to Playlist"
-                            >
-                                <ListPlus className="w-3 h-3" />
-                          </button>
                       </div>
                   ))}
               </div>
