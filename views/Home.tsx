@@ -246,9 +246,9 @@ export const HomeView: React.FC = () => {
       <HeroSection songs={randomSongs} />
       
       {/* Quick Picks (Top Left) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[600px]">
           {/* Quick Picks (Top Left) */}
-          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm flex flex-col overflow-hidden">
+          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
               <div className="flex items-center justify-between mb-4 shrink-0">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
@@ -258,7 +258,7 @@ export const HomeView: React.FC = () => {
                     <RefreshCw className="text-[10px] w-3 h-3" /> Refresh
                   </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
                   {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
                           {/* Framed Album Art - Fix for cropping */}
@@ -291,7 +291,7 @@ export const HomeView: React.FC = () => {
           </div>
 
           {/* Tabbed Box: Most Played / Recommended (Top Right) */}
-          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col min-h-[400px]">
+          <div className="bg-gradient-to-b from-neutral-800/50 to-neutral-900/50 rounded-2xl border border-white/5 backdrop-blur-sm overflow-hidden flex flex-col h-full">
                <div className="p-4 border-b border-white/5 bg-black/10 flex items-center justify-around shrink-0">
                    <button 
                         onClick={() => setActiveTab('played')}
