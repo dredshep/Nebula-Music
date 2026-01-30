@@ -246,10 +246,10 @@ export const HomeView: React.FC = () => {
       <HeroSection songs={randomSongs} />
       
       {/* Responsive Grid Container: 55vh min 480 max 650 for adaptability */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 lg:h-[55vh] lg:min-h-[480px] lg:max-h-[650px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 mb-8 lg:h-[55vh] lg:min-h-[480px] lg:max-h-[650px]">
           {/* Quick Picks (Top Left) */}
-          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-6 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
-              <div className="flex items-center justify-between mb-4 shrink-0">
+          <div className="lg:col-span-2 bg-neutral-900/50 rounded-2xl p-4 sm:p-5 border border-white/5 backdrop-blur-sm h-full flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between mb-2 shrink-0 px-2">
                   <h3 className="text-lg font-bold flex items-center text-white"><Flame className="w-5 h-5 mr-2 text-orange-500" /> Quick Picks</h3>
                   <button 
                     className="text-xs font-medium text-neutral-400 hover:text-white flex items-center gap-1"
@@ -260,12 +260,13 @@ export const HomeView: React.FC = () => {
               </div>
               
               {/* Flexible Grid that fits exactly 8 items without scroll */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-4 h-full w-full min-h-0">
+              {/* Reduced gap from gap-3 sm:gap-4 to gap-2 md:gap-3 for tighter packing */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 grid-rows-2 gap-2 md:gap-3 h-full w-full min-h-0">
                   {randomSongs.slice(0, 8).map((song, i) => (
-                      <div key={song.id} className="group cursor-pointer flex flex-col relative w-full h-full" onClick={() => playSong(song, randomSongs)}>
-                          {/* Image Container: Flexes to fill available height, centers content */}
-                          <div className="flex-1 min-h-0 w-full flex items-center justify-center relative">
-                               <div className="relative aspect-square h-auto w-auto max-h-full max-w-full rounded-xl overflow-hidden bg-neutral-800 shadow-xl border border-white/5">
+                      <div key={song.id} className="group cursor-pointer flex items-center justify-center w-full h-full" onClick={() => playSong(song, randomSongs)}>
+                           {/* Centered Wrapper with Aspect Ratio to ensure width matches height layout */}
+                           <div className="flex flex-col h-full aspect-[3/4] max-w-full relative">
+                                <div className="w-full aspect-square rounded-xl overflow-hidden bg-neutral-800 shadow-xl border border-white/5 relative flex-shrink-0">
                                     <img 
                                         src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
                                         className="w-full h-full object-cover transition-opacity" 
@@ -274,25 +275,24 @@ export const HomeView: React.FC = () => {
                                     {/* Hover Overlay */}
                                     <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
                                         <button className="p-2 lg:p-3 bg-white rounded-full text-black shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 hover:scale-110 pointer-events-none">
-                                            <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-1" />
+                                            <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
                                         </button>
                                     </div>
-                               </div>
-                               {/* Playlist Button */}
-                               <button 
-                                    onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                    className="absolute top-1 right-1 lg:top-2 lg:right-2 p-1.5 lg:p-2 rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary z-10"
-                                    title="Add to Playlist"
-                                >
-                                    <ListPlus className="w-3 h-3 lg:w-4 lg:h-4" />
-                                </button>
-                          </div>
-                          
-                          {/* Text Info */}
-                          <div className="mt-2 w-full text-left px-1">
-                              <h4 className="font-semibold text-white truncate text-xs lg:text-sm group-hover:text-primary transition">{song.title}</h4>
-                              <p className="text-[10px] lg:text-xs text-neutral-400 truncate">{song.artist}</p>
-                          </div>
+                                    {/* Playlist Button - Positioned safely inside frame */}
+                                    <button 
+                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                            className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition hover:bg-primary z-20 backdrop-blur-md hover:scale-110"
+                                            title="Add to Playlist"
+                                        >
+                                            <ListPlus className="w-3.5 h-3.5" />
+                                    </button>
+                                </div>
+                                
+                                <div className="mt-2 w-full px-0.5 min-h-0 flex flex-col justify-start">
+                                    <h4 className="font-semibold text-white truncate text-xs lg:text-sm group-hover:text-primary transition">{song.title}</h4>
+                                    <p className="text-[10px] lg:text-xs text-neutral-400 truncate">{song.artist}</p>
+                                </div>
+                           </div>
                       </div>
                   ))}
               </div>
