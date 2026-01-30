@@ -261,11 +261,11 @@ export const HomeView: React.FC = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 flex-1 min-h-0 overflow-y-auto custom-scrollbar pr-2">
                   {randomSongs.slice(0, 8).map((song, i) => (
                       <div key={song.id} className="flex flex-col p-3 hover:bg-white/5 rounded-xl group transition cursor-pointer border border-transparent hover:border-white/5 relative overflow-hidden" onClick={() => playSong(song, randomSongs)}>
-                          {/* Framed Album Art - Fix for cropping */}
-                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-black/30 border border-white/10 shadow-md flex items-center justify-center">
+                          {/* Framed Album Art - Fixed to stretch and fill frame */}
+                          <div className="relative aspect-square w-full mb-3 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shadow-md">
                               <img 
-                                src={service.getCoverArtUrl(song.coverArt || song.id, 200)} 
-                                className="w-full h-full object-contain" 
+                                src={service.getCoverArtUrl(song.coverArt || song.id, 300)} 
+                                className="w-full h-full object-cover" 
                                 alt={song.album} 
                               />
                               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center pointer-events-none">
