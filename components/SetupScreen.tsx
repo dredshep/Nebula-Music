@@ -1,7 +1,6 @@
-
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
-import { Server, CheckCircle, AlertCircle, ArrowRight, Music, ShieldAlert } from 'lucide-react';
+import { AlertCircle, ArrowRight, ShieldAlert, Sparkles, Server } from 'lucide-react';
 
 export const SetupScreen: React.FC = () => {
   const { connectToSubsonic, enableDemoMode } = useStore();
@@ -9,14 +8,10 @@ export const SetupScreen: React.FC = () => {
   const [user, setUser] = useState('');
   const [pass, setPass] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle');
-  const [isInsecure, setIsInsecure] = useState(false);
 
-  useEffect(() => {
-    if (url && !url.startsWith('https://') && url.length > 7) {
-        setIsInsecure(true);
-    } else {
-        setIsInsecure(false);
-    }
+  // Compute isInsecure without useEffect to avoid re-render focus issues
+  const isInsecure = useMemo(() => {
+    return url && !url.startsWith('https://') && url.length > 7;
   }, [url]);
 
   const handleConnect = async (e: React.FormEvent) => {
@@ -28,102 +23,125 @@ export const SetupScreen: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-neutral-950 flex items-center justify-center overflow-hidden font-sans">
-      {/* Animated Background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-20%] w-[800px] h-[800px] bg-primary/20 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob"></div>
-        <div className="absolute bottom-[-20%] right-[-20%] w-[800px] h-[800px] bg-secondary/20 rounded-full mix-blend-screen filter blur-[120px] opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-[30%] left-[30%] w-[500px] h-[500px] bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-20 animate-pulse"></div>
+      {/* Subtle animated background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-[-30%] left-[-10%] w-[600px] h-[600px] bg-primary/[0.08] rounded-full filter blur-[150px] animate-pulse" style={{ animationDuration: '8s' }} />
+        <div className="absolute bottom-[-30%] right-[-10%] w-[600px] h-[600px] bg-secondary/[0.06] rounded-full filter blur-[150px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
       </div>
 
-      <div className="relative z-10 w-full max-w-md p-8">
-        
-        {/* Logo Area */}
+      <div className="relative z-10 w-full max-w-lg px-6">
+        {/* Logo & Header */}
         <div className="text-center mb-10">
-           <div className="w-24 h-24 mx-auto bg-gradient-to-tr from-primary to-secondary rounded-3xl flex items-center justify-center shadow-2xl shadow-primary/20 mb-6 transform group hover:rotate-3 transition duration-500">
-              <svg viewBox="0 0 24 24" className="w-14 h-14 text-white stroke-current group-hover:scale-110 transition-transform duration-500" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 10v4" className="opacity-50" />
-                <path d="M8 7v10" className="opacity-75" />
-                <path d="M12 3v18" className="opacity-100" />
-                <path d="M16 7v10" className="opacity-75" />
-                <path d="M20 10v4" className="opacity-50" />
-              </svg>
-           </div>
-           <h1 className="text-4xl font-bold text-white tracking-tight mb-2">Welcome to Nebula Music</h1>
-           <p className="text-neutral-400">Your personal high-fidelity music cloud.</p>
+          <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary via-primary to-secondary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/20 mb-6">
+            <svg viewBox="0 0 24 24" className="w-12 h-12 text-white stroke-current" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 10v4" className="opacity-50" />
+              <path d="M8 7v10" className="opacity-70" />
+              <path d="M12 3v18" />
+              <path d="M16 7v10" className="opacity-70" />
+              <path d="M20 10v4" className="opacity-50" />
+            </svg>
+          </div>
+          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Nebula Music</h1>
+          <p className="text-white/40 text-sm">Connect to your personal music server</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-           <form onSubmit={handleConnect} className="space-y-5">
-               <div>
-                  <label className="block text-xs font-bold text-neutral-500 uppercase mb-2 tracking-wider">Server URL</label>
-                  <input 
-                    required
-                    type="text" 
-                    placeholder="https://music.yourserver.com" 
-                    value={url}
-                    onChange={e => setUrl(e.target.value)}
-                    className={`w-full bg-black/40 border focus:border-primary rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-all ${isInsecure ? 'border-yellow-500/50' : 'border-white/10'}`}
-                  />
-                  {isInsecure && (
-                      <div className="flex items-start mt-2 text-yellow-500 text-xs">
-                          <ShieldAlert className="w-3 h-3 mr-1.5 mt-0.5" />
-                          <span>Warning: Using HTTP puts your credentials at risk. HTTPS is strongly recommended.</span>
-                      </div>
-                  )}
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-neutral-500 uppercase mb-2 tracking-wider">Username</label>
-                  <input 
-                    required
-                    type="text" 
-                    placeholder="Username" 
-                    value={user}
-                    onChange={e => setUser(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 focus:border-primary rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-all"
-                  />
-               </div>
-               <div>
-                  <label className="block text-xs font-bold text-neutral-500 uppercase mb-2 tracking-wider">Password</label>
-                  <input 
-                    required
-                    type="password" 
-                    placeholder="••••••••" 
-                    value={pass}
-                    onChange={e => setPass(e.target.value)}
-                    className="w-full bg-black/40 border border-white/10 focus:border-primary rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-all"
-                  />
-               </div>
+        {/* Main Card */}
+        <div className="bg-neutral-900/90 backdrop-blur-2xl border border-white/[0.04] rounded-2xl p-6 shadow-2xl">
+          <form onSubmit={handleConnect} className="space-y-4">
+            {/* Server URL */}
+            <div>
+              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Server URL</label>
+              <input
+                required
+                type="text"
+                placeholder="https://music.yourserver.com"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                autoComplete="url"
+                className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isInsecure ? 'border-yellow-500/30' : 'border-white/[0.06]'}`}
+              />
+              {isInsecure && (
+                <div className="flex items-start mt-2 text-yellow-500/80 text-xs">
+                  <ShieldAlert className="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
+                  <span>HTTP connections are insecure. Consider using HTTPS.</span>
+                </div>
+              )}
+            </div>
 
-               {status === 'error' && (
-                   <div className="flex items-center text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/10">
-                       <AlertCircle className="w-4 h-4 mr-2" /> Connection failed. Check details.
-                   </div>
-               )}
+            {/* Username */}
+            <div>
+              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Username</label>
+              <input
+                required
+                type="text"
+                placeholder="Username"
+                value={user}
+                onChange={e => setUser(e.target.value)}
+                autoComplete="username"
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+            </div>
 
-               <button 
-                  disabled={status === 'loading'}
-                  className="w-full bg-white text-black font-bold py-4 rounded-xl hover:bg-primary hover:text-white transition-all transform active:scale-95 flex items-center justify-center shadow-lg"
-               >
-                  {status === 'loading' ? (
-                      <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
-                  ) : (
-                      <>Connect Server <ArrowRight className="w-5 h-5 ml-2" /></>
-                  )}
-               </button>
-           </form>
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Password</label>
+              <input
+                required
+                type="password"
+                placeholder="••••••••"
+                value={pass}
+                onChange={e => setPass(e.target.value)}
+                autoComplete="current-password"
+                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              />
+            </div>
+
+            {/* Error Message */}
+            {status === 'error' && (
+              <div className="flex items-center text-red-400 text-sm bg-red-500/10 p-3 rounded-xl border border-red-500/10">
+                <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
+                Connection failed. Please check your details.
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-primary hover:text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {status === 'loading' ? (
+                <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              ) : (
+                <>
+                  <Server className="w-4 h-4" />
+                  Connect
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-xs text-white/20 uppercase tracking-wide">or</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
+          </div>
+
+          {/* Demo Mode */}
+          <button
+            onClick={enableDemoMode}
+            className="w-full bg-white/[0.03] border border-white/[0.06] text-white/60 hover:text-white hover:bg-white/[0.06] font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+          >
+            <Sparkles className="w-4 h-4" />
+            Try Demo Mode
+          </button>
         </div>
-        
+
         {/* Footer */}
-        <div className="mt-8 text-center">
-             <button 
-                onClick={enableDemoMode}
-                className="text-sm text-neutral-500 hover:text-white transition underline decoration-neutral-700 hover:decoration-white underline-offset-4"
-             >
-                 No server? Try Demo Mode
-             </button>
-        </div>
-
+        <p className="text-center text-white/20 text-xs mt-6">
+          Nebula Music • Subsonic-compatible client
+        </p>
       </div>
     </div>
   );

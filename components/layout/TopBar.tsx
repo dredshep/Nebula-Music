@@ -1,0 +1,87 @@
+import React from 'react';
+import { Menu, Search, Settings } from 'lucide-react';
+import { useStore } from '../../context/Store';
+
+interface TopBarProps {
+    onMenuClick: () => void;
+}
+
+export const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
+    const { openSearchModal, setView, currentView } = useStore();
+
+    // Get current page title
+    const getPageTitle = () => {
+        switch (currentView) {
+            case 'HOME': return 'Home';
+            case 'BROWSE': return 'Browse';
+            case 'ARTISTS': return 'Artists';
+            case 'ALBUMS': return 'Albums';
+            case 'SONGS': return 'Songs';
+            case 'PLAYLISTS': return 'Playlists';
+            case 'LIKED_SONGS': return 'Liked Songs';
+            case 'LIKED_ALBUMS': return 'Liked Albums';
+            case 'SETTINGS': return 'Settings';
+            case 'ALBUM_DETAIL': return 'Album';
+            case 'ARTIST_DETAIL': return 'Artist';
+            case 'PLAYLIST_DETAIL': return 'Playlist';
+            default: return 'Nebula';
+        }
+    };
+
+    return (
+        <header className="h-16 flex items-center justify-between px-6 border-b border-neutral-200 dark:border-white/5 bg-white/80 dark:bg-black/20 backdrop-blur-xl sticky top-0 z-30">
+            {/* Left: Menu + Title */}
+            <div className="flex items-center gap-4">
+                <button
+                    onClick={onMenuClick}
+                    className="p-2.5 rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-all duration-200 active:scale-95"
+                    aria-label="Open navigation"
+                >
+                    <Menu className="w-5 h-5" />
+                </button>
+
+                <div className="flex items-center gap-3">
+                    {/* Logo - clickable to go home */}
+                    <button
+                        onClick={() => setView('HOME')}
+                        className="w-8 h-8 rounded-lg bg-white flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
+                        title="Go to Home"
+                    >
+                        <svg viewBox="0 0 24 24" className="w-4 h-4 text-black stroke-current" fill="none" strokeWidth="3" strokeLinecap="round">
+                            <path d="M4 10v4" className="opacity-40" />
+                            <path d="M8 7v10" className="opacity-60" />
+                            <path d="M12 3v18" className="opacity-100" />
+                            <path d="M16 7v10" className="opacity-60" />
+                            <path d="M20 10v4" className="opacity-40" />
+                        </svg>
+                    </button>
+
+                    <h1 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight">
+                        {getPageTitle()}
+                    </h1>
+                </div>
+            </div>
+
+            {/* Right: Actions */}
+            <div className="flex items-center gap-2">
+
+                <button
+                    onClick={openSearchModal}
+                    className="p-2.5 rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-all duration-200 active:scale-95"
+                    aria-label="Search"
+                >
+                    <Search className="w-5 h-5" />
+                </button>
+
+                <button
+                    onClick={() => setView('SETTINGS')}
+                    className={`p-2.5 rounded-xl hover:bg-neutral-200 dark:hover:bg-white/10 transition-all duration-200 active:scale-95 ${currentView === 'SETTINGS' ? 'text-neutral-900 dark:text-white bg-neutral-200 dark:bg-white/10' : 'text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white'
+                        }`}
+                    aria-label="Settings"
+                >
+                    <Settings className="w-5 h-5" />
+                </button>
+            </div>
+        </header>
+    );
+};

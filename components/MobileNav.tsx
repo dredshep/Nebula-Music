@@ -13,48 +13,89 @@ export const MobileNav: React.FC = () => {
 
   const isLibraryActive = isActive(['ARTISTS', 'ALBUMS', 'SONGS', 'LIKED_SONGS', 'LIKED_ALBUMS', 'PLAYLISTS', 'PLAYLIST_DETAIL', 'ALBUM_DETAIL', 'ARTIST_DETAIL']);
 
+  const NavButton = ({
+    icon: Icon,
+    label,
+    active,
+    onClick
+  }: {
+    icon: any;
+    label: string;
+    active: boolean;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`
+        flex flex-col items-center justify-center space-y-1 flex-1 h-full 
+        transition-all duration-300 ease-spring rounded-2xl relative group interactive-press
+        ${active ? 'text-primary' : 'text-neutral-500'}
+      `}
+    >
+      {/* Active indicator background */}
+      {active && (
+        <div className="absolute inset-x-2 inset-y-1 bg-gradient-to-b from-primary/20 to-primary/10 rounded-2xl border border-primary/30 animate-scale-in shadow-glow-sm" />
+      )}
+
+      <Icon className={`
+        w-6 h-6 relative z-10 transition-all duration-300 ease-spring
+        ${active ? 'fill-primary/20 scale-110' : 'group-active:scale-90'}
+      `} />
+      <span className={`
+        text-[10px] font-medium relative z-10 transition-all duration-200
+        ${active ? 'font-bold tracking-wide' : ''}
+      `}>
+        {label}
+      </span>
+    </button>
+  );
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-neutral-950/95 backdrop-blur-xl border-t border-white/10 z-40 flex items-center justify-between px-6 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-      <button
-        onClick={() => setView('HOME')}
-        className={`flex flex-col items-center justify-center space-y-1 flex-1 h-full ${isActive('HOME') ? 'text-primary' : 'text-neutral-500 active:text-neutral-300'}`}
-      >
-        <Home className={`w-6 h-6 ${isActive('HOME') ? 'fill-current/20' : ''}`} />
-        <span className="text-[10px] font-medium">Home</span>
-      </button>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 px-4 pb-safe animate-slide-up">
+      <div className="floating-panel-strong rounded-3xl border border-white/15 mx-auto max-w-md mb-3 shadow-[0_8px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden">
+        {/* Background gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
 
-      <button
-        onClick={() => setView('BROWSE')}
-        className={`flex flex-col items-center justify-center space-y-1 flex-1 h-full ${isActive('BROWSE') ? 'text-primary' : 'text-neutral-500 active:text-neutral-300'}`}
-      >
-        <Compass className={`w-6 h-6 ${isActive('BROWSE') ? 'fill-current/20' : ''}`} />
-        <span className="text-[10px] font-medium">Browse</span>
-      </button>
+        <div className="relative flex items-center justify-between px-3 py-2 h-[68px]">
+          <NavButton
+            icon={Home}
+            label="Home"
+            active={isActive('HOME')}
+            onClick={() => setView('HOME')}
+          />
 
-      <button
-        onClick={openSearchModal}
-        className="flex flex-col items-center justify-center space-y-1 flex-1 h-full group"
-      >
-        <div className="w-12 h-8 bg-white/10 rounded-2xl flex items-center justify-center group-active:bg-white/20 transition-colors">
-             <Search className="w-5 h-5 text-white" />
+          <NavButton
+            icon={Compass}
+            label="Browse"
+            active={isActive('BROWSE')}
+            onClick={() => setView('BROWSE')}
+          />
+
+          {/* Center Search Button */}
+          <button
+            onClick={openSearchModal}
+            className="flex flex-col items-center justify-center space-y-1 flex-1 h-full group relative interactive-press"
+          >
+            <div className="w-14 h-10 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-2xl flex items-center justify-center group-active:scale-95 transition-all duration-200 ease-spring border border-white/15 shadow-glow-sm group-hover:shadow-glow glow-button">
+              <Search className="w-5 h-5 text-white relative z-10" />
+            </div>
+          </button>
+
+          <NavButton
+            icon={Library}
+            label="Library"
+            active={isLibraryActive}
+            onClick={() => setView('ALBUMS')}
+          />
+
+          <NavButton
+            icon={Settings}
+            label="Settings"
+            active={isActive('SETTINGS')}
+            onClick={() => setView('SETTINGS')}
+          />
         </div>
-      </button>
-
-      <button
-        onClick={() => setView('ALBUMS')}
-        className={`flex flex-col items-center justify-center space-y-1 flex-1 h-full ${isLibraryActive ? 'text-primary' : 'text-neutral-500 active:text-neutral-300'}`}
-      >
-        <Library className={`w-6 h-6 ${isLibraryActive ? 'fill-current/20' : ''}`} />
-        <span className="text-[10px] font-medium">Library</span>
-      </button>
-
-      <button
-        onClick={() => setView('SETTINGS')}
-        className={`flex flex-col items-center justify-center space-y-1 flex-1 h-full ${isActive('SETTINGS') ? 'text-primary' : 'text-neutral-500 active:text-neutral-300'}`}
-      >
-        <Settings className={`w-6 h-6 ${isActive('SETTINGS') ? 'fill-current/20' : ''}`} />
-        <span className="text-[10px] font-medium">Settings</span>
-      </button>
+      </div>
     </div>
   );
 };

@@ -1,331 +1,313 @@
-
-
-
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '../context/Store';
 import { IPlaylist, ISong } from '../types';
-import { Play, Clock, ArrowLeft, Trash2, ListMusic, Shuffle, GripVertical, Save, ListPlus, Info, BarChart2, Heart } from 'lucide-react';
-import { Visualizer } from '../components/Visualizer';
+import { Play, Clock, ArrowLeft, Trash2, ListMusic, Shuffle, Save, ListPlus, Info, BarChart2, Heart, Pause } from 'lucide-react';
+import { useAdaptiveColors } from '../hooks/useAdaptiveColors';
 
 export const PlaylistDetailView: React.FC = () => {
-  const { viewData, setView, playSong, isPlaying, queue, currentSongIndex, playlists, deletePlaylist, savePlaylist, reorderPlaylist, service, openPlaylistModal, isDemoMode, toggleLike } = useStore();
-  const [playlist, setPlaylist] = useState<IPlaylist | null>(null);
-  const [draggedItemIndex, setDraggedItemIndex] = useState<number | null>(null);
-  const [isSavedPlaylist, setIsSavedPlaylist] = useState(true);
-  const [showInfo, setShowInfo] = useState(false);
+    const { viewData, setView, playSong, isPlaying, queue, currentSongIndex, playlists, deletePlaylist, savePlaylist, service, openPlaylistModal, isDemoMode, toggleLike } = useStore();
+    const [playlist, setPlaylist] = useState<IPlaylist | null>(null);
+    const [isSavedPlaylist, setIsSavedPlaylist] = useState(true);
+    const [showFullNotes, setShowFullNotes] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-        if (typeof viewData === 'string') {
-            // Existing playlist ID lookup
-            let pl = playlists.find(p => p.id === viewData);
-            
-            // If playlist found in store but has no songs, or not found, fetch full details from service.
-            if (!pl || (pl && (!pl.songs || pl.songs.length === 0) && !isDemoMode)) {
-                const fullPl = await service.getPlaylist(viewData);
-                if (fullPl) {
-                    setPlaylist(fullPl);
-                    setIsSavedPlaylist(true);
-                    return;
+    // Extract colors from playlist cover art for accent backgrounds
+    const playlistArtUrl = playlist ? service.getCoverArtUrl(playlist.coverArt || playlist.id, 200) : undefined;
+    const { colors: playlistColors } = useAdaptiveColors(playlistArtUrl);
+
+    useEffect(() => {
+        const load = async () => {
+            if (typeof viewData === 'string') {
+                let pl = playlists.find(p => p.id === viewData);
+                if (!pl || (pl && (!pl.songs || pl.songs.length === 0) && !isDemoMode)) {
+                    const fullPl = await service.getPlaylist(viewData);
+                    if (fullPl) { setPlaylist(fullPl); setIsSavedPlaylist(true); return; }
                 }
+                if (pl) { setPlaylist(pl); setIsSavedPlaylist(true); }
+            } else if (typeof viewData === 'object' && viewData !== null) {
+                setPlaylist(viewData);
+                setIsSavedPlaylist(playlists.some(p => p.id === viewData.id));
             }
+        };
+        load();
+    }, [viewData, playlists, service, isDemoMode]);
 
-            if (pl) {
-                setPlaylist(pl);
-                setIsSavedPlaylist(true);
-            }
-        } else if (typeof viewData === 'object' && viewData !== null) {
-            // Direct playlist object (e.g. generated mix)
-            setPlaylist(viewData);
-            // Check if it already exists in store to determine if it's "Saved"
-            const exists = playlists.some(p => p.id === viewData.id);
-            setIsSavedPlaylist(exists);
-        }
+    if (!playlist) return (
+        <div className="flex flex-col items-center justify-center h-full text-white/40">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+            <span className="text-sm">Loading Playlist...</span>
+        </div>
+    );
+
+    const handleSave = () => { if (playlist) { savePlaylist(playlist); setView('PLAYLISTS'); } };
+
+    const handleSongLike = (song: ISong) => {
+        toggleLike(song);
+        setPlaylist(prev => prev ? { ...prev, songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s) } : null);
     };
-    
-    load();
-    
-    // Reset scroll position
-    const main = document.querySelector('main');
-    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
 
-  }, [viewData, playlists, service, isDemoMode]);
+    const formatTime = (s: number) => {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m}:${sec < 10 ? '0' + sec : sec}`;
+    };
 
-  if (!playlist) return <div className="p-10 text-white">Loading Playlist...</div>;
+    const formatTotalTime = (s: number) => {
+        const hrs = Math.floor(s / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
+    };
 
-  const handleSave = () => {
-      if (playlist) {
-          savePlaylist(playlist);
-          setView('PLAYLISTS');
-      }
-  };
+    const getQualityBadge = (suffix?: string) => {
+        if (!suffix) return null;
+        const s = suffix.toUpperCase();
+        const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
+        return (
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-white/40'}`}>
+                {s}
+            </span>
+        );
+    };
 
-  const handleSongLike = (song: ISong) => {
-      toggleLike(song);
-      setPlaylist(prev => prev ? {
-          ...prev,
-          songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s)
-      } : null);
-  };
+    const currentSong = queue[currentSongIndex];
+    const comment = playlist.comment || (!isSavedPlaylist ? (playlist as any).desc : null);
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec < 10 ? '0' + sec : sec}`;
-  };
+    return (
+        <div className="min-h-full pb-32 w-full">
+            {/* Hero Header - full width */}
+            <div className="relative pt-4">
+                {/* Background with playlist image and blur */}
+                <div className="absolute inset-x-0 top-0 h-[420px] overflow-hidden pointer-events-none">
+                    {playlist.coverArt ? (
+                        <img
+                            src={service.getCoverArtUrl(playlist.coverArt, 400)}
+                            className="absolute w-full h-full object-cover blur-3xl opacity-25 scale-150"
+                            alt=""
+                        />
+                    ) : (
+                        <div className="absolute w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-3xl" />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/40 via-neutral-950/85 to-neutral-950" />
+                </div>
 
-  const formatTotalTime = (s: number) => {
-      const hrs = Math.floor(s / 3600);
-      const mins = Math.floor((s % 3600) / 60);
-      return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
-  };
+                <div className="relative z-10 px-6 lg:px-10 pt-2 pb-10">
+                    {/* Back button */}
+                    <button
+                        onClick={() => setView(isSavedPlaylist ? 'PLAYLISTS' : 'BROWSE')}
+                        className="mb-5 flex items-center text-white/50 hover:text-white transition text-sm font-medium group"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        {isSavedPlaylist ? 'Playlists' : 'Browse'}
+                    </button>
 
-  const getQualityBadge = (suffix?: string, bitrate?: number) => {
-      if (!suffix) return null;
-      const s = suffix.toUpperCase();
-      const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
-      
-      return (
-          <div className="flex items-center gap-2">
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${isLossless ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : 'border-neutral-600 text-neutral-400 bg-neutral-800'}`}>
-                  {s}
-              </span>
-              {bitrate && (
-                  <span className="text-[10px] text-neutral-500 font-mono">{bitrate}kbps</span>
-              )}
-          </div>
-      );
-  };
+                    <div className="flex flex-col md:flex-row gap-8">
+                        {/* Cover Art */}
+                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-900">
+                            {playlist.coverArt ? (
+                                <img
+                                    src={service.getCoverArtUrl(playlist.coverArt, 500)}
+                                    alt={playlist.name}
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                    <ListMusic className="w-32 h-32 text-white/20" />
+                                </div>
+                            )}
+                        </div>
 
-  const currentSong = queue[currentSongIndex];
-  const comment = playlist.comment || (!isSavedPlaylist ? (playlist as any).desc : null);
-  
-  // Drag and Drop Handlers
-  const onDragStart = (e: React.DragEvent, index: number) => {
-      // Only allow drag if it's a saved playlist (since reorder only works on stored playlists)
-      if (!isSavedPlaylist) return;
-      setDraggedItemIndex(index);
-      e.dataTransfer.effectAllowed = "move";
-  };
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col justify-end">
+                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Playlist</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{playlist.name}</h1>
 
-  const onDragOver = (e: React.DragEvent, index: number) => {
-      if (!isSavedPlaylist) return;
-      e.preventDefault();
-  };
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-white/60 mb-4">
+                                {playlist.songCount && (
+                                    <>
+                                        <span>{playlist.songCount} tracks</span>
+                                        <span className="text-white/20">•</span>
+                                    </>
+                                )}
+                                {playlist.duration && <span>{formatTotalTime(playlist.duration)}</span>}
+                                {playlist.created && (
+                                    <>
+                                        <span className="text-white/20">•</span>
+                                        <span>Created {new Date(playlist.created).toLocaleDateString()}</span>
+                                    </>
+                                )}
+                            </div>
 
-  const onDrop = (e: React.DragEvent, index: number) => {
-      if (!isSavedPlaylist) return;
-      e.preventDefault();
-      if (draggedItemIndex === null) return;
-      if (draggedItemIndex !== index) {
-          reorderPlaylist(playlist.id, draggedItemIndex, index);
-      }
-      setDraggedItemIndex(null);
-  };
+                            {/* Action buttons */}
+                            <div className="flex flex-wrap gap-3 mt-2">
+                                {playlist.songs && playlist.songs.length > 0 && (
+                                    <>
+                                        <button
+                                            onClick={() => playlist.songs && playSong(playlist.songs[0], playlist.songs)}
+                                            className="flex items-center gap-2 px-5 py-2 bg-white text-black font-bold rounded-lg hover:bg-neutral-200 transition text-sm shadow-xl"
+                                        >
+                                            {isPlaying && currentSong?.created === playlist.created?.toString() ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                                            Play
+                                        </button>
+                                        <button
+                                            className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
+                                            title="Shuffle"
+                                            onClick={() => {
+                                                if (playlist.songs) {
+                                                    const shuffled = [...playlist.songs].sort(() => Math.random() - 0.5);
+                                                    playSong(shuffled[0], shuffled);
+                                                }
+                                            }}
+                                        >
+                                            <Shuffle className="w-4 h-4" />
+                                        </button>
+                                    </>
+                                )}
 
-  return (
-    <div className="flex flex-col min-h-full pb-10 relative">
-      {/* Header / Top Section */}
-      <div className="relative px-8 pb-8 pt-4 md:px-12 md:pb-12 md:pt-8 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden shrink-0">
-        
-        {/* Dynamic Background Blur */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-             {playlist.coverArt && (
-                <img src={service.getCoverArtUrl(playlist.coverArt, 600)} className="absolute w-full h-full object-cover blur-3xl opacity-20 scale-150" alt="" />
-             )}
-             <div className="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/90 to-dark"></div>
-        </div>
+                                {!isSavedPlaylist && (
+                                    <button
+                                        onClick={handleSave}
+                                        className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition text-sm"
+                                    >
+                                        <Save className="w-4 h-4" />
+                                        Save Playlist
+                                    </button>
+                                )}
 
-        {/* Cover Art - INCREASED SIZE */}
-        <div className="relative z-10 group">
-            <div className="w-72 h-72 md:w-[400px] md:h-[400px] bg-neutral-900 shadow-2xl rounded-lg overflow-hidden border border-white/10 flex items-center justify-center">
-                {playlist.coverArt ? (
-                    <img src={service.getCoverArtUrl(playlist.coverArt, 600)} alt={playlist.name} className="w-full h-full object-cover" />
-                ) : (
-                    <ListMusic className="w-32 h-32 text-neutral-700" />
-                )}
+                                {isSavedPlaylist && (
+                                    <button
+                                        onClick={() => { if (confirm('Are you sure you want to delete this playlist?')) deletePlaylist(playlist.id); }}
+                                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition"
+                                        title="Delete Playlist"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        {/* Info */}
-        <div className="relative z-10 flex-1 text-center md:text-left">
-            <button onClick={() => setView(isSavedPlaylist ? 'PLAYLISTS' : 'BROWSE')} className="mb-4 flex items-center justify-center md:justify-start text-neutral-400 hover:text-white transition text-sm">
-                <ArrowLeft className="w-4 h-4 mr-1" /> Back to {isSavedPlaylist ? 'Playlists' : 'Browse'}
-            </button>
-            {/* Increased Font Size */}
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-none">{playlist.name}</h1>
-            
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 mb-8">
-                {playlist.songs && playlist.songs.length > 0 && (
-                    <>
-                        <button 
-                            onClick={() => playlist.songs && playSong(playlist.songs[0], playlist.songs)}
-                            className="px-10 py-4 bg-primary text-black text-lg font-bold rounded-full hover:bg-white transition shadow-xl shadow-primary/20 flex items-center transform hover:scale-105"
+            {/* Main Content - full width */}
+            <div className="px-6 lg:px-10 pt-4">
+                {/* About Section */}
+                {comment && (
+                    <div className="mb-8 mt-4">
+                        <div
+                            className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:bg-white/[0.07] transition"
+                            onClick={() => setShowFullNotes(!showFullNotes)}
                         >
-                            <Play className="w-6 h-6 mr-2 fill-current" /> Play
-                        </button>
-                        <button className="px-6 py-4 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center border border-white/10">
-                            <Shuffle className="w-6 h-6 mr-2" /> Shuffle
-                        </button>
-                    </>
+                            <Info className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-1">About</h3>
+                                <p className={`text-sm text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
+                                    {comment}
+                                </p>
+                                {comment.length > 120 && (
+                                    <span className="text-xs text-primary mt-1 inline-block">
+                                        {showFullNotes ? 'Show less' : 'Read more'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 )}
-                
-                {isSavedPlaylist ? (
-                    <button 
-                        onClick={() => { if(confirm('Are you sure you want to delete this playlist?')) deletePlaylist(playlist.id); }}
-                        className="px-6 py-4 bg-red-500/10 text-red-500 font-medium rounded-full hover:bg-red-500/20 transition flex items-center border border-red-500/20"
-                    >
-                        <Trash2 className="w-6 h-6 mr-2" /> Delete
-                    </button>
-                ) : (
-                    <button 
-                        onClick={handleSave}
-                        className="px-8 py-4 bg-secondary/20 text-secondary font-bold rounded-full hover:bg-secondary hover:text-white transition flex items-center border border-secondary/20 shadow-[0_0_15px_rgba(139,92,246,0.1)]"
-                    >
-                        <Save className="w-6 h-6 mr-2" /> Save as Playlist
-                    </button>
-                )}
-            </div>
-            
-            <div className="flex items-center justify-center md:justify-start gap-8 text-sm font-mono text-neutral-500 uppercase tracking-widest">
-                <span className="flex items-center"><ListMusic className="w-4 h-4 mr-2" /> {playlist.songCount} Tracks</span>
-                <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {formatTotalTime(playlist.duration)}</span>
-                <span>Created {new Date(playlist.created).toLocaleDateString()}</span>
-            </div>
-        </div>
-      </div>
 
-      {/* Playlist Info Box / Description */}
-      {comment && (
-          <div className="px-4 md:px-12 mb-8 animate-fade-in shrink-0">
-              <div className="bg-neutral-900/40 border border-white/5 p-6 rounded-2xl backdrop-blur-md relative">
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center">
-                      <Info className="w-5 h-5 mr-2 text-primary" /> About this Playlist
-                  </h3>
-                  <div className={`text-neutral-300 leading-relaxed text-sm whitespace-pre-line transition-all duration-300 ${!showInfo ? 'line-clamp-2' : ''}`}>
-                      {comment}
-                  </div>
-                  {comment.length > 150 && (
-                      <button 
-                        onClick={() => setShowInfo(!showInfo)}
-                        className="text-xs font-bold text-primary hover:text-white transition mt-2"
-                      >
-                        {showInfo ? 'Read Less' : 'Read More'}
-                      </button>
-                  )}
-              </div>
-          </div>
-      )}
+                {/* Track List Section - with playlist-colored accent */}
+                <section
+                    className="mb-8 rounded-xl overflow-hidden"
+                    style={{
+                        background: `linear-gradient(135deg, ${playlistColors.surface} 0%, transparent 100%)`,
+                    }}
+                >
+                    <div className="p-4">
+                        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wide mb-3">Tracks</h2>
+                        <div className="border border-white/10 rounded-lg overflow-hidden" style={{ borderColor: playlistColors.primaryMuted }}>
+                            {playlist.songs?.map((song, idx) => {
+                                const isCurrent = currentSong?.id === song.id;
 
-      {/* Tracklist */}
-      <div className="px-4 md:px-12">
-          <div className="bg-neutral-900/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md">
-            <table className="w-full text-left text-sm text-neutral-400">
-                <thead className="bg-black/20 text-neutral-500 uppercase tracking-wider text-xs border-b border-white/5">
-                    <tr>
-                        <th className="p-4 font-medium w-12 text-center">#</th>
-                        <th className="p-4 font-medium">Title</th>
-                        <th className="p-4 font-medium hidden md:table-cell">Album</th>
-                        <th className="p-4 font-medium hidden lg:table-cell">Quality</th>
-                        <th className="p-4 font-medium hidden lg:table-cell text-right">Plays</th>
-                        <th className="p-4 font-medium text-right">Time</th>
-                        <th className="p-4 w-24"></th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {playlist.songs?.map((song, idx) => {
-                        const isCurrent = currentSong?.id === song.id;
-                        const isDragging = draggedItemIndex === idx;
-
-                        return (
-                            <React.Fragment key={`${song.id}-${idx}`}>
-                                <tr 
-                                    draggable={isSavedPlaylist}
-                                    onDragStart={(e) => onDragStart(e, idx)}
-                                    onDragOver={(e) => onDragOver(e, idx)}
-                                    onDrop={(e) => onDrop(e, idx)}
-                                    className={`group transition-colors hover:bg-white/5 ${isSavedPlaylist ? 'cursor-move' : ''} ${isCurrent ? 'bg-white/10' : ''} ${isDragging ? 'opacity-30 bg-primary/20' : ''}`}
-                                >
-                                    <td className="p-4 text-center relative" onClick={() => playlist.songs && playSong(song, playlist.songs)}>
-                                        <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
+                                return (
+                                    <div
+                                        key={`${song.id}-${idx}`}
+                                        className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition border-b border-white/5 last:border-0 hover:bg-white/5 ${isCurrent ? 'bg-white/5' : ''}`}
+                                        onClick={() => playlist.songs && playSong(song, playlist.songs)}
+                                    >
+                                        {/* Track number / Play */}
+                                        <div className="w-7 text-center relative shrink-0">
                                             {isCurrent && isPlaying ? (
-                                                <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+                                                <div className="flex items-center justify-center gap-0.5">
+                                                    <div className="w-0.5 h-2 bg-primary animate-[bounce_1s_infinite_0ms]" />
+                                                    <div className="w-0.5 h-4 bg-primary animate-[bounce_1s_infinite_150ms]" />
+                                                    <div className="w-0.5 h-3 bg-primary animate-[bounce_1s_infinite_300ms]" />
+                                                </div>
                                             ) : (
                                                 <>
-                                                    <div className="absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
-                                                        {isSavedPlaylist && <GripVertical className="w-4 h-4 text-neutral-600" />}
-                                                        {!isSavedPlaylist && <span className="font-mono text-neutral-600 text-sm">{idx + 1}</span>}
-                                                    </div>
-                                                    <Play className="w-4 h-4 text-primary absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
+                                                    {isCurrent ? (
+                                                        <Pause className="w-3.5 h-3.5 text-primary mx-auto" />
+                                                    ) : (
+                                                        <span className={`text-sm font-medium ${isCurrent ? 'text-primary' : 'text-white/40 group-hover:text-white/60'} transition`}>
+                                                            {idx + 1}
+                                                        </span>
+                                                    )}
+                                                    <Play className="w-3.5 h-3.5 text-white absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition fill-current" />
                                                 </>
                                             )}
                                         </div>
-                                    </td>
-                                    <td className="p-4 cursor-pointer" onClick={() => playlist.songs && playSong(song, playlist.songs)}>
-                                        <div className="flex items-center">
-                                            <img src={service.getCoverArtUrl(song.id, 50)} className="w-8 h-8 rounded mr-3 object-cover bg-neutral-800" loading="lazy" alt="" />
-                                            <div>
-                                                <div className={`font-medium text-base ${isCurrent ? 'text-primary' : 'text-white'}`}>{song.title}</div>
-                                                <div 
-                                                    className="text-sm text-neutral-400 hover:text-white hover:underline cursor-pointer mt-0.5"
-                                                    onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}
-                                                >
-                                                    {song.artist}
-                                                </div>
+
+                                        {/* Title & Artist */}
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-medium truncate transition ${isCurrent ? 'text-primary' : 'text-white group-hover:text-white'}`}>
+                                                {song.title}
+                                            </p>
+                                            <p className="text-xs text-white/40 truncate">{song.artist}</p>
+                                        </div>
+
+                                        {/* Play count */}
+                                        {song.playCount && song.playCount > 0 && (
+                                            <div className="hidden md:flex items-center gap-1 text-[10px] text-white/30 font-mono shrink-0">
+                                                <BarChart2 className="w-3 h-3" />
+                                                {song.playCount}
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-neutral-500 hidden md:table-cell">
-                                        <span 
-                                            className="hover:text-white hover:underline cursor-pointer"
-                                            onClick={(e) => { e.stopPropagation(); if(song.albumId) setView('ALBUM_DETAIL', song.albumId); }}
-                                        >
-                                            {song.album}
+                                        )}
+
+                                        {/* Duration */}
+                                        <span className="text-xs text-white/40 font-mono w-10 text-right shrink-0">
+                                            {formatTime(song.duration)}
                                         </span>
-                                    </td>
-                                    <td className="p-4 hidden lg:table-cell">
-                                        {getQualityBadge(song.suffix, song.bitRate)}
-                                    </td>
-                                    <td className="p-4 text-right hidden lg:table-cell text-neutral-500 text-xs">
-                                        <div className="flex items-center justify-end gap-1" title="Play Count">
-                                            <BarChart2 className="w-3 h-3" />
-                                            {song.playCount || 0}
+
+                                        {/* Actions - always visible */}
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            {/* Quality badge */}
+                                            <div className="shrink-0">
+                                                {getQualityBadge(song.suffix)}
+                                            </div>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
+                                                className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
+                                                title={song.starred ? "Unlike" : "Like"}
+                                            >
+                                                <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                                className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
+                                                title="Add to playlist"
+                                            >
+                                                <ListPlus className="w-4 h-4" />
+                                            </button>
                                         </div>
-                                    </td>
-                                    <td className="p-4 text-right font-mono cursor-pointer" onClick={() => playlist.songs && playSong(song, playlist.songs)}>
-                                        {formatTime(song.duration)}
-                                    </td>
-                                    <td className="p-4 text-right flex items-center justify-end gap-2">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
-                                            className={`p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${song.starred ? 'text-red-500 opacity-100' : 'text-neutral-500 hover:text-white'}`}
-                                            title={song.starred ? "Unlike" : "Like"}
-                                        >
-                                            <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
-                                        </button>
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"
-                                            title="Add to Playlist"
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            </React.Fragment>
-                        );
-                    })}
-                    {(!playlist.songs || playlist.songs.length === 0) && (
-                        <tr>
-                            <td colSpan={7} className="p-8 text-center text-neutral-500">
-                                {isDemoMode ? 'This playlist is empty.' : 'Loading songs or this playlist is empty.'}
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-          </div>
-      </div>
-    </div>
-  );
+                                    </div>
+                                );
+                            })}
+                            {(!playlist.songs || playlist.songs.length === 0) && (
+                                <div className="p-12 text-center text-white/40">
+                                    <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                    <p className="text-sm">This playlist is empty.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    );
 };

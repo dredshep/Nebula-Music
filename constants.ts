@@ -1,32 +1,44 @@
 
 import { IAlbum, IArtist, ISong, IPlaylist } from './types';
 
-export const APP_VERSION = '1.4';
+export const APP_VERSION = '2.0';
 
 export const CHANGELOG = [
-    {
-        version: '1.4',
-        date: '2024-05-24',
-        title: 'Player Experience Upgrade',
-        changes: [
-            'Redesigned Expanded Player: Now features a sleek side-by-side layout on larger screens with significantly larger album art.',
-            'Mini Player Power-Up: Added a fully seekable progress bar with hover controls and a dedicated time display.',
-            'Metadata Detail: Expanded player now displays detailed track info including Genre, Year, and Audio Quality specifics.',
-            'Visual Polish: Improved animations and layout spacing for a more immersive listening experience.'
-        ]
-    },
-    {
-        version: '1.3',
-        date: '2024-05-22',
-        title: 'Responsiveness & Stability Update',
-        changes: [
-            'Fixed M4A/ALAC playback issues by implementing smarter transcoding rules and content-length estimation.',
-            'Enhanced responsiveness: The app now fits perfectly on all screen sizes using dynamic viewport units (100dvh).',
-            'Persistent Library Filters: Sort options, genre, and year filters are now saved between sessions.',
-            'UI Stability: Fixed visual resets in the Home Hero section when interacting with the player.',
-            'Visual Upgrades: Added parallax scrolling effects to Artist Detail views and refined player layouts for smaller screens.'
-        ]
-    }
+  {
+    version: '2.0',
+    date: '2024-06-01',
+    title: 'The Next Evolution of Nebula',
+    changes: [
+      'Brand New UI: A completely redesigned, premium interface with glassmorphism and smooth animations.',
+      'Enhanced Equalizer: Professional-grade 10-band EQ with presets and custom tuning.',
+      'Immersive Visualizers: 9 stunning new visualizer modes including Particles, Hexagon, and Spectrum.',
+      'Performance Boost: Smarter caching and lightning-fast transitions.',
+      'Shortcuts & Settings: Refined control with new keyboard shortcuts and customization options.'
+    ]
+  },
+  {
+    version: '1.4',
+    date: '2024-05-24',
+    title: 'Player Experience Upgrade',
+    changes: [
+      'Redesigned Expanded Player: Now features a sleek side-by-side layout on larger screens with significantly larger album art.',
+      'Mini Player Power-Up: Added a fully seekable progress bar with hover controls and a dedicated time display.',
+      'Metadata Detail: Expanded player now displays detailed track info including Genre, Year, and Audio Quality specifics.',
+      'Visual Polish: Improved animations and layout spacing for a more immersive listening experience.'
+    ]
+  },
+  {
+    version: '1.3',
+    date: '2024-05-22',
+    title: 'Responsiveness & Stability Update',
+    changes: [
+      'Fixed M4A/ALAC playback issues by implementing smarter transcoding rules and content-length estimation.',
+      'Enhanced responsiveness: The app now fits perfectly on all screen sizes using dynamic viewport units (100dvh).',
+      'Persistent Library Filters: Sort options, genre, and year filters are now saved between sessions.',
+      'UI Stability: Fixed visual resets in the Home Hero section when interacting with the player.',
+      'Visual Upgrades: Added parallax scrolling effects to Artist Detail views and refined player layouts for smaller screens.'
+    ]
+  }
 ];
 
 export const MOCK_ARTISTS: IArtist[] = [

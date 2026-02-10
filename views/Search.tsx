@@ -1,141 +1,172 @@
-
 import React from 'react';
 import { useStore } from '../context/Store';
-import { Mic2, Disc, Music, Play, MoreVertical, ListPlus } from 'lucide-react';
+import { Mic2, Disc, Music, Play, MoreVertical, ListPlus, Search as SearchIcon, Clock, BarChart2, Heart, ArrowRight } from 'lucide-react';
 
 export const SearchView: React.FC = () => {
-  const { searchResults, isSearching, lastSearchQuery, playSong, setView, service, openPlaylistModal } = useStore();
+    const { searchResults, isSearching, lastSearchQuery, playSong, setView, service, openPlaylistModal, openSearchModal } = useStore();
 
-  if (isSearching) {
-      return (
-          <div className="p-10 flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-              <span className="ml-4 text-lg text-neutral-400">Searching...</span>
-          </div>
-      );
-  }
+    if (isSearching) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] animate-fade-in text-neutral-500">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="font-bold tracking-widest text-xs uppercase">Searching Library...</p>
+            </div>
+        );
+    }
 
-  const hasResults = searchResults.artists.length > 0 || searchResults.albums.length > 0 || searchResults.songs.length > 0;
+    const hasResults = searchResults.artists.length > 0 || searchResults.albums.length > 0 || searchResults.songs.length > 0;
 
-  if (!hasResults && lastSearchQuery) {
-      return (
-          <div className="p-10 text-center text-neutral-400 mt-20">
-              <h2 className="text-2xl font-bold text-white mb-2">No results found</h2>
-              <p>We couldn't find anything matching "{lastSearchQuery}"</p>
-          </div>
-      );
-  }
+    if (!hasResults && lastSearchQuery) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center text-neutral-400 animate-fade-in">
+                <SearchIcon className="w-16 h-16 mb-6 opacity-20" />
+                <h2 className="text-3xl font-bold text-white mb-3">No results found</h2>
+                <p className="text-lg">We couldn't find anything matching <span className="text-white font-bold">"{lastSearchQuery}"</span></p>
+                <button
+                    onClick={openSearchModal}
+                    className="mt-8 px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-full font-bold transition border border-white/5"
+                >
+                    Try Another Search
+                </button>
+            </div>
+        );
+    }
 
-  if (!lastSearchQuery) {
-      return (
-        <div className="p-10 text-center text-neutral-400 mt-20">
-            <h2 className="text-2xl font-bold text-white mb-2">Search your library</h2>
-            <p>Find artists, albums, and songs.</p>
-        </div>
-      );
-  }
-
-  return (
-    <div className="p-8 md:p-10 pb-32 max-w-7xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8 border-b border-white/10 pb-4">
-            Search Results for <span className="text-primary">"{lastSearchQuery}"</span>
-        </h2>
-
-        {/* Artists */}
-        {searchResults.artists.length > 0 && (
-            <section className="mb-12">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Mic2 className="w-5 h-5 mr-2 text-neutral-400" /> Artists</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-                    {searchResults.artists.map(artist => (
-                        <div 
-                            key={artist.id} 
-                            className="group cursor-pointer bg-neutral-900/50 rounded-xl p-4 border border-white/5 hover:bg-white/5 transition"
-                            onClick={() => setView('ARTIST_DETAIL', artist.id)}
-                        >
-                            <div className="aspect-square rounded-full overflow-hidden mb-4 relative shadow-lg bg-neutral-800">
-                                {artist.coverArt ? (
-                                    <img src={service.getCoverArtUrl(artist.coverArt, 200)} alt={artist.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-neutral-600"><Mic2 className="w-12 h-12" /></div>
-                                )}
-                            </div>
-                            <h4 className="font-bold text-white text-center truncate">{artist.name}</h4>
-                        </div>
-                    ))}
+    if (!lastSearchQuery) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[60vh] text-center text-neutral-400 animate-fade-in">
+                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 border border-white/5">
+                    <SearchIcon className="w-8 h-8 text-neutral-500" />
                 </div>
-            </section>
-        )}
+                <h2 className="text-3xl font-bold text-white mb-3">Search your library</h2>
+                <p className="max-w-md mx-auto leading-relaxed">Find your favorite artists, albums, and songs. Just start typing to explore your collection.</p>
+            </div>
+        );
+    }
 
-        {/* Albums */}
-        {searchResults.albums.length > 0 && (
-            <section className="mb-12">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Disc className="w-5 h-5 mr-2 text-neutral-400" /> Albums</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-                    {searchResults.albums.map(album => (
-                        <div 
-                            key={album.id} 
-                            className="group cursor-pointer bg-neutral-900/50 rounded-xl p-4 border border-white/5 hover:bg-white/5 transition"
-                            onClick={() => setView('ALBUM_DETAIL', album.id)}
-                        >
-                            <div className="aspect-square rounded-lg overflow-hidden mb-4 relative shadow-lg bg-neutral-800">
-                                <img src={service.getCoverArtUrl(album.coverArt || album.id, 200)} alt={album.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                    <Play className="w-8 h-8 text-white fill-white" />
+    return (
+        <div className="p-8 md:p-12 pb-32 max-w-[1800px] mx-auto animate-fade-in">
+            <div className="flex items-center justify-between mb-10 border-b border-white/5 pb-8">
+                <h2 className="text-4xl font-black tracking-tight text-white">
+                    Results for <span className="text-primary">"{lastSearchQuery}"</span>
+                </h2>
+                <span className="text-sm font-bold text-neutral-500 uppercase tracking-widest bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+                    {searchResults.songs.length + searchResults.albums.length + searchResults.artists.length} Matches
+                </span>
+            </div>
+
+            {/* Artists */}
+            {searchResults.artists.length > 0 && (
+                <section className="mb-16 animate-slide-up">
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center"><Mic2 className="w-6 h-6 mr-3 text-neutral-400" /> Artists</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-6">
+                        {searchResults.artists.map((artist, i) => (
+                            <div
+                                key={artist.id}
+                                className={`group cursor-pointer floating-card-1 bg-neutral-900/40 rounded-[2rem] p-5 border border-white/5 hover:bg-neutral-800 hover:border-white/10 transition-all duration-300 hover:-translate-y-2 hover:shadow-glow-secondary stagger-${Math.min(i + 1, 6)}`}
+                                onClick={() => setView('ARTIST_DETAIL', artist.id)}
+                            >
+                                <div className="aspect-square rounded-full overflow-hidden mb-5 relative shadow-lg bg-neutral-800 border border-white/5">
+                                    {artist.coverArt ? (
+                                        <img src={service.getCoverArtUrl(artist.coverArt, 300)} alt={artist.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 opacity-90 group-hover:opacity-100" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-neutral-600 bg-neutral-900"><Mic2 className="w-12 h-12" /></div>
+                                    )}
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                                        <span className="bg-white text-black text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest transform scale-90 group-hover:scale-100 transition-transform">Profile</span>
+                                    </div>
                                 </div>
+                                <h4 className="font-bold text-white text-center truncate text-base group-hover:text-primary transition-colors">{artist.name}</h4>
+                                <p className="text-xs text-neutral-500 text-center mt-1 font-medium bg-white/5 py-1 px-2 rounded-full mx-auto w-fit">Artist</p>
                             </div>
-                            <h4 className="font-bold text-white truncate text-sm">{album.name}</h4>
-                            <p className="text-xs text-neutral-400 truncate">{album.artist}</p>
-                        </div>
-                    ))}
-                </div>
-            </section>
-        )}
+                        ))}
+                    </div>
+                </section>
+            )}
 
-        {/* Songs */}
-        {searchResults.songs.length > 0 && (
-            <section>
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center"><Music className="w-5 h-5 mr-2 text-neutral-400" /> Songs</h3>
-                <div className="bg-neutral-900/50 rounded-xl border border-white/5 overflow-hidden">
-                    <table className="w-full text-left text-sm text-neutral-400">
-                        <tbody className="divide-y divide-white/5">
-                            {searchResults.songs.map((song, idx) => (
-                                <tr key={song.id} className="hover:bg-white/5 group transition-colors">
-                                    <td className="p-4 w-12 text-center cursor-pointer relative" onClick={() => playSong(song, searchResults.songs)}>
-                                        <Play className="w-4 h-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity absolute inset-0 m-auto pointer-events-none" />
-                                    </td>
-                                    <td className="p-4 font-medium text-white cursor-pointer" onClick={() => playSong(song, searchResults.songs)}>
-                                        <div className="flex items-center">
-                                            <img src={service.getCoverArtUrl(song.id, 40)} className="w-8 h-8 rounded mr-3 object-cover bg-neutral-800" alt="" />
-                                            {song.title}
+            {/* Albums */}
+            {searchResults.albums.length > 0 && (
+                <section className="mb-16 animate-slide-up stagger-1">
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center"><Disc className="w-6 h-6 mr-3 text-neutral-400" /> Albums</h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-6">
+                        {searchResults.albums.map((album, i) => (
+                            <div
+                                key={album.id}
+                                className={`group cursor-pointer floating-card-1 bg-neutral-900/40 rounded-[1.5rem] p-4 border border-white/5 hover:bg-neutral-800 hover:border-white/10 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl stagger-${Math.min(i + 1, 6)}`}
+                                onClick={() => setView('ALBUM_DETAIL', album.id)}
+                            >
+                                <div className="aspect-square rounded-2xl overflow-hidden mb-4 relative shadow-lg bg-neutral-800">
+                                    <img src={service.getCoverArtUrl(album.coverArt || album.id, 300)} alt={album.name} className="w-full h-full object-cover group-hover:scale-110 transition duration-700 opacity-90 group-hover:opacity-100" />
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[2px]">
+                                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xl transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                            <Play className="w-5 h-5 text-black fill-current ml-0.5" />
                                         </div>
-                                    </td>
-                                    <td className="p-4 cursor-pointer hover:text-white hover:underline" onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}>
-                                        {song.artist}
-                                    </td>
-                                    <td className="p-4 cursor-pointer hover:text-white hover:underline hidden md:table-cell" onClick={(e) => { e.stopPropagation(); if(song.albumId) setView('ALBUM_DETAIL', song.albumId); }}>
-                                        {song.album}
-                                    </td>
-                                    <td className="p-4 text-right font-mono">
-                                        {Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}
-                                    </td>
-                                    <td className="p-4 text-right w-24 flex items-center justify-end">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary opacity-0 group-hover:opacity-100 transition mr-1"
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </button>
-                                        <button className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white opacity-0 group-hover:opacity-100 transition">
-                                            <MoreVertical className="w-4 h-4" />
-                                        </button>
-                                    </td>
+                                    </div>
+                                </div>
+                                <h4 className="font-bold text-white truncate text-base group-hover:text-primary transition-colors px-1">{album.name}</h4>
+                                <p className="text-xs font-bold text-neutral-500 truncate px-1">{album.artist}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* Songs */}
+            {searchResults.songs.length > 0 && (
+                <section className="animate-slide-up stagger-2">
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center"><Music className="w-6 h-6 mr-3 text-neutral-400" /> Songs</h3>
+                    <div className="floating-card-1 bg-neutral-900/30 rounded-[2rem] border border-white/5 overflow-hidden backdrop-blur-md">
+                        <table className="w-full text-left text-sm text-neutral-400">
+                            <thead className="bg-black/20 text-neutral-500 uppercase tracking-widest text-[10px] font-bold border-b border-white/5">
+                                <tr>
+                                    <th className="p-5 w-16 text-center"></th>
+                                    <th className="p-5">Title</th>
+                                    <th className="p-5">Artist</th>
+                                    <th className="p-5 hidden md:table-cell">Album</th>
+                                    <th className="p-5 text-right">Time</th>
+                                    <th className="p-5 w-24"></th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-        )}
-    </div>
-  );
+                            </thead>
+                            <tbody className="divide-y divide-white/5">
+                                {searchResults.songs.map((song, idx) => (
+                                    <tr key={song.id} className="hover:bg-white/5 group transition-all duration-200">
+                                        <td className="p-5 w-16 text-center cursor-pointer relative" onClick={() => playSong(song, searchResults.songs)}>
+                                            <div className="flex items-center justify-center w-8 h-8 mx-auto relative group-hover:scale-110 transition-transform">
+                                                <Play className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity absolute inset-0 m-auto fill-current" />
+                                                <span className="font-mono text-xs text-neutral-600 group-hover:opacity-0">{idx + 1}</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-5 font-bold text-white cursor-pointer" onClick={() => playSong(song, searchResults.songs)}>
+                                            <div className="flex items-center gap-4">
+                                                <img src={service.getCoverArtUrl(song.id, 50)} className="w-10 h-10 rounded-lg object-cover bg-neutral-800 shadow-md group-hover:scale-105 transition-transform" alt="" />
+                                                <span className="group-hover:text-primary transition-colors">{song.title}</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-5 cursor-pointer hover:text-white transition-colors" onClick={(e) => { e.stopPropagation(); if (song.artistId) setView('ARTIST_DETAIL', song.artistId); }}>
+                                            {song.artist}
+                                        </td>
+                                        <td className="p-5 cursor-pointer hover:text-white transition-colors hidden md:table-cell" onClick={(e) => { e.stopPropagation(); if (song.albumId) setView('ALBUM_DETAIL', song.albumId); }}>
+                                            {song.album}
+                                        </td>
+                                        <td className="p-5 text-right font-mono text-xs tabular-nums text-neutral-500">
+                                            {Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}
+                                        </td>
+                                        <td className="p-5 text-right w-24 flex items-center justify-end">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                                className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary opacity-0 group-hover:opacity-100 transition hover:scale-110"
+                                                title="Add to Playlist"
+                                            >
+                                                <ListPlus className="w-5 h-5" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            )}
+        </div>
+    );
 };

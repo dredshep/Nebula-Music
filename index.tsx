@@ -1,6 +1,7 @@
 import React, { ErrorInfo, ReactNode } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ThemeProvider } from './context/ThemeContext';
 
 interface ErrorBoundaryProps {
   children?: ReactNode;
@@ -47,7 +48,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
             <pre className="bg-black/50 p-4 rounded-lg text-left text-xs font-mono overflow-auto mb-6 border border-white/10">
               {this.state.error?.toString()}
             </pre>
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="px-6 py-2 bg-white text-black font-bold rounded-full hover:bg-neutral-200 transition"
             >
@@ -72,7 +73,9 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <App />
+      <ThemeProvider>
+        <App />
+      </ThemeProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );
