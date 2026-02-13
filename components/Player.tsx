@@ -57,6 +57,8 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
         };
         audio.addEventListener('timeupdate', updateTime);
         audio.addEventListener('loadedmetadata', updateTime);
+        // Sync immediately on mount
+        updateTime();
         return () => {
             audio.removeEventListener('timeupdate', updateTime);
             audio.removeEventListener('loadedmetadata', updateTime);
