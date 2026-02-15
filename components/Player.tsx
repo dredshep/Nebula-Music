@@ -275,7 +275,12 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                             >
                                 {currentSong.artist}
                             </p>
-                            <p className="text-sm text-neutral-500 dark:text-white/30 mb-8">{currentSong.album}</p>
+                            <p
+                                className="text-sm text-neutral-500 dark:text-white/30 mb-8 cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                onClick={() => { setView('ALBUM_DETAIL', currentSong.albumId); onClose(); }}
+                            >
+                                {currentSong.album}
+                            </p>
 
                             {/* Progress Bar */}
                             <div className="w-full mb-8">
