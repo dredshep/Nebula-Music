@@ -122,8 +122,19 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                     <h2 className="text-lg font-bold text-neutral-900 dark:text-white truncate" title={currentSong.title}>
                         {currentSong.title}
                     </h2>
-                    <p className="text-sm text-neutral-700 dark:text-white/50 truncate" title={currentSong.artist}>
+                    <p
+                        className="text-sm text-neutral-700 dark:text-white/50 truncate cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        title={currentSong.artist}
+                        onClick={() => setView('ARTIST_DETAIL', currentSong.artistId)}
+                    >
                         {currentSong.artist}
+                    </p>
+                    <p
+                        className="text-xs text-neutral-500 dark:text-white/30 truncate cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        title={currentSong.album}
+                        onClick={() => setView('ALBUM_DETAIL', currentSong.albumId)}
+                    >
+                        {currentSong.album}
                     </p>
                 </div>
 
