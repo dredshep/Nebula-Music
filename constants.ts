@@ -6,14 +6,14 @@ export const APP_VERSION = '2.0';
 export const CHANGELOG = [
   {
     version: '2.0',
-    date: '2024-06-01',
-    title: 'The Next Evolution of Nebula',
+    date: '2026-03-16',
+    title: 'Nebula 2.0 - UI Refresh',
     changes: [
-      'Brand New UI: A completely redesigned, premium interface with glassmorphism and smooth animations.',
-      'Enhanced Equalizer: Professional-grade 10-band EQ with presets and custom tuning.',
-      'Immersive Visualizers: 9 stunning new visualizer modes including Particles, Hexagon, and Spectrum.',
-      'Performance Boost: Smarter caching and lightning-fast transitions.',
-      'Shortcuts & Settings: Refined control with new keyboard shortcuts and customization options.'
+      'Full UI refresh with light-first surfaces and refined glass panels.',
+      'Theme system now respects system preference on first launch with explicit Light/Dark selection in Settings.',
+      'Accessibility polish: higher contrast secondary text, larger touch targets, and semantic heading order fixes.',
+      'Playback polish with per-song pitch persistence and clearer speed/pitch handling.',
+      'Visual consistency pass across Home, Browse, Library, Player, and modals.'
     ]
   },
   {
