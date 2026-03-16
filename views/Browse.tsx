@@ -55,7 +55,7 @@ const MixCard: React.FC<{
             {/* Info */}
             <div className="p-4">
                 <h3 className="font-bold text-neutral-900 dark:text-white text-base mb-1">{mix.name}</h3>
-                <p className="text-xs text-neutral-600 dark:text-white/40">{mix.desc}</p>
+                <p className="text-xs text-neutral-600 dark:text-white/70">{mix.desc}</p>
             </div>
         </div>
     );
@@ -237,7 +237,7 @@ export const BrowseView: React.FC = () => {
                 <h1 className="text-3xl font-bold text-white">Browse</h1>
                 <button
                     onClick={() => loadData(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 rounded bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition text-sm font-medium"
                 >
                     <RefreshCw className="w-4 h-4" /> Refresh
                 </button>
