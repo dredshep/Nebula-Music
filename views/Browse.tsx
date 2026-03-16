@@ -32,7 +32,7 @@ const MixCard: React.FC<{
                     </div>
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                        <Icon className="w-16 h-16 text-white/20" />
+                        <Icon className="w-16 h-16 text-neutral-400 dark:text-white/50" />
                     </div>
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all" />
@@ -112,7 +112,7 @@ const SectionHeader: React.FC<{
 }> = ({ icon: Icon, title, iconColor = 'text-primary' }) => (
     <div className="flex items-center gap-3 mb-6">
         <Icon className={`w-5 h-5 ${iconColor}`} />
-        <h2 className="text-xl font-bold text-white">{title}</h2>
+        <h2 className="text-xl font-bold text-neutral-900 dark:text-white">{title}</h2>
     </div>
 );
 
@@ -223,7 +223,7 @@ export const BrowseView: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center h-[60vh] text-white/40">
+            <div className="flex flex-col items-center justify-center h-[60vh] text-neutral-600 dark:text-white/60">
                 <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
                 <p className="text-xs uppercase tracking-widest font-medium">Loading...</p>
             </div>
@@ -234,10 +234,10 @@ export const BrowseView: React.FC = () => {
         <div className="p-6 md:p-8 pb-32 max-w-[1600px] mx-auto">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
-                <h1 className="text-3xl font-bold text-white">Browse</h1>
+                <h1 className="text-3xl font-bold text-neutral-900 dark:text-white">Browse</h1>
                 <button
                     onClick={() => loadData(true)}
-                    className="flex items-center gap-2 px-4 py-2 rounded bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition text-sm font-medium"
+                    className="flex items-center gap-2 px-4 py-2 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-700 hover:text-neutral-900 transition text-sm font-medium dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/70 dark:hover:text-white"
                 >
                     <RefreshCw className="w-4 h-4" /> Refresh
                 </button>
@@ -295,3 +295,5 @@ export const BrowseView: React.FC = () => {
         </div>
     );
 };
+
+

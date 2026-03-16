@@ -91,7 +91,7 @@ const SectionHeader: React.FC<{
             {onRefresh && (
                 <button
                     onClick={onRefresh}
-                    className="p-2 rounded bg-neutral-200 dark:bg-white/5 hover:bg-neutral-300 dark:hover:bg-white/10 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition"
+                    className="p-2 rounded bg-neutral-200 dark:bg-white/5 hover:bg-neutral-300 dark:hover:bg-white/10 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition"
                     aria-label={`Refresh ${title}`}
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -129,11 +129,11 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
     const artUrl = service.getCoverArtUrl(featured.coverArt || featured.id, 800);
 
     return (
-        <div className="relative rounded-lg overflow-hidden bg-neutral-900 mb-10">
+        <div className="relative rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-900 mb-10">
             {/* Background */}
             <div className="absolute inset-0">
                 <img src={artUrl} className="w-full h-full object-cover opacity-30 blur-2xl scale-110" alt="" />
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/75 via-neutral-100/90 to-transparent dark:from-black dark:via-black/80" />
             </div>
 
             <div className="relative flex flex-col md:flex-row items-center gap-8 p-8 md:p-12">
@@ -151,14 +151,14 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
                         <Flame className="w-3 h-3 fill-current" /> Featured
                     </div>
                     <h1
-                        className="text-3xl md:text-5xl font-black text-white mb-3 cursor-pointer hover:text-white/80 transition"
+                        className="text-3xl md:text-5xl font-black text-neutral-900 dark:text-white mb-3 cursor-pointer hover:text-neutral-700 dark:hover:text-white/80 transition"
                         onClick={() => { if (featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
                     >
                         {featured.title}
                     </h1>
-                    <p className="text-lg text-white/50 mb-6">
+                    <p className="text-lg text-neutral-600 dark:text-white/50 mb-6">
                         <span
-                            className="hover:text-white cursor-pointer transition"
+                            className="hover:text-neutral-900 cursor-pointer transition dark:hover:text-white"
                             onClick={() => { if (featured.artistId) setView('ARTIST_DETAIL', featured.artistId); }}
                         >
                             {featured.artist}
@@ -169,13 +169,13 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
                     <div className="flex flex-wrap justify-center md:justify-start gap-3">
                         <button
                             onClick={() => playSong(featured, heroSongs)}
-                            className="flex items-center gap-2 px-8 py-3 bg-white text-black rounded font-bold hover:bg-primary hover:text-white transition shadow-lg"
+                            className="flex items-center gap-2 px-8 py-3 bg-neutral-900 text-white rounded font-bold hover:bg-neutral-800 transition shadow-lg dark:bg-white dark:text-black dark:hover:bg-primary dark:hover:text-white"
                         >
                             <Play className="w-5 h-5 fill-current" /> Play Now
                         </button>
                         <button
                             onClick={() => { if (featured.albumId) setView('ALBUM_DETAIL', featured.albumId); }}
-                            className="flex items-center gap-2 px-6 py-3 bg-white/10 text-white rounded font-medium hover:bg-white/20 transition"
+                            className="flex items-center gap-2 px-6 py-3 bg-neutral-200 text-neutral-900 rounded font-medium hover:bg-neutral-300 transition dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                         >
                             View Album
                         </button>
@@ -189,7 +189,7 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
                     <button
                         key={idx}
                         onClick={() => setCurrentIndex(idx)}
-                        className={`h-1.5 rounded-full transition-all ${idx === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-white/20 hover:bg-white/40'
+                        className={`h-1.5 rounded-full transition-all ${idx === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-neutral-300 hover:bg-neutral-400 dark:bg-white/20 dark:hover:bg-white/40'
                             }`}
                         aria-label={`Show featured track ${idx + 1} of ${heroSongs.length}`}
                     />
@@ -215,13 +215,13 @@ interface SongRowProps {
 
 const SongRow: React.FC<SongRowProps> = ({ song, onClick, getCoverArtUrl }) => (
     <div
-        className="flex items-center gap-3 p-2 hover:bg-white/5 rounded cursor-pointer group transition"
+        className="flex items-center gap-3 p-2 hover:bg-neutral-100 dark:hover:bg-white/5 rounded cursor-pointer group transition"
         onClick={onClick}
     >
         <div className="w-10 h-10 relative shrink-0">
             <img
                 src={getCoverArtUrl(song.coverArt || song.id, 100)}
-                className="w-full h-full rounded object-cover bg-neutral-800"
+                className="w-full h-full rounded object-cover bg-neutral-200 dark:bg-neutral-800"
                 onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCI+PHJlY3Qgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiMzMzMiLz48L3N2Zz4=' }}
                 alt=""
             />
@@ -230,12 +230,12 @@ const SongRow: React.FC<SongRowProps> = ({ song, onClick, getCoverArtUrl }) => (
             </div>
         </div>
         <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-white truncate">{song.title}</div>
-            <div className="text-xs text-white/40 truncate">{song.artist}</div>
+            <div className="text-sm font-medium text-neutral-900 dark:text-white truncate">{song.title}</div>
+            <div className="text-xs text-neutral-600 dark:text-white/60 truncate">{song.artist}</div>
         </div>
 
         {/* Play Count & Duration */}
-        <div className="flex items-center gap-3 text-xs text-white/30 font-mono">
+        <div className="flex items-center gap-3 text-xs text-neutral-500 dark:text-white/50 font-mono">
             {(song.playCount !== undefined && song.playCount > 0) && (
                 <div className="flex items-center gap-1" title={`${song.playCount} plays`}>
                     <BarChart2 className="w-3 h-3" />
@@ -281,11 +281,11 @@ export const HomeView: React.FC = () => {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <Flame className="w-5 h-5 text-orange-500" />
-                            <h2 className="text-lg font-bold text-white">Quick Picks</h2>
+                    <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Quick Picks</h2>
                         </div>
                         <button
                             onClick={async () => { setLoadingQuickPicks(true); await refreshQuickPicks(); setLoadingQuickPicks(false); }}
-                            className="p-2 rounded bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition"
+                            className="p-2 rounded bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 transition dark:bg-white/5 dark:hover:bg-white/10 dark:text-white/60 dark:hover:text-white"
                             aria-label="Refresh quick picks"
                         >
                             <RefreshCw className={`w-4 h-4 ${loadingQuickPicks ? 'animate-spin' : ''}`} />
@@ -299,17 +299,17 @@ export const HomeView: React.FC = () => {
                 </div>
 
                 {/* Most Played / For You */}
-                <div className="bg-neutral-900/50 rounded-lg overflow-hidden flex flex-col h-[500px]">
+                <div className="bg-neutral-100 dark:bg-neutral-900/50 rounded-lg overflow-hidden flex flex-col h-[500px] border border-neutral-200 dark:border-white/5">
                     <div className="flex border-b border-white/5 shrink-0">
                         <button
                             onClick={() => setActiveTab('played')}
-                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'played' ? 'bg-white/5 text-white' : 'text-white/70 hover:text-white'}`}
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'played' ? 'bg-neutral-200 text-neutral-900 dark:bg-white/5 dark:text-white' : 'text-neutral-600 hover:text-neutral-900 dark:text-white/70 dark:hover:text-white'}`}
                         >
                             Most Played Songs
                         </button>
                         <button
                             onClick={() => setActiveTab('recommended')}
-                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'recommended' ? 'bg-white/5 text-white' : 'text-white/70 hover:text-white'}`}
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'recommended' ? 'bg-neutral-200 text-neutral-900 dark:bg-white/5 dark:text-white' : 'text-neutral-600 hover:text-neutral-900 dark:text-white/70 dark:hover:text-white'}`}
                         >
                             For You
                         </button>
@@ -327,7 +327,7 @@ export const HomeView: React.FC = () => {
                                     />
                                 ))}
                                 {getMostPlayedSongs().length === 0 && (
-                                    <div className="text-center py-8 text-white/60 text-sm">
+                                    <div className="text-center py-8 text-neutral-600 dark:text-white/60 text-sm">
                                         No stats yet.
                                     </div>
                                 )}
@@ -397,3 +397,5 @@ export const HomeView: React.FC = () => {
         </div >
     );
 };
+
+

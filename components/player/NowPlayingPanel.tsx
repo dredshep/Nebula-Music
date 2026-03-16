@@ -69,10 +69,10 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                 <div className="w-32 h-32 rounded-2xl bg-neutral-300 dark:bg-white/5 flex items-center justify-center mb-6">
-                    <ListMusic className="w-12 h-12 text-neutral-500 dark:text-white/20" />
+                    <ListMusic className="w-12 h-12 text-neutral-500 dark:text-white/50" />
                 </div>
-                <h3 className="text-lg font-semibold text-neutral-700 dark:text-white/40 mb-2">No Track Playing</h3>
-                <p className="text-sm text-neutral-600 dark:text-white/20">Select a song to start listening</p>
+                <h3 className="text-lg font-semibold text-neutral-700 dark:text-white/60 mb-2">No Track Playing</h3>
+                <p className="text-sm text-neutral-600 dark:text-white/50">Select a song to start listening</p>
             </div>
         );
     }
@@ -86,10 +86,10 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
             <div className="flex-none flex flex-col items-center w-full pb-4 pt-4">
                 {/* Header with collapse button */}
                 <div className="w-full relative z-10 flex items-center justify-between px-4 mb-2">
-                    <span className="text-xs font-bold text-neutral-600 dark:text-white/30 uppercase tracking-wider">Now Playing</span>
+                    <span className="text-xs font-bold text-neutral-600 dark:text-white/50 uppercase tracking-wider">Now Playing</span>
                     <button
                         onClick={onCollapse}
-                        className="p-2 rounded-lg hover:bg-neutral-300 dark:hover:bg-white/10 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition-all active:scale-95"
+                        className="p-2 rounded-lg hover:bg-neutral-300 dark:hover:bg-white/10 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-all active:scale-95"
                         title="Collapse panel"
                         aria-label="Collapse now playing panel"
                     >
@@ -131,7 +131,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                         {currentSong.artist}
                     </p>
                     <p
-                        className="text-xs text-neutral-500 dark:text-white/30 truncate cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        className="text-xs text-neutral-500 dark:text-white/50 truncate cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
                         title={currentSong.album}
                         onClick={() => setView('ALBUM_DETAIL', currentSong.albumId)}
                     >
@@ -160,7 +160,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
                     </div>
-                    <div className="flex justify-between mt-1.5 text-[10px] text-neutral-600 dark:text-white/40 font-mono tabular-nums">
+                    <div className="flex justify-between mt-1.5 text-[10px] text-neutral-600 dark:text-white/60 font-mono tabular-nums">
                         <span>{formatTime(currentTime)}</span>
                         <span>{formatTime(duration)}</span>
                     </div>
@@ -202,14 +202,14 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                 <div className="flex items-center justify-center gap-3">
                     <button
                         onClick={() => toggleLike(currentSong)}
-                        className={`p-2 transition-all active:scale-95 ${currentSong.starred ? 'text-red-500' : 'text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white'}`}
+                        className={`p-2 transition-all active:scale-95 ${currentSong.starred ? 'text-red-500' : 'text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white'}`}
                         aria-label={currentSong.starred ? 'Unlike' : 'Like'}
                     >
                         <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
                     </button>
                     <button
                         onClick={toggleRepeat}
-                        className={`p-2 transition-colors active:scale-95 ${repeatMode === 'OFF' ? 'text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white' : 'text-neutral-900 dark:text-white'}`}
+                        className={`p-2 transition-colors active:scale-95 ${repeatMode === 'OFF' ? 'text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white' : 'text-neutral-900 dark:text-white'}`}
                         title={`Repeat: ${repeatMode}`}
                         aria-label={`Repeat mode: ${repeatMode}`}
                     >
@@ -220,7 +220,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                     <div className="relative">
                         <button
                             onClick={() => setShowSpeedPitchModal(!showSpeedPitchModal)}
-                            className={`p-2 transition-colors active:scale-95 ${playbackRate !== 1.0 || pitch !== 0 ? 'text-neutral-900 dark:text-white' : 'text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white'}`}
+                            className={`p-2 transition-colors active:scale-95 ${playbackRate !== 1.0 || pitch !== 0 ? 'text-neutral-900 dark:text-white' : 'text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white'}`}
                             title={`Speed: ${playbackRate}x${pitch !== 0 ? ` / Pitch: ${pitch > 0 ? '+' : ''}${pitch}` : ''}`}
                             aria-label="Open playback speed and pitch settings"
                         >
@@ -229,12 +229,12 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
 
                         {/* Speed & Pitch Modal */}
                         {showSpeedPitchModal && (
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-neutral-900/98 backdrop-blur-2xl rounded-xl border border-white/5 shadow-2xl p-4 z-50">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-white/98 dark:bg-neutral-900/98 backdrop-blur-2xl rounded-xl border border-neutral-200 dark:border-white/5 shadow-2xl p-4 z-50">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-bold text-white">Playback</h3>
+                                    <h3 className="text-sm font-bold text-neutral-900 dark:text-white">Playback</h3>
                                     <button
                                         onClick={() => setShowSpeedPitchModal(false)}
-                                        className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                        className="p-1 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-all dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10"
                                         aria-label="Close playback settings"
                                     >
                                         <X className="w-3.5 h-3.5" />
@@ -243,27 +243,27 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
 
                                 {/* Speed Control */}
                                 <div className="mb-3">
-                                    <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5 block">Speed</label>
-                                    <div className="flex items-center justify-between bg-black/30 rounded-lg p-0.5">
+                                    <label className="text-[10px] font-semibold text-neutral-500 dark:text-white/60 uppercase tracking-wide mb-1.5 block">Speed</label>
+                                    <div className="flex items-center justify-between bg-neutral-200 dark:bg-black/30 rounded-lg p-0.5">
                                         <button
                                             onClick={() => {
                                                 const newSpeed = Math.max(0.5, Math.round((playbackRate - 0.1) * 10) / 10);
                                                 setPlaybackRate(newSpeed);
                                                 if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                             }}
-                                            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-md transition-all"
+                                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10 rounded-md transition-all"
                                             aria-label="Decrease speed"
                                         >
                                             <Minus className="w-4 h-4" />
                                         </button>
-                                        <span className="text-base font-mono text-white font-bold">{playbackRate.toFixed(1)}x</span>
+                                        <span className="text-base font-mono text-neutral-900 dark:text-white font-bold">{playbackRate.toFixed(1)}x</span>
                                         <button
                                             onClick={() => {
                                                 const newSpeed = Math.min(2.0, Math.round((playbackRate + 0.1) * 10) / 10);
                                                 setPlaybackRate(newSpeed);
                                                 if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                             }}
-                                            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-md transition-all"
+                                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10 rounded-md transition-all"
                                             aria-label="Increase speed"
                                         >
                                             <Plus className="w-4 h-4" />
@@ -273,19 +273,19 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
 
                                 {/* Pitch Control */}
                                 <div>
-                                    <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-1.5 block">Pitch</label>
-                                    <div className="flex items-center justify-between bg-black/30 rounded-lg p-0.5">
+                                    <label className="text-[10px] font-semibold text-neutral-500 dark:text-white/60 uppercase tracking-wide mb-1.5 block">Pitch</label>
+                                    <div className="flex items-center justify-between bg-neutral-200 dark:bg-black/30 rounded-lg p-0.5">
                                         <button
                                             onClick={() => setPitch(Math.max(-12, pitch - 1))}
-                                            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-md transition-all"
+                                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10 rounded-md transition-all"
                                             aria-label="Decrease pitch"
                                         >
                                             <Minus className="w-4 h-4" />
                                         </button>
-                                        <span className="text-base font-mono text-white font-bold">{pitch > 0 ? '+' : ''}{pitch}</span>
+                                        <span className="text-base font-mono text-neutral-900 dark:text-white font-bold">{pitch > 0 ? '+' : ''}{pitch}</span>
                                         <button
                                             onClick={() => setPitch(Math.min(12, pitch + 1))}
-                                            className="w-8 h-8 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-md transition-all"
+                                            className="w-8 h-8 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10 rounded-md transition-all"
                                             aria-label="Increase pitch"
                                         >
                                             <Plus className="w-4 h-4" />
@@ -293,14 +293,14 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                                     </div>
 
                                     {/* Mode Toggle */}
-                                    <div className="mt-3 pt-3 border-t border-white/10">
-                                        <label className="text-[10px] font-semibold text-white/40 uppercase tracking-wide mb-2 block">Mode</label>
-                                        <div className="flex gap-1 bg-black/30 rounded-lg p-0.5">
+                                    <div className="mt-3 pt-3 border-t border-neutral-200 dark:border-white/10">
+                                        <label className="text-[10px] font-semibold text-neutral-500 dark:text-white/60 uppercase tracking-wide mb-2 block">Mode</label>
+                                        <div className="flex gap-1 bg-neutral-200 dark:bg-black/30 rounded-lg p-0.5">
                                             <button
                                                 onClick={() => setPitchCorrection(true)}
                                                 className={`flex-1 py-2 px-3 rounded-md text-xs font-bold transition-all ${pitchCorrection
                                                     ? 'bg-primary text-black'
-                                                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/5'
                                                     }`}
                                             >
                                                 🎛️ Digital
@@ -309,13 +309,13 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                                                 onClick={() => setPitchCorrection(false)}
                                                 className={`flex-1 py-2 px-3 rounded-md text-xs font-bold transition-all ${!pitchCorrection
                                                     ? 'bg-primary text-black'
-                                                    : 'text-white/50 hover:text-white hover:bg-white/5'
+                                                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/5'
                                                     }`}
                                             >
                                                 💿 Analogue
                                             </button>
                                         </div>
-                                        <p className="text-[9px] text-white/30 mt-2 leading-tight">
+                                        <p className="text-[9px] text-neutral-500 dark:text-white/50 mt-2 leading-tight">
                                             {pitchCorrection ? 'Independent speed & pitch control' : 'Speed affects pitch (vintage vinyl)'}
                                         </p>
                                     </div>
@@ -326,7 +326,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                                             setPitch(0);
                                             if (audioRef.current) audioRef.current.playbackRate = 1.0;
                                         }}
-                                        className="w-full mt-2 py-1.5 text-xs font-medium text-white/40 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-all"
+                                        className="w-full mt-2 py-1.5 text-xs font-medium text-neutral-600 hover:text-neutral-900 bg-neutral-100 hover:bg-neutral-200 dark:text-white/60 dark:hover:text-white dark:bg-white/5 dark:hover:bg-white/10 rounded-lg transition-all"
                                     >
                                         Reset
                                     </button>
@@ -337,7 +337,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
 
                     <button
                         onClick={onExpand}
-                        className="p-2 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors active:scale-95"
+                        className="p-2 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-colors active:scale-95"
                         title="Full screen"
                         aria-label="Open full screen player"
                     >
@@ -353,7 +353,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                 >
                     <button
                         onClick={() => setVolume(volume === 0 ? 0.5 : 0)}
-                        className="p-2 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        className="p-2 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-colors"
                         aria-label={volume === 0 ? 'Unmute' : 'Mute'}
                     >
                         {volume === 0 ? <VolumeX className="w-5 h-5" /> :
@@ -388,13 +388,13 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                         onClick={() => setIsQueueCollapsed(!isQueueCollapsed)}
                     >
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-neutral-600 dark:text-white/40 uppercase tracking-wider">Up Next</span>
-                            <span className="text-[10px] font-mono text-neutral-500 dark:text-white/30">{queue.length - (currentSongIndex + 1)} tracks</span>
+                            <span className="text-xs font-bold text-neutral-600 dark:text-white/60 uppercase tracking-wider">Up Next</span>
+                            <span className="text-[10px] font-mono text-neutral-500 dark:text-white/50">{queue.length - (currentSongIndex + 1)} tracks</span>
                         </div>
                         {isQueueCollapsed ? (
-                            <PanelRightClose className="w-4 h-4 text-neutral-500 dark:text-white/30 rotate-90" />
+                            <PanelRightClose className="w-4 h-4 text-neutral-500 dark:text-white/50 rotate-90" />
                         ) : (
-                            <PanelRightClose className="w-4 h-4 text-neutral-500 dark:text-white/30 -rotate-90" />
+                            <PanelRightClose className="w-4 h-4 text-neutral-500 dark:text-white/50 -rotate-90" />
                         )}
                     </div>
 
@@ -420,10 +420,10 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                                         </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h4 className="text-xs font-medium text-neutral-900 dark:text-white truncate">{song.title}</h4>
-                                        <p className="text-[10px] text-neutral-600 dark:text-white/40 truncate">{song.artist}</p>
+                                        <p className="text-xs font-medium text-neutral-900 dark:text-white truncate">{song.title}</p>
+                                        <p className="text-[10px] text-neutral-600 dark:text-white/60 truncate">{song.artist}</p>
                                     </div>
-                                    <span className="text-[10px] font-mono text-neutral-500 dark:text-white/30 truncate">
+                                    <span className="text-[10px] font-mono text-neutral-500 dark:text-white/50 truncate">
                                         {formatTime(song.duration)}
                                     </span>
                                 </div>
@@ -431,7 +431,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
                             {queue.length - (currentSongIndex + 1) === 0 && (
                                 <div className="h-full flex flex-col items-center justify-center text-center p-4">
                                     <ListMusic className="w-8 h-8 text-neutral-300 dark:text-white/10 mb-2" />
-                                    <p className="text-xs text-neutral-500 dark:text-white/30">Queue is empty</p>
+                                    <p className="text-xs text-neutral-500 dark:text-white/50">Queue is empty</p>
                                 </div>
                             )}
                         </div>
@@ -441,3 +441,7 @@ export const NowPlayingPanel: React.FC<NowPlayingPanelProps> = ({ onExpand, onCo
         </div >
     );
 };
+
+
+
+

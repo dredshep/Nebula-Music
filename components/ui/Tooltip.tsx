@@ -15,10 +15,10 @@ const positionClasses = {
 };
 
 const arrowClasses = {
-    top: 'top-full left-1/2 -translate-x-1/2 border-t-neutral-800 border-x-transparent border-b-transparent',
-    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-neutral-800 border-x-transparent border-t-transparent',
-    left: 'left-full top-1/2 -translate-y-1/2 border-l-neutral-800 border-y-transparent border-r-transparent',
-    right: 'right-full top-1/2 -translate-y-1/2 border-r-neutral-800 border-y-transparent border-l-transparent',
+    top: 'top-full left-1/2 -translate-x-1/2 border-t-neutral-200 dark:border-t-neutral-800 border-x-transparent border-b-transparent',
+    bottom: 'bottom-full left-1/2 -translate-x-1/2 border-b-neutral-200 dark:border-b-neutral-800 border-x-transparent border-t-transparent',
+    left: 'left-full top-1/2 -translate-y-1/2 border-l-neutral-200 dark:border-l-neutral-800 border-y-transparent border-r-transparent',
+    right: 'right-full top-1/2 -translate-y-1/2 border-r-neutral-200 dark:border-r-neutral-800 border-y-transparent border-l-transparent',
 };
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -55,9 +55,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
                     className={`
             absolute z-50 ${positionClasses[position]}
             px-3 py-1.5 rounded-lg
-            bg-neutral-800 text-white text-xs font-medium
+            bg-white text-neutral-900 text-xs font-medium
             whitespace-nowrap
-            shadow-lg border border-white/10
+            shadow-lg border border-neutral-200
+            dark:bg-neutral-800 dark:text-white dark:border-white/10
             animate-scale-in
           `}
                     role="tooltip"

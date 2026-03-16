@@ -37,8 +37,8 @@ export const Sidebar: React.FC = () => {
           transition-all duration-300 ease-out interactive-press
           ${isCollapsed ? 'px-3 py-3 justify-center' : 'px-4 py-3'}
           ${isActive
-            ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-white border border-primary/30 shadow-glow-sm'
-            : 'text-neutral-400 hover:text-white hover:bg-white/[0.07] border border-transparent hover:border-white/10'
+            ? 'bg-gradient-to-r from-primary/20 to-primary/10 text-neutral-900 dark:text-white border border-primary/30 shadow-glow-sm'
+            : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 border border-transparent hover:border-neutral-200 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/[0.07] dark:hover:border-white/10'
           }
         `}
       >
@@ -52,7 +52,7 @@ export const Sidebar: React.FC = () => {
           ${isCollapsed ? '' : 'ml-1 mr-3'}
           ${isActive
             ? 'text-primary scale-110'
-            : 'text-neutral-500 group-hover:text-white group-hover:scale-105'
+            : 'text-neutral-500 group-hover:text-neutral-900 group-hover:scale-105 dark:group-hover:text-white'
           }
         `} />
 
@@ -86,10 +86,10 @@ export const Sidebar: React.FC = () => {
 
   const SectionHeader = ({ title }: { title: string }) => {
     if (isCollapsed) {
-      return <div className="h-px bg-white/10 my-4 mx-2" />;
+      return <div className="h-px bg-neutral-200 dark:bg-white/10 my-4 mx-2" />;
     }
     return (
-      <h3 className="px-4 mb-3 text-[11px] font-bold text-neutral-500 uppercase tracking-widest sidebar-label-transition">
+      <h3 className="px-4 mb-3 text-[11px] font-bold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest sidebar-label-transition">
         {title}
       </h3>
     );
@@ -98,7 +98,7 @@ export const Sidebar: React.FC = () => {
   return (
     <div
       className={`
-        hidden md:flex flex-col h-full floating-panel border-r border-white/10 
+        hidden md:flex flex-col h-full floating-panel border-r border-neutral-200 dark:border-white/10 
         pt-6 pb-4 z-20 relative overflow-hidden animate-slide-down sidebar-transition
         ${isCollapsed ? 'w-20' : 'w-64'}
       `}
@@ -120,8 +120,8 @@ export const Sidebar: React.FC = () => {
           </div>
           {!isCollapsed && (
             <div className="ml-3 sidebar-label-transition">
-              <h1 className="text-xl font-bold text-white tracking-tight leading-none">NEBULA</h1>
-              <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-mono">Music</p>
+              <h1 className="text-xl font-bold text-neutral-900 dark:text-white tracking-tight leading-none">NEBULA</h1>
+              <p className="text-[10px] text-neutral-500 dark:text-neutral-400 uppercase tracking-widest font-mono">Music</p>
             </div>
           )}
         </div>
@@ -131,7 +131,7 @@ export const Sidebar: React.FC = () => {
           <Tooltip content="Search (⌘K)" position="right">
             <button
               onClick={openSearchModal}
-              className="w-full flex items-center justify-center glass-subtle hover:bg-white/[0.08] border border-white/10 rounded-xl p-2.5 text-neutral-400 transition-all duration-300 hover:border-primary/30 hover:shadow-glow-sm interactive-press mb-6"
+              className="w-full flex items-center justify-center glass-subtle hover:bg-neutral-200 border border-neutral-200 dark:border-white/10 rounded-xl p-2.5 text-neutral-600 dark:text-neutral-400 transition-all duration-300 hover:border-primary/30 hover:shadow-glow-sm interactive-press mb-6 dark:hover:bg-white/[0.08]"
               aria-label="Search"
             >
               <Search className="w-5 h-5" />
@@ -140,14 +140,14 @@ export const Sidebar: React.FC = () => {
         ) : (
           <button
             onClick={openSearchModal}
-            className="w-full flex items-center justify-between glass-subtle hover:bg-white/[0.08] border border-white/10 rounded-xl py-2.5 px-3.5 text-sm text-neutral-400 transition-all duration-300 group mb-6 hover:border-primary/30 hover:shadow-glow-sm interactive-press"
+            className="w-full flex items-center justify-between glass-subtle hover:bg-neutral-200 border border-neutral-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-sm text-neutral-600 dark:text-neutral-400 transition-all duration-300 group mb-6 hover:border-primary/30 hover:shadow-glow-sm interactive-press dark:hover:bg-white/[0.08]"
           >
             <div className="flex items-center">
               <Search className="w-4 h-4 mr-2.5 group-hover:text-primary transition-all duration-300" />
-              <span className="group-hover:text-white transition-colors">Search...</span>
+              <span className="group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">Search...</span>
             </div>
             <div className="flex items-center space-x-1">
-              <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded-md border border-white/20 bg-black/30 px-2 font-mono text-[10px] font-medium text-neutral-500 group-hover:border-primary/40 group-hover:text-primary transition-all">
+              <kbd className="hidden lg:inline-flex h-5 items-center gap-1 rounded-md border border-neutral-300 bg-neutral-100 px-2 font-mono text-[10px] font-medium text-neutral-500 group-hover:border-primary/40 group-hover:text-primary transition-all dark:border-white/20 dark:bg-black/30">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </div>
@@ -155,13 +155,13 @@ export const Sidebar: React.FC = () => {
         )}
 
         {/* Connection Status */}
-        <div className={`flex items-center glass-subtle rounded-lg border border-white/10 ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}`}>
+        <div className={`flex items-center glass-subtle rounded-lg border border-neutral-200 dark:border-white/10 ${isCollapsed ? 'justify-center p-2' : 'px-3 py-2'}`}>
           <div className={`w-2 h-2 rounded-full shrink-0 transition-all ${isDemoMode
             ? 'bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]'
             : 'bg-success animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'
             }`} />
           {!isCollapsed && (
-            <span className="text-xs text-neutral-300 font-mono uppercase tracking-wider ml-2.5 sidebar-label-transition">
+            <span className="text-xs text-neutral-600 dark:text-neutral-300 font-mono uppercase tracking-wider ml-2.5 sidebar-label-transition">
               {isDemoMode ? 'DEMO MODE' : 'CONNECTED'}
             </span>
           )}
@@ -206,8 +206,10 @@ export const Sidebar: React.FC = () => {
           onClick={toggleSidebar}
           className={`
             w-full flex items-center justify-center py-2.5 rounded-xl
-            bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/15
-            text-neutral-400 hover:text-white transition-all duration-300 interactive-press
+            bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 hover:border-neutral-300
+            text-neutral-600 hover:text-neutral-900 transition-all duration-300 interactive-press
+            dark:bg-white/5 dark:hover:bg-white/10 dark:border-white/10 dark:hover:border-white/15
+            dark:text-neutral-400 dark:hover:text-white
           `}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}

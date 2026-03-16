@@ -70,11 +70,11 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 px-4 text-sm focus:border-white/20 focus:bg-white/10 focus:outline-none text-white transition-all hover:bg-white/10 flex items-center justify-between gap-2"
+                className="w-full bg-white border border-neutral-300 rounded-xl py-2.5 px-4 text-sm focus:border-primary/60 focus:bg-white focus:outline-none text-neutral-900 transition-all hover:bg-neutral-50 flex items-center justify-between gap-2 dark:bg-white/5 dark:border-white/5 dark:focus:border-white/20 dark:focus:bg-white/10 dark:text-white dark:hover:bg-white/10"
             >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                     {icon && <span className="text-neutral-500 shrink-0">{icon}</span>}
-                    <span className={`truncate ${!selectedOption ? 'text-neutral-500' : 'text-white'}`}>
+                    <span className={`truncate ${!selectedOption ? 'text-neutral-500' : 'text-neutral-900 dark:text-white'}`}>
                         {displayText}
                     </span>
                 </div>
@@ -87,7 +87,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
             {/* Dropdown menu */}
             {isOpen && (
                 <div
-                    className="absolute w-full min-w-[200px] bg-neutral-900 border border-white/10 rounded-2xl shadow-float-3 z-50 overflow-hidden animate-scale-in"
+                    className="absolute w-full min-w-[200px] bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-white/10 rounded-2xl shadow-float-3 z-50 overflow-hidden animate-scale-in"
                     style={dropdownStyle}
                 >
                     <div className="max-h-64 overflow-y-auto custom-scrollbar">
@@ -101,7 +101,7 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
                                 }}
                                 className={`w-full text-left px-4 py-3 text-sm transition-all ${option.value === value
                                         ? 'bg-primary/20 text-primary font-semibold'
-                                        : 'text-neutral-300 hover:bg-white/10 hover:text-white'
+                                        : 'text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-white/10 dark:hover:text-white'
                                     }`}
                             >
                                 {option.label}
@@ -111,14 +111,14 @@ export const CustomDropdown: React.FC<CustomDropdownProps> = ({
 
                     {/* Clear button (optional, only if value is set) */}
                     {value && (
-                        <div className="border-t border-white/5 p-2">
+                        <div className="border-t border-neutral-200 dark:border-white/5 p-2">
                             <button
                                 type="button"
                                 onClick={() => {
                                     onChange('');
                                     setIsOpen(false);
                                 }}
-                                className="w-full py-2 px-3 text-xs text-neutral-400 hover:text-white hover:bg-white/5 rounded-lg transition-all flex items-center justify-center gap-2"
+                                className="w-full py-2 px-3 text-xs text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all flex items-center justify-center gap-2 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5"
                             >
                                 <X className="w-3 h-3" />
                                 Clear

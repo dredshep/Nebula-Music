@@ -11,27 +11,27 @@ import { EQ_PRESETS, EQ_BAND_LABELS, EQ_PRESET_LABELS } from '../constants/eqPre
 // Helper components moved outside to prevent re-renders
 const ToggleRow = ({ label, description, checked, onChange }: { label: string; description?: string; checked: boolean; onChange: (v: boolean) => void }) => (
     <div
-        className="flex items-center justify-between py-4 px-6 hover:bg-white/5 cursor-pointer transition-colors border-b border-white/10"
+        className="flex items-center justify-between py-4 px-6 hover:bg-neutral-200/60 dark:hover:bg-white/5 cursor-pointer transition-colors border-b border-neutral-200 dark:border-white/10"
         onClick={() => onChange(!checked)}
     >
         <div>
-            <span className="text-sm font-medium text-white">{label}</span>
-            {description && <p className="text-xs text-white/50 mt-0.5">{description}</p>}
+            <span className="text-sm font-medium text-neutral-900 dark:text-white">{label}</span>
+            {description && <p className="text-xs text-neutral-600 dark:text-white/50 mt-0.5">{description}</p>}
         </div>
-        <div className={`w-12 h-7 rounded-full p-1 transition-all ${checked ? 'bg-primary' : 'bg-white/20'}`}>
-            <div className={`w-5 h-5 bg-white rounded-full shadow transform transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+        <div className={`w-12 h-7 rounded-full p-1 transition-all ${checked ? 'bg-primary' : 'bg-neutral-300 dark:bg-white/20'}`}>
+            <div className={`w-5 h-5 bg-white dark:bg-white rounded-full shadow transform transition-transform ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
         </div>
     </div>
 );
 
 const ShortcutRow = ({ id, label, value, editingKey, setEditingKey }: { id: string; label: string; value: string, editingKey: string | null, setEditingKey: (k: string | null) => void }) => (
-    <div className="flex items-center justify-between py-4 px-6 hover:bg-white/5 transition-colors border-b border-white/10">
-        <span className="text-sm font-medium text-white">{label}</span>
+    <div className="flex items-center justify-between py-4 px-6 hover:bg-neutral-200/60 dark:hover:bg-white/5 transition-colors border-b border-neutral-200 dark:border-white/10">
+        <span className="text-sm font-medium text-neutral-900 dark:text-white">{label}</span>
         <button
             onClick={() => setEditingKey(id)}
             className={`px-4 py-2 rounded-lg text-xs font-mono transition-all ${editingKey === id
                 ? 'bg-primary text-black font-bold'
-                : 'bg-white/10 text-white hover:bg-white/20'
+                : 'bg-neutral-200 text-neutral-900 dark:bg-white/10 dark:text-white hover:bg-neutral-300 dark:hover:bg-white/20'
                 }`}
         >
             {editingKey === id ? 'Press key...' : (value === ' ' ? 'SPACE' : value.toUpperCase())}
@@ -40,10 +40,10 @@ const ShortcutRow = ({ id, label, value, editingKey, setEditingKey }: { id: stri
 );
 
 const EQSlider = ({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) => (
-    <div className="py-4 px-6 border-b border-white/10">
+    <div className="py-4 px-6 border-b border-neutral-200 dark:border-white/10">
         <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-white">{label}</span>
-            <span className="text-xs font-mono text-white/50">{value > 0 ? `+${value}` : value} dB</span>
+            <span className="text-sm font-medium text-neutral-900 dark:text-white">{label}</span>
+            <span className="text-xs font-mono text-neutral-600 dark:text-white/50">{value > 0 ? `+${value}` : value} dB</span>
         </div>
         <input
             type="range"
@@ -52,16 +52,16 @@ const EQSlider = ({ label, value, onChange }: { label: string; value: number; on
             step="1"
             value={value}
             onChange={(e) => onChange(parseInt(e.target.value))}
-            className="w-full h-2 bg-white/10 rounded-full appearance-none cursor-pointer accent-primary"
+            className="w-full h-2 bg-neutral-200 dark:bg-white/10 rounded-full appearance-none cursor-pointer accent-primary"
         />
     </div>
 );
 
 const Section = ({ icon: Icon, title, children }: { icon: any; title: string; children: React.ReactNode }) => (
-    <div className="mb-4 bg-neutral-900/80 rounded-xl overflow-hidden border border-white/10">
-        <div className="flex items-center gap-3 py-4 px-6 bg-white/5 border-b border-white/10">
+    <div className="mb-4 bg-white/80 dark:bg-neutral-900/80 rounded-xl overflow-hidden border border-neutral-200 dark:border-white/10">
+        <div className="flex items-center gap-3 py-4 px-6 bg-neutral-100 dark:bg-white/5 border-b border-neutral-200 dark:border-white/10">
             <Icon className="w-5 h-5 text-primary" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">{title}</h2>
+            <h2 className="text-sm font-bold text-neutral-900 dark:text-white uppercase tracking-wider">{title}</h2>
         </div>
         <div>
             {children}
@@ -70,17 +70,17 @@ const Section = ({ icon: Icon, title, children }: { icon: any; title: string; ch
 );
 
 const ColorRow = ({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) => (
-    <div className="flex items-center justify-between py-4 px-6 border-b border-white/10">
+    <div className="flex items-center justify-between py-4 px-6 border-b border-neutral-200 dark:border-white/10">
         <div>
-            <span className="text-sm font-medium text-white">{label}</span>
-            <p className="text-xs text-white/40 font-mono mt-0.5">{value}</p>
+            <span className="text-sm font-medium text-neutral-900 dark:text-white">{label}</span>
+            <p className="text-xs text-neutral-600 dark:text-white/60 font-mono mt-0.5">{value}</p>
         </div>
         <div className="relative">
             <input
                 type="color"
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
-                className="w-14 h-10 rounded-lg cursor-pointer bg-transparent border-2 border-white/20"
+                className="w-14 h-10 rounded-lg cursor-pointer bg-transparent border-2 border-neutral-300 dark:border-white/20"
             />
         </div>
     </div>
@@ -93,10 +93,10 @@ const OptionRow = ({ label, description, options, value, onChange }: {
     value: string;
     onChange: (v: string) => void
 }) => (
-    <div className="py-4 px-6 border-b border-white/10">
+    <div className="py-4 px-6 border-b border-neutral-200 dark:border-white/10">
         <div className="mb-3">
-            <span className="text-sm font-medium text-white">{label}</span>
-            {description && <p className="text-xs text-white/50 mt-0.5">{description}</p>}
+            <span className="text-sm font-medium text-neutral-900 dark:text-white">{label}</span>
+            {description && <p className="text-xs text-neutral-600 dark:text-white/50 mt-0.5">{description}</p>}
         </div>
         <div className="flex gap-2">
             {options.map(opt => (
@@ -105,7 +105,7 @@ const OptionRow = ({ label, description, options, value, onChange }: {
                     onClick={() => onChange(opt.value)}
                     className={`flex-1 py-3 px-4 rounded-lg text-xs font-semibold transition-all ${value === opt.value
                         ? 'bg-primary text-black'
-                        : 'bg-white/10 text-white/70 hover:bg-white/15 hover:text-white'
+                        : 'bg-neutral-200 text-neutral-800 dark:bg-white/10 dark:text-white/70 hover:bg-neutral-300 dark:hover:bg-white/15 hover:text-neutral-900 dark:hover:text-white'
                         }`}
                 >
                     {opt.label}
@@ -117,7 +117,7 @@ const OptionRow = ({ label, description, options, value, onChange }: {
 
 export const SettingsView: React.FC = () => {
     const { settings, updateSettings, connectToSubsonic, isDemoMode, credentials, visualizerMode, setVisualizerMode, disconnect } = useStore();
-    const { mode, toggleTheme } = useTheme();
+    const { mode, setTheme } = useTheme();
 
     const [url, setUrl] = useState(credentials?.serverUrl || '');
     const [user, setUser] = useState(credentials?.username || '');
@@ -155,15 +155,15 @@ export const SettingsView: React.FC = () => {
     }, [editingKey, settings, updateSettings]);
 
     return (
-        <div className="h-full overflow-y-auto custom-scrollbar bg-neutral-950">
+        <div className="h-full overflow-y-auto custom-scrollbar bg-neutral-50 dark:bg-neutral-950">
             {/* Header */}
-            <div className="sticky top-0 z-10 bg-neutral-950/95 backdrop-blur-sm border-b border-white/10">
+            <div className="sticky top-0 z-10 bg-neutral-50/95 dark:bg-neutral-950/95 backdrop-blur-sm border-b border-neutral-200 dark:border-white/10">
                 <div className="flex items-center justify-between px-6 lg:px-10 py-5">
-                    <h1 className="text-2xl font-bold text-white">Settings</h1>
+                    <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">Settings</h1>
                     {!isDemoMode && (
                         <button
                             onClick={disconnect}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-all text-sm font-medium border border-red-500/30"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/25 transition-all text-sm font-medium border border-red-500/30"
                         >
                             <LogOut className="w-4 h-4" />
                             Disconnect
@@ -173,46 +173,46 @@ export const SettingsView: React.FC = () => {
             </div>
 
             {/* Content */}
-            <div className="px-6 lg:px-10 py-6 pb-32">
+            <div className="px-6 lg:px-10 py-6 pb-32 text-neutral-900 dark:text-white">
 
                 {/* Server Connection */}
                 <Section icon={Server} title="Server Connection">
                     <form onSubmit={handleConnect}>
-                        <div className="py-4 px-6 border-b border-white/10">
-                            <label className="block text-xs font-medium text-white/60 uppercase tracking-wider mb-2">Server URL</label>
+                        <div className="py-4 px-6 border-b border-neutral-200 dark:border-white/10">
+                            <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wider mb-2">Server URL</label>
                             <input
                                 type="text"
                                 value={url}
                                 onChange={e => setUrl(e.target.value)}
                                 placeholder="https://music.example.com"
-                                className={`w-full bg-white/10 border rounded-lg px-4 py-3 text-white placeholder-white/30 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isInsecure ? 'border-yellow-500/50' : 'border-white/10'
+                                className={`w-full bg-white border rounded-lg px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/30 focus:bg-white dark:focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isInsecure ? 'border-yellow-500/50' : 'border-neutral-300 dark:border-white/10'
                                     }`}
                             />
                             {isInsecure && (
-                                <div className="flex items-center gap-1.5 mt-2 text-yellow-500 text-xs">
+                                <div className="flex items-center gap-1.5 mt-2 text-yellow-600 dark:text-yellow-500 text-xs">
                                     <ShieldAlert className="w-3 h-3" />
                                     <span>Warning: Not using HTTPS</span>
                                 </div>
                             )}
                         </div>
-                        <div className="py-4 px-6 border-b border-white/10">
-                            <label className="block text-xs font-medium text-white/60 uppercase tracking-wider mb-2">Username</label>
+                        <div className="py-4 px-6 border-b border-neutral-200 dark:border-white/10">
+                            <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wider mb-2">Username</label>
                             <input
                                 type="text"
                                 value={user}
                                 onChange={e => setUser(e.target.value)}
                                 placeholder="admin"
-                                className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                className="w-full bg-white border border-neutral-300 dark:border-white/10 rounded-lg px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/30 focus:bg-white dark:focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                             />
                         </div>
-                        <div className="py-4 px-6 border-b border-white/10">
-                            <label className="block text-xs font-medium text-white/60 uppercase tracking-wider mb-2">Password</label>
+                        <div className="py-4 px-6 border-b border-neutral-200 dark:border-white/10">
+                            <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wider mb-2">Password</label>
                             <input
                                 type="password"
                                 value={pass}
                                 onChange={e => setPass(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full bg-white/10 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                                className="w-full bg-white border border-neutral-300 dark:border-white/10 rounded-lg px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/30 focus:bg-white dark:focus:bg-white/15 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                             />
                         </div>
                         <div className="py-4 px-6">
@@ -235,7 +235,7 @@ export const SettingsView: React.FC = () => {
                                 </div>
                             )}
                             {isDemoMode && connStatus === 'idle' && (
-                                <p className="text-xs text-white/40 text-center mt-3">Currently in Demo Mode</p>
+                                <p className="text-xs text-neutral-600 dark:text-white/60 text-center mt-3">Currently in Demo Mode</p>
                             )}
                         </div>
                     </form>
@@ -270,7 +270,7 @@ export const SettingsView: React.FC = () => {
                             { value: 'light', label: '☀️ Light' },
                         ]}
                         value={mode}
-                        onChange={(v) => toggleTheme()}
+                        onChange={(v) => setTheme(v as 'light' | 'dark')}
                     />
                 </Section>
 
@@ -300,7 +300,7 @@ export const SettingsView: React.FC = () => {
 
                             {/* Preset Selector */}
                             <div className="flex items-center gap-3">
-                                <span className="text-xs font-medium text-white/60 uppercase tracking-wider">Preset</span>
+                                <span className="text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wider">Preset</span>
                                 <div className="relative group">
                                     <select
                                         value={settings.eq.preset}
@@ -316,15 +316,15 @@ export const SettingsView: React.FC = () => {
                                             });
                                         }}
                                         disabled={!settings.eq.enabled}
-                                        className="appearance-none bg-white/10 hover:bg-white/20 text-white text-xs font-bold py-2 pl-4 pr-10 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                                        className="appearance-none bg-white border border-neutral-300 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/20 text-neutral-900 dark:text-white text-xs font-bold py-2 pl-4 pr-10 rounded-lg cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
                                     >
                                         {Object.entries(EQ_PRESET_LABELS).map(([key, label]) => (
-                                            <option key={key} value={key} className="bg-neutral-900 text-white">
+                                            <option key={key} value={key} className="bg-white text-neutral-900 dark:bg-neutral-900 dark:text-white">
                                                 {label}
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/50">
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-neutral-500 dark:text-white/50">
                                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                     </div>
                                 </div>
@@ -333,15 +333,15 @@ export const SettingsView: React.FC = () => {
 
                         {/* Mixing Board Style EQ */}
                         <div className={`transition-all duration-500 ${settings.eq.enabled ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale'}`}>
-                            <div className="relative bg-black/20 rounded-xl p-6 border border-white/5 shadow-inner">
+                            <div className="relative bg-neutral-100 dark:bg-black/20 rounded-xl p-6 border border-neutral-200 dark:border-white/5 shadow-inner">
                                 {/* Grid Background */}
                                 <div className="absolute inset-0 opacity-10"
-                                    style={{ backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+                                    style={{ backgroundImage: 'linear-gradient(to right, #000000 1px, transparent 1px), linear-gradient(to bottom, #000000 1px, transparent 1px)', backgroundSize: '20px 20px' }}
                                 />
 
                                 <div className="flex items-end justify-between gap-2 relative z-10 h-64">
                                     {/* Center Line */}
-                                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-white/10 -z-10" />
+                                    <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-neutral-300 dark:bg-white/10 -z-10" />
 
                                     {Object.entries(EQ_BAND_LABELS).map(([freq, label]) => {
                                         const val = settings.eq.bands[freq as keyof typeof settings.eq.bands] || 0;
@@ -352,9 +352,9 @@ export const SettingsView: React.FC = () => {
                                                 {/* Fader Track */}
                                                 <div className="relative w-full h-full flex justify-center pb-8 pt-2">
                                                     {/* Slot */}
-                                                    <div className="absolute top-2 bottom-8 w-2 bg-black/50 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] border border-white/5">
+                                                    <div className="absolute top-2 bottom-8 w-2 bg-black/20 dark:bg-black/50 rounded-full shadow-[inset_0_2px_4px_rgba(0,0,0,0.35)] border border-neutral-300 dark:border-white/5">
                                                         {/* Center Notch */}
-                                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-0.5 bg-white/20" />
+                                                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-0.5 bg-neutral-400 dark:bg-white/20" />
                                                     </div>
 
                                                     {/* Active Fill (Neon Glow) */}
@@ -401,11 +401,11 @@ export const SettingsView: React.FC = () => {
                                                         style={{ bottom: `calc(${percent}% - 24px + 10px)` }} // Adjust for track padding
                                                     >
                                                         {/* Physical Cap */}
-                                                        <div className={`w-8 h-12 rounded bg-gradient-to-b from-neutral-700 to-neutral-800 shadow-[0_4px_6px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.2)] border border-black group-hover:from-neutral-600 group-hover:to-neutral-700 relative flex flex-col items-center justify-center gap-1`}>
+                                                        <div className={`w-8 h-12 rounded bg-gradient-to-b from-neutral-200 to-neutral-300 dark:from-neutral-700 dark:to-neutral-800 shadow-[0_4px_6px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.2)] border border-neutral-300 dark:border-black group-hover:from-neutral-300 group-hover:to-neutral-400 dark:group-hover:from-neutral-600 dark:group-hover:to-neutral-700 relative flex flex-col items-center justify-center gap-1`}>
                                                             {/* Grip Lines */}
-                                                            <div className="w-6 h-0.5 bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
-                                                            <div className="w-6 h-0.5 bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
-                                                            <div className="w-6 h-0.5 bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
+                                                            <div className="w-6 h-0.5 bg-black/20 dark:bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
+                                                            <div className="w-6 h-0.5 bg-black/20 dark:bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
+                                                            <div className="w-6 h-0.5 bg-black/20 dark:bg-black/30 shadow-[0_1px_0_rgba(255,255,255,0.1)]" />
 
                                                             {/* Indicator Colored Line */}
                                                             <div className="w-full h-0.5 bg-primary shadow-[0_0_5px_rgba(var(--primary-rgb),0.8)] mt-1" />
@@ -414,7 +414,7 @@ export const SettingsView: React.FC = () => {
                                                 </div>
 
                                                 {/* Label */}
-                                                <div className="absolute bottom-0 text-[10px] font-bold text-white/40 uppercase tracking-widest text-center w-full truncate group-hover:text-white transition-colors">
+                                                <div className="absolute bottom-0 text-[10px] font-bold text-neutral-600 dark:text-white/60 uppercase tracking-widest text-center w-full truncate group-hover:text-neutral-900 dark:group-hover:text-white transition-colors">
                                                     {label}
                                                 </div>
 
@@ -442,7 +442,7 @@ export const SettingsView: React.FC = () => {
                                     onClick={() => setVisualizerMode(mode)}
                                     className={`py-3 px-4 rounded-lg text-xs font-semibold transition-all ${visualizerMode === mode
                                         ? 'bg-primary text-black'
-                                        : 'bg-white/10 text-white/60 hover:bg-white/15 hover:text-white'
+                                        : 'bg-neutral-200 text-neutral-800 dark:bg-white/10 dark:text-white/60 hover:bg-neutral-300 dark:hover:bg-white/15 hover:text-neutral-900 dark:hover:text-white'
                                         }`}
                                 >
                                     {mode}
@@ -499,3 +499,4 @@ export const SettingsView: React.FC = () => {
         </div>
     );
 };
+

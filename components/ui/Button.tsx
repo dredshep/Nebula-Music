@@ -19,14 +19,17 @@ const variantClasses: Record<ButtonVariant, string> = {
     shadow-lg shadow-primary/20
   `,
     secondary: `
-    bg-white/5 backdrop-blur-md text-white font-medium
-    border border-white/10 hover:bg-white/10 hover:border-white/20
+    bg-neutral-100 backdrop-blur-md text-neutral-900 font-medium
+    border border-neutral-200 hover:bg-neutral-200 hover:border-neutral-300
+    dark:bg-white/5 dark:text-white dark:border-white/10 dark:hover:bg-white/10 dark:hover:border-white/20
   `,
     ghost: `
-    bg-transparent text-neutral-400 hover:text-white hover:bg-white/5
+    bg-transparent text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100
+    dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/5
   `,
     icon: `
-    bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10
+    bg-neutral-100 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200
+    dark:bg-white/5 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-white/10
     aspect-square justify-center
   `,
 };
@@ -62,7 +65,7 @@ export const Button: React.FC<ButtonProps> = ({
         inline-flex items-center rounded-full
         transition-all duration-200 ease-out
         active:scale-95 disabled:opacity-50 disabled:pointer-events-none
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-dark
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-neutral-900
         ${variantClasses[variant]}
         ${isIconOnly ? iconSizeClasses[size] : sizeClasses[size]}
         ${glow ? 'hover:shadow-glow animate-glow-pulse' : ''}

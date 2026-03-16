@@ -12,23 +12,27 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const elevationClasses: Record<CardElevation, string> = {
     1: `
-    bg-neutral-900/40 backdrop-blur-md
-    border border-white/5
+    bg-white/80 backdrop-blur-md
+    border border-neutral-200
+    dark:bg-neutral-900/40 dark:border-white/5
     shadow-[0_2px_8px_rgba(0,0,0,0.1)]
   `,
     2: `
-    bg-neutral-900/60 backdrop-blur-lg
-    border border-white/8
+    bg-white/85 backdrop-blur-lg
+    border border-neutral-200/80
+    dark:bg-neutral-900/60 dark:border-white/8
     shadow-[0_4px_16px_rgba(0,0,0,0.15)]
   `,
     3: `
-    bg-neutral-900/75 backdrop-blur-xl
-    border border-white/10
+    bg-white/90 backdrop-blur-xl
+    border border-neutral-200/70
+    dark:bg-neutral-900/75 dark:border-white/10
     shadow-[0_8px_32px_rgba(0,0,0,0.25)]
   `,
     4: `
-    bg-neutral-900/85 backdrop-blur-2xl
-    border border-white/12
+    bg-white/95 backdrop-blur-2xl
+    border border-neutral-200/60
+    dark:bg-neutral-900/85 dark:border-white/12
     shadow-[0_16px_48px_rgba(0,0,0,0.35)]
   `,
 };
@@ -56,7 +60,7 @@ export const Card: React.FC<CardProps> = ({
         transition-all duration-300 ease-out
         ${elevationClasses[elevation]}
         ${paddingClasses[padding]}
-        ${hover ? 'hover:-translate-y-1 hover:border-white/15 hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)]' : ''}
+        ${hover ? 'hover:-translate-y-1 hover:border-neutral-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.2)] dark:hover:border-white/15 dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)]' : ''}
         ${glow ? 'hover:shadow-[0_0_30px_rgba(6,182,212,0.15)]' : ''}
         ${className}
       `}

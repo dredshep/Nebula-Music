@@ -58,7 +58,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose }) => {
     };
 
     const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-        <div className="px-4 pt-6 pb-2 text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-white/30">
+        <div className="px-4 pt-6 pb-2 text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-white/50">
             {children}
         </div>
     );
@@ -102,7 +102,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose }) => {
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight">NEBULA</h2>
-                            <p className="text-[10px] text-neutral-600 dark:text-white/40 uppercase tracking-widest font-mono">Music</p>
+                            <p className="text-[10px] text-neutral-600 dark:text-white/60 uppercase tracking-widest font-mono">Music</p>
                         </div>
                     </div>
 
@@ -154,7 +154,7 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose }) => {
                             ? 'bg-amber-500'
                             : 'bg-emerald-500 animate-pulse'
                             }`} />
-                        <span className="text-xs text-white/50 font-mono uppercase tracking-wider">
+                        <span className="text-xs text-neutral-500 dark:text-white/50 font-mono uppercase tracking-wider">
                             {isDemoMode ? 'Demo Mode' : 'Connected'}
                         </span>
                     </div>
@@ -163,3 +163,5 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose }) => {
         </>
     );
 };
+
+

@@ -35,7 +35,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
     return (
         <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40">
             {/* Progress bar */}
-            <div className="h-0.5 bg-white/10">
+            <div className="h-0.5 bg-neutral-300 dark:bg-white/10">
                 <div
                     className="h-full transition-all duration-150"
                     style={{ width: `${progress}%`, backgroundColor: colors.primary }}
@@ -43,7 +43,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
             </div>
 
             <div
-                className="flex items-center gap-3 p-3 bg-neutral-950/95 backdrop-blur-xl border-t border-white/5"
+                className="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-950/95 backdrop-blur-xl border-t border-neutral-200 dark:border-white/5"
                 onClick={onExpand}
             >
                 {/* Album Art */}
@@ -53,8 +53,8 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
 
                 {/* Song Info */}
                 <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-white truncate">{currentSong.title}</h4>
-                    <p className="text-xs text-white/50 truncate">{currentSong.artist}</p>
+                    <p className="text-sm font-semibold text-neutral-900 dark:text-white truncate">{currentSong.title}</p>
+                    <p className="text-xs text-neutral-600 dark:text-white/50 truncate">{currentSong.artist}</p>
                 </div>
 
                 {/* Controls */}
@@ -74,7 +74,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
 
                     <button
                         onClick={(e) => { e.stopPropagation(); nextSong(); }}
-                        className="p-2 text-white/60 hover:text-white active:scale-95 transition-all"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 active:scale-95 transition-all dark:text-white/60 dark:hover:text-white"
                         aria-label="Next track"
                     >
                         <SkipForward className="w-5 h-5 fill-current" />
@@ -82,7 +82,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
 
                     <button
                         onClick={(e) => { e.stopPropagation(); onExpand(); }}
-                        className="p-2 text-white/40 hover:text-white active:scale-95 transition-all"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 active:scale-95 transition-all dark:text-white/60 dark:hover:text-white"
                         aria-label="Open full screen player"
                     >
                         <ChevronUp className="w-5 h-5" />
@@ -92,3 +92,4 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
         </div>
     );
 };
+

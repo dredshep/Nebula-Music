@@ -116,6 +116,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [pitchCorrection, setPitchCorrection] = useState(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('OFF');
   const [pitch, setPitchState] = useState(0);
+  const [pitchBySongId, setPitchBySongId] = useState<Record<string, number>>({});
   const [visualizerMode, setVisualizerMode] = useState<VisualizerMode>('BARS');
   const [isZenMode, setZenMode] = useState(false);
 
@@ -570,6 +571,20 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     document.documentElement.style.setProperty('--color-secondary', hexToRgb(settings.theme.secondaryColor));
   }, [settings.theme]);
 
+  const setPitch = useCallback((val: number) => {
+    setPitchState(val);
+    const songId = queue[currentSongIndex]?.id;
+    if (!songId) return;
+    setPitchBySongId(prev => (prev[songId] === val ? prev : { ...prev, [songId]: val }));
+  }, [queue, currentSongIndex]);
+
+  useEffect(() => {
+    const songId = queue[currentSongIndex]?.id;
+    if (!songId) return;
+    const savedPitch = pitchBySongId[songId] ?? 0;
+    setPitchState(prev => (prev === savedPitch ? prev : savedPitch));
+  }, [currentSongIndex, pitchBySongId, queue]);
+
   // Apply pitch shifting via playbackRate
   useEffect(() => {
     const audio = audioRef.current;
@@ -923,7 +938,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <StoreContext.Provider value={{
       currentView, setView, viewData, queue, currentSongIndex, isPlaying, volume, playbackRate, pitch, pitchCorrection, visualizerMode, repeatMode,
       credentials, isDemoMode, isInitialized, settings, playlists, modalOpen, songToAddToPlaylist,
-      playSong, togglePlay, nextSong, prevSong, setVolume, setPlaybackRate, setPitch: setPitchState, setPitchCorrection, setVisualizerMode, toggleRepeat, toggleLike,
+      playSong, togglePlay, nextSong, prevSong, setVolume, setPlaybackRate, setPitch, setPitchCorrection, setVisualizerMode, toggleRepeat, toggleLike,
       connectToSubsonic, disconnect, enableDemoMode, addToQueue, updateSettings,
       openPlaylistModal, closePlaylistModal, createPlaylist, savePlaylist, addSongToPlaylist, deletePlaylist, reorderPlaylist,
       performSearch, searchResults, isSearching, lastSearchQuery, isSearchModalOpen, openSearchModal, closeSearchModal,

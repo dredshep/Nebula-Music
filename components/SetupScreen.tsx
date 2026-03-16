@@ -22,7 +22,7 @@ export const SetupScreen: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-neutral-950 flex items-center justify-center overflow-hidden font-sans">
+    <div className="fixed inset-0 bg-neutral-50 dark:bg-neutral-950 flex items-center justify-center overflow-hidden font-sans">
       {/* Subtle animated background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-30%] left-[-10%] w-[600px] h-[600px] bg-primary/[0.08] rounded-full filter blur-[150px] animate-pulse" style={{ animationDuration: '8s' }} />
@@ -41,16 +41,16 @@ export const SetupScreen: React.FC = () => {
               <path d="M20 10v4" className="opacity-50" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Nebula Music</h1>
-          <p className="text-white/40 text-sm">Connect to your personal music server</p>
+          <h1 className="text-3xl font-bold text-neutral-900 dark:text-white tracking-tight mb-2">Nebula Music</h1>
+          <p className="text-neutral-600 dark:text-white/60 text-sm">Connect to your personal music server</p>
         </div>
 
         {/* Main Card */}
-        <div className="bg-neutral-900/90 backdrop-blur-2xl border border-white/[0.04] rounded-2xl p-6 shadow-2xl">
+        <div className="bg-white/90 dark:bg-neutral-900/90 backdrop-blur-2xl border border-neutral-200 dark:border-white/[0.04] rounded-2xl p-6 shadow-2xl">
           <form onSubmit={handleConnect} className="space-y-4">
             {/* Server URL */}
             <div>
-              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Server URL</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-2">Server URL</label>
               <input
                 required
                 type="text"
@@ -58,10 +58,10 @@ export const SetupScreen: React.FC = () => {
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 autoComplete="url"
-                className={`w-full bg-white/[0.03] border rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isInsecure ? 'border-yellow-500/30' : 'border-white/[0.06]'}`}
+                className={`w-full bg-white border rounded-xl px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isInsecure ? 'border-yellow-500/30' : 'border-neutral-200 dark:border-white/[0.06]'}`}
               />
               {isInsecure && (
-                <div className="flex items-start mt-2 text-yellow-500/80 text-xs">
+                <div className="flex items-start mt-2 text-yellow-600 dark:text-yellow-500/80 text-xs">
                   <ShieldAlert className="w-3.5 h-3.5 mr-1.5 mt-0.5 shrink-0" />
                   <span>HTTP connections are insecure. Consider using HTTPS.</span>
                 </div>
@@ -70,7 +70,7 @@ export const SetupScreen: React.FC = () => {
 
             {/* Username */}
             <div>
-              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Username</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-2">Username</label>
               <input
                 required
                 type="text"
@@ -78,13 +78,13 @@ export const SetupScreen: React.FC = () => {
                 value={user}
                 onChange={e => setUser(e.target.value)}
                 autoComplete="username"
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-full bg-white border border-neutral-200 dark:border-white/[0.06] rounded-xl px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-medium text-white/40 uppercase tracking-wide mb-2">Password</label>
+              <label className="block text-xs font-medium text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-2">Password</label>
               <input
                 required
                 type="password"
@@ -92,13 +92,13 @@ export const SetupScreen: React.FC = () => {
                 value={pass}
                 onChange={e => setPass(e.target.value)}
                 autoComplete="current-password"
-                className="w-full bg-white/[0.03] border border-white/[0.06] rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                className="w-full bg-white border border-neutral-200 dark:border-white/[0.06] rounded-xl px-4 py-3 text-neutral-900 dark:text-white placeholder-neutral-500 dark:placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
               />
             </div>
 
             {/* Error Message */}
             {status === 'error' && (
-              <div className="flex items-center text-red-400 text-sm bg-red-500/10 p-3 rounded-xl border border-red-500/10">
+              <div className="flex items-center text-red-600 dark:text-red-400 text-sm bg-red-500/10 p-3 rounded-xl border border-red-500/10">
                 <AlertCircle className="w-4 h-4 mr-2 shrink-0" />
                 Connection failed. Please check your details.
               </div>
@@ -108,10 +108,10 @@ export const SetupScreen: React.FC = () => {
             <button
               type="submit"
               disabled={status === 'loading'}
-              className="w-full bg-white text-black font-semibold py-3 rounded-xl hover:bg-primary hover:text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-neutral-900 dark:bg-white text-white dark:text-black font-semibold py-3 rounded-xl hover:bg-primary hover:text-white transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {status === 'loading' ? (
-                <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-white/50 dark:border-black/30 border-t-white dark:border-t-black rounded-full animate-spin" />
               ) : (
                 <>
                   <Server className="w-4 h-4" />
@@ -123,15 +123,15 @@ export const SetupScreen: React.FC = () => {
 
           {/* Divider */}
           <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-white/20 uppercase tracking-wide">or</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
+            <div className="flex-1 h-px bg-neutral-200 dark:bg-white/[0.06]" />
+            <span className="text-xs text-neutral-600 dark:text-white/50 uppercase tracking-wide">or</span>
+            <div className="flex-1 h-px bg-neutral-200 dark:bg-white/[0.06]" />
           </div>
 
           {/* Demo Mode */}
           <button
             onClick={enableDemoMode}
-            className="w-full bg-white/[0.03] border border-white/[0.06] text-white/60 hover:text-white hover:bg-white/[0.06] font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+            className="w-full bg-neutral-100 dark:bg-white/[0.03] border border-neutral-200 dark:border-white/[0.06] text-neutral-700 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/[0.06] font-medium py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
           >
             <Sparkles className="w-4 h-4" />
             Try Demo Mode
@@ -139,10 +139,12 @@ export const SetupScreen: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-white/60 text-xs mt-6">
+        <p className="text-center text-neutral-600 dark:text-white/60 text-xs mt-6">
           Nebula Music • Subsonic-compatible client
         </p>
       </div>
     </div>
   );
 };
+
+

@@ -45,7 +45,7 @@ export const AlbumDetailView: React.FC = () => {
     }, [album]);
 
     if (!album) return (
-        <div className="flex flex-col items-center justify-center h-full text-neutral-600 dark:text-white/40">
+        <div className="flex flex-col items-center justify-center h-full text-neutral-600 dark:text-white/60">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
             <span className="text-sm">Loading Album...</span>
         </div>
@@ -68,7 +68,7 @@ export const AlbumDetailView: React.FC = () => {
         const s = suffix.toUpperCase();
         const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
         return (
-            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-white/40'}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-neutral-200 text-neutral-600 dark:bg-white/10 dark:text-white/60'}`}>
                 {s}
             </span>
         );
@@ -109,14 +109,14 @@ export const AlbumDetailView: React.FC = () => {
                             alt=""
                         />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/40 via-neutral-950/85 to-neutral-950" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-neutral-200/90 to-neutral-200 dark:from-neutral-950/40 dark:via-neutral-950/85 dark:to-neutral-950" />
                 </div>
 
                 <div className="relative z-10 px-6 lg:px-10 pt-2 pb-10">
                     {/* Back button */}
                     <button
                         onClick={() => setView('ALBUMS')}
-                        className="mb-5 flex items-center text-white/50 hover:text-white transition text-sm font-medium group"
+                        className="mb-5 flex items-center text-neutral-600 hover:text-neutral-900 transition text-sm font-medium group dark:text-white/50 dark:hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         Albums
@@ -124,7 +124,7 @@ export const AlbumDetailView: React.FC = () => {
 
                     <div className="flex flex-col md:flex-row gap-8">
                         {/* Cover Art */}
-                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-900">
+                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-200 dark:bg-neutral-900">
                             <img
                                 src={service.getCoverArtUrl(album.coverArt || album.id, 500)}
                                 alt={album.name}
@@ -134,36 +134,36 @@ export const AlbumDetailView: React.FC = () => {
 
                         {/* Info */}
                         <div className="flex-1 flex flex-col justify-end">
-                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Album</p>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{album.name}</h1>
+                            <p className="text-[10px] font-bold text-neutral-600 dark:text-white/60 uppercase tracking-widest mb-1">Album</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white mb-2 leading-tight">{album.name}</h1>
 
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-white/60 mb-4">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-600 dark:text-white/60 mb-4">
                                 <button
-                                    className="hover:text-white transition font-medium"
+                                    className="hover:text-neutral-900 transition font-medium dark:hover:text-white"
                                     onClick={() => album.artistId && setView('ARTIST_DETAIL', album.artistId)}
                                 >
                                     {album.artist}
                                 </button>
                                 {album.year && (
                                     <>
-                                        <span className="text-white/20">•</span>
+                                        <span className="text-neutral-400 dark:text-white/50">•</span>
                                         <span>{album.year}</span>
                                     </>
                                 )}
-                                <span className="text-white/20">•</span>
+                                <span className="text-neutral-400 dark:text-white/50">•</span>
                                 <span>{album.songCount} songs, {formatTotalTime(album.duration)}</span>
                             </div>
 
                             <div className="flex flex-wrap items-center gap-2">
                                 <button
                                     onClick={() => album.songs && playSong(album.songs[0], album.songs)}
-                                    className="flex items-center gap-2 px-5 py-2 bg-white text-black font-bold rounded-lg hover:bg-primary hover:text-white transition text-sm"
+                                    className="flex items-center gap-2 px-5 py-2 bg-neutral-900 text-white font-bold rounded-lg hover:bg-neutral-800 transition text-sm dark:bg-white dark:text-black dark:hover:bg-primary dark:hover:text-white"
                                 >
                                     {isPlaying && isAlbumPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
                                     {isPlaying && isAlbumPlaying ? 'Pause' : 'Play'}
                                 </button>
                                 <button
-                                    className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
+                                    className="p-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 hover:text-neutral-900 transition dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                                     title="Shuffle"
                                     aria-label="Shuffle album"
                                     onClick={() => {
@@ -177,7 +177,7 @@ export const AlbumDetailView: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={toggleAlbumLike}
-                                    className={`p-2 rounded-lg transition ${album.starred ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                    className={`p-2 rounded-lg transition ${album.starred ? 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400' : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 hover:text-neutral-900 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'}`}
                                     title={album.starred ? "Unlike" : "Like"}
                                     aria-label={album.starred ? 'Unlike album' : 'Like album'}
                                 >
@@ -191,7 +191,7 @@ export const AlbumDetailView: React.FC = () => {
 
             {/* Separator */}
             <div className="px-6 lg:px-10">
-                <div className="border-t border-white/10 my-2" />
+                <div className="border-t border-neutral-200 dark:border-white/10 my-2" />
             </div>
 
             {/* Main Content - full width */}
@@ -200,13 +200,13 @@ export const AlbumDetailView: React.FC = () => {
                 {album.info?.notes && (
                     <div className="mb-8 mt-4">
                         <div
-                            className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:bg-white/[0.07] transition"
+                            className="flex items-start gap-3 p-4 bg-neutral-100 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-200 transition dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/[0.07]"
                             onClick={() => setShowFullNotes(!showFullNotes)}
                         >
-                            <Info className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+                            <Info className="w-4 h-4 text-neutral-500 dark:text-white/60 shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-1">About</h3>
-                                <p className={`text-sm text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
+                                <h3 className="text-xs font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-1">About</h3>
+                                <p className={`text-sm text-neutral-700 dark:text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
                                     {album.info.notes}
                                 </p>
                                 {album.info.notes.length > 120 && (
@@ -257,7 +257,7 @@ export const AlbumDetailView: React.FC = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <span className={`text-xs font-mono group-hover:opacity-0 transition ${isCurrent ? 'text-primary' : 'text-neutral-600 dark:text-white/40'}`}>
+                                                        <span className={`text-xs font-mono group-hover:opacity-0 transition ${isCurrent ? 'text-primary' : 'text-neutral-600 dark:text-white/60'}`}>
                                                             {idx + 1}
                                                         </span>
                                                         <Play className="w-3.5 h-3.5 text-neutral-900 dark:text-white absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition fill-current" />
@@ -271,7 +271,7 @@ export const AlbumDetailView: React.FC = () => {
                                                     {song.title}
                                                 </p>
                                                 {song.artist !== album.artist && (
-                                                    <p className="text-xs text-neutral-600 dark:text-white/40 truncate">{song.artist}</p>
+                                                    <p className="text-xs text-neutral-600 dark:text-white/60 truncate">{song.artist}</p>
                                                 )}
                                             </div>
 
@@ -279,14 +279,14 @@ export const AlbumDetailView: React.FC = () => {
 
                                             {/* Play count */}
                                             {song.playCount && song.playCount > 0 && (
-                                                <div className="hidden md:flex items-center gap-1 text-[10px] text-white/30 font-mono shrink-0">
+                                                <div className="hidden md:flex items-center gap-1 text-[10px] text-neutral-500 dark:text-white/50 font-mono shrink-0">
                                                     <BarChart2 className="w-3 h-3" />
                                                     {song.playCount}
                                                 </div>
                                             )}
 
                                             {/* Duration */}
-                                            <span className="text-xs text-white/40 font-mono w-10 text-right shrink-0">
+                                            <span className="text-xs text-neutral-500 dark:text-white/60 font-mono w-10 text-right shrink-0">
                                                 {formatTime(song.duration)}
                                             </span>
 
@@ -298,7 +298,7 @@ export const AlbumDetailView: React.FC = () => {
                                                 </div>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
-                                                    className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
+                                                    className={`p-1.5 rounded hover:bg-neutral-200 transition dark:hover:bg-white/10 ${song.starred ? 'text-red-400' : 'text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white'}`}
                                                     title={song.starred ? "Unlike" : "Like"}
                                                     aria-label={song.starred ? 'Unlike song' : 'Like song'}
                                                 >
@@ -306,7 +306,7 @@ export const AlbumDetailView: React.FC = () => {
                                                 </button>
                                                 <button
                                                     onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                                    className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
+                                                    className="p-1.5 rounded hover:bg-neutral-200 text-neutral-500 hover:text-primary transition dark:hover:bg-white/10 dark:text-white/50"
                                                     title="Add to playlist"
                                                     aria-label="Add to playlist"
                                                 >
@@ -324,8 +324,8 @@ export const AlbumDetailView: React.FC = () => {
                 {/* Related Albums */}
                 {relatedAlbums.length > 0 && (
                     <section className="mb-8">
-                        <div className="border-t border-white/10 pt-6 mb-4" />
-                        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wide mb-4">More by {album.artist}</h2>
+                        <div className="border-t border-neutral-200 dark:border-white/10 pt-6 mb-4" />
+                        <h2 className="text-sm font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-4">More by {album.artist}</h2>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
                             {relatedAlbums.map((related) => (
                                 <div
@@ -333,7 +333,7 @@ export const AlbumDetailView: React.FC = () => {
                                     className="group cursor-pointer"
                                     onClick={() => setView('ALBUM_DETAIL', related.id)}
                                 >
-                                    <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-900 mb-2">
+                                    <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-200 dark:bg-neutral-900 mb-2">
                                         <img
                                             src={service.getCoverArtUrl(related.coverArt || related.id, 200)}
                                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -344,8 +344,8 @@ export const AlbumDetailView: React.FC = () => {
                                             <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition fill-current" />
                                         </div>
                                     </div>
-                                    <h4 className="text-xs font-medium text-white truncate">{related.name}</h4>
-                                    <p className="text-[10px] text-white/40">{related.year}</p>
+                                    <h3 className="text-xs font-medium text-neutral-900 dark:text-white truncate">{related.name}</h3>
+                                    <p className="text-[10px] text-neutral-600 dark:text-white/60">{related.year}</p>
                                 </div>
                             ))}
                         </div>
@@ -355,3 +355,6 @@ export const AlbumDetailView: React.FC = () => {
         </div>
     );
 };
+
+
+

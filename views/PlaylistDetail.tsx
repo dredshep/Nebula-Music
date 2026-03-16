@@ -32,7 +32,7 @@ export const PlaylistDetailView: React.FC = () => {
     }, [viewData, playlists, service, isDemoMode]);
 
     if (!playlist) return (
-        <div className="flex flex-col items-center justify-center h-full text-white/40">
+        <div className="flex flex-col items-center justify-center h-full text-neutral-600 dark:text-white/60">
             <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
             <span className="text-sm">Loading Playlist...</span>
         </div>
@@ -62,7 +62,7 @@ export const PlaylistDetailView: React.FC = () => {
         const s = suffix.toUpperCase();
         const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
         return (
-            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-white/10 text-white/40'}`}>
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-neutral-200 text-neutral-600 dark:bg-white/10 dark:text-white/60'}`}>
                 {s}
             </span>
         );
@@ -86,14 +86,14 @@ export const PlaylistDetailView: React.FC = () => {
                     ) : (
                         <div className="absolute w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20 blur-3xl" />
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/40 via-neutral-950/85 to-neutral-950" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-neutral-200/90 to-neutral-200 dark:from-neutral-950/40 dark:via-neutral-950/85 dark:to-neutral-950" />
                 </div>
 
                 <div className="relative z-10 px-6 lg:px-10 pt-2 pb-10">
                     {/* Back button */}
                     <button
                         onClick={() => setView(isSavedPlaylist ? 'PLAYLISTS' : 'BROWSE')}
-                        className="mb-5 flex items-center text-white/50 hover:text-white transition text-sm font-medium group"
+                        className="mb-5 flex items-center text-neutral-600 hover:text-neutral-900 transition text-sm font-medium group dark:text-white/50 dark:hover:text-white"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
                         {isSavedPlaylist ? 'Playlists' : 'Browse'}
@@ -101,7 +101,7 @@ export const PlaylistDetailView: React.FC = () => {
 
                     <div className="flex flex-col md:flex-row gap-8">
                         {/* Cover Art */}
-                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-900">
+                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-200 dark:bg-neutral-900">
                             {playlist.coverArt ? (
                                 <img
                                     src={service.getCoverArtUrl(playlist.coverArt, 500)}
@@ -110,27 +110,27 @@ export const PlaylistDetailView: React.FC = () => {
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                    <ListMusic className="w-32 h-32 text-white/20" />
+                                    <ListMusic className="w-32 h-32 text-neutral-400 dark:text-white/50" />
                                 </div>
                             )}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 flex flex-col justify-end">
-                            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-1">Playlist</p>
-                            <h1 className="text-2xl md:text-3xl font-bold text-white mb-2 leading-tight">{playlist.name}</h1>
+                            <p className="text-[10px] font-bold text-neutral-600 dark:text-white/60 uppercase tracking-widest mb-1">Playlist</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white mb-2 leading-tight">{playlist.name}</h1>
 
-                            <div className="flex flex-wrap items-center gap-2 text-sm text-white/60 mb-4">
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-600 dark:text-white/60 mb-4">
                                 {playlist.songCount && (
                                     <>
                                         <span>{playlist.songCount} tracks</span>
-                                        <span className="text-white/20">•</span>
+                                        <span className="text-neutral-400 dark:text-white/50">•</span>
                                     </>
                                 )}
                                 {playlist.duration && <span>{formatTotalTime(playlist.duration)}</span>}
                                 {playlist.created && (
                                     <>
-                                        <span className="text-white/20">•</span>
+                                        <span className="text-neutral-400 dark:text-white/50">•</span>
                                         <span>Created {new Date(playlist.created).toLocaleDateString()}</span>
                                     </>
                                 )}
@@ -142,13 +142,13 @@ export const PlaylistDetailView: React.FC = () => {
                                     <>
                                         <button
                                             onClick={() => playlist.songs && playSong(playlist.songs[0], playlist.songs)}
-                                            className="flex items-center gap-2 px-5 py-2 bg-white text-black font-bold rounded-lg hover:bg-neutral-200 transition text-sm shadow-xl"
+                                            className="flex items-center gap-2 px-5 py-2 bg-neutral-900 text-white font-bold rounded-lg hover:bg-neutral-800 transition text-sm shadow-xl dark:bg-white dark:text-black dark:hover:bg-primary dark:hover:text-white"
                                         >
                                             {isPlaying && currentSong?.created === playlist.created?.toString() ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
                                             Play
                                         </button>
                                         <button
-                                            className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
+                                            className="p-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 hover:text-neutral-900 transition dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                                             title="Shuffle"
                                             aria-label="Shuffle playlist"
                                             onClick={() => {
@@ -166,7 +166,7 @@ export const PlaylistDetailView: React.FC = () => {
                                 {!isSavedPlaylist && (
                                     <button
                                         onClick={handleSave}
-                                        className="flex items-center gap-2 px-4 py-2 bg-white/10 text-white font-medium rounded-lg hover:bg-white/20 transition text-sm"
+                                        className="flex items-center gap-2 px-4 py-2 bg-neutral-200 text-neutral-700 font-medium rounded-lg hover:bg-neutral-300 hover:text-neutral-900 transition text-sm dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
                                     >
                                         <Save className="w-4 h-4" />
                                         Save Playlist
@@ -195,13 +195,13 @@ export const PlaylistDetailView: React.FC = () => {
                 {comment && (
                     <div className="mb-8 mt-4">
                         <div
-                            className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-lg cursor-pointer hover:bg-white/[0.07] transition"
+                            className="flex items-start gap-3 p-4 bg-neutral-100 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-200 transition dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/[0.07]"
                             onClick={() => setShowFullNotes(!showFullNotes)}
                         >
-                            <Info className="w-4 h-4 text-white/40 shrink-0 mt-0.5" />
+                            <Info className="w-4 h-4 text-neutral-500 dark:text-white/60 shrink-0 mt-0.5" />
                             <div className="flex-1 min-w-0">
-                                <h3 className="text-xs font-semibold text-white/60 uppercase tracking-wide mb-1">About</h3>
-                                <p className={`text-sm text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
+                                <h3 className="text-xs font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-1">About</h3>
+                                <p className={`text-sm text-neutral-700 dark:text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
                                     {comment}
                                 </p>
                                 {comment.length > 120 && (
@@ -222,15 +222,15 @@ export const PlaylistDetailView: React.FC = () => {
                     }}
                 >
                     <div className="p-4">
-                        <h2 className="text-sm font-semibold text-white/60 uppercase tracking-wide mb-3">Tracks</h2>
-                        <div className="border border-white/10 rounded-lg overflow-hidden" style={{ borderColor: playlistColors.primaryMuted }}>
+                        <h2 className="text-sm font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-3">Tracks</h2>
+                        <div className="border border-neutral-200 dark:border-white/10 rounded-lg overflow-hidden" style={{ borderColor: playlistColors.primaryMuted }}>
                             {playlist.songs?.map((song, idx) => {
                                 const isCurrent = currentSong?.id === song.id;
 
                                 return (
                                     <div
                                         key={`${song.id}-${idx}`}
-                                        className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition border-b border-white/5 last:border-0 hover:bg-white/5 ${isCurrent ? 'bg-white/5' : ''}`}
+                                        className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition border-b border-neutral-200 dark:border-white/5 last:border-0 hover:bg-neutral-200 dark:hover:bg-white/5 ${isCurrent ? 'bg-neutral-200 dark:bg-white/5' : ''}`}
                                         onClick={() => playlist.songs && playSong(song, playlist.songs)}
                                     >
                                         {/* Track number / Play */}
@@ -246,7 +246,7 @@ export const PlaylistDetailView: React.FC = () => {
                                                     {isCurrent ? (
                                                         <Pause className="w-3.5 h-3.5 text-primary mx-auto" />
                                                     ) : (
-                                                        <span className={`text-sm font-medium ${isCurrent ? 'text-primary' : 'text-white/40 group-hover:text-white/60'} transition`}>
+                                                        <span className={`text-sm font-medium ${isCurrent ? 'text-primary' : 'text-neutral-500 dark:text-white/60 group-hover:text-neutral-900 dark:group-hover:text-white/60'} transition`}>
                                                             {idx + 1}
                                                         </span>
                                                     )}
@@ -257,22 +257,22 @@ export const PlaylistDetailView: React.FC = () => {
 
                                         {/* Title & Artist */}
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-medium truncate transition ${isCurrent ? 'text-primary' : 'text-white group-hover:text-white'}`}>
+                                            <p className={`text-sm font-medium truncate transition ${isCurrent ? 'text-primary' : 'text-neutral-900 dark:text-white group-hover:text-neutral-900 dark:group-hover:text-white'}`}>
                                                 {song.title}
                                             </p>
-                                            <p className="text-xs text-white/40 truncate">{song.artist}</p>
+                                            <p className="text-xs text-neutral-600 dark:text-white/60 truncate">{song.artist}</p>
                                         </div>
 
                                         {/* Play count */}
                                         {song.playCount && song.playCount > 0 && (
-                                            <div className="hidden md:flex items-center gap-1 text-[10px] text-white/30 font-mono shrink-0">
+                                            <div className="hidden md:flex items-center gap-1 text-[10px] text-neutral-500 dark:text-white/50 font-mono shrink-0">
                                                 <BarChart2 className="w-3 h-3" />
                                                 {song.playCount}
                                             </div>
                                         )}
 
                                         {/* Duration */}
-                                        <span className="text-xs text-white/40 font-mono w-10 text-right shrink-0">
+                                        <span className="text-xs text-neutral-500 dark:text-white/60 font-mono w-10 text-right shrink-0">
                                             {formatTime(song.duration)}
                                         </span>
 
@@ -284,7 +284,7 @@ export const PlaylistDetailView: React.FC = () => {
                                             </div>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
-                                                className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
+                                                className={`p-1.5 rounded hover:bg-neutral-200 transition dark:hover:bg-white/10 ${song.starred ? 'text-red-400' : 'text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white'}`}
                                                 title={song.starred ? "Unlike" : "Like"}
                                                 aria-label={song.starred ? 'Unlike song' : 'Like song'}
                                             >
@@ -292,7 +292,7 @@ export const PlaylistDetailView: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                                className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
+                                                className="p-1.5 rounded hover:bg-neutral-200 text-neutral-500 hover:text-primary transition dark:hover:bg-white/10 dark:text-white/50"
                                                 title="Add to playlist"
                                                 aria-label="Add to playlist"
                                             >
@@ -303,7 +303,7 @@ export const PlaylistDetailView: React.FC = () => {
                                 );
                             })}
                             {(!playlist.songs || playlist.songs.length === 0) && (
-                                <div className="p-12 text-center text-white/60">
+                                <div className="p-12 text-center text-neutral-600 dark:text-white/60">
                                     <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-60" />
                                     <p className="text-sm">This playlist is empty.</p>
                                 </div>
@@ -315,3 +315,6 @@ export const PlaylistDetailView: React.FC = () => {
         </div>
     );
 };
+
+
+

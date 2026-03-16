@@ -64,8 +64,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [mode, setMode] = useState<ThemeMode>(() => {
-        const saved = localStorage.getItem('nebula_theme_mode');
-        return (saved as ThemeMode) || 'dark';
+        const saved = localStorage.getItem('nebula_theme_mode') as ThemeMode | null;
+        if (saved === 'light' || saved === 'dark') return saved;
+        if (typeof window !== 'undefined' && window.matchMedia) {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return 'light';
     });
 
     useEffect(() => {
@@ -77,6 +81,7 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         } else {
             document.documentElement.classList.remove('dark');
         }
+        document.documentElement.setAttribute('data-theme', mode);
 
         // Update CSS custom properties for dynamic colors
         const colors = mode === 'light' ? lightColors : darkColors;

@@ -127,7 +127,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
         const s = suffix.toUpperCase();
         const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV' || s === 'AIFF' || s === 'AIF';
         return (
-            <span className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider ${isLossless ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/10 text-white/60 border border-white/10'
+            <span className={`px-2.5 py-1 rounded text-[10px] font-bold tracking-wider ${isLossless ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-neutral-200 text-neutral-600 border border-neutral-200 dark:bg-white/10 dark:text-white/60 dark:border-white/10'
                 }`}>
                 {s} {bitrate && `${bitrate}k`}
             </span>
@@ -279,7 +279,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 {currentSong.artist}
                             </p>
                             <p
-                                className="text-sm text-neutral-500 dark:text-white/30 mb-8 cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
+                                className="text-sm text-neutral-500 dark:text-white/50 mb-8 cursor-pointer hover:text-neutral-900 dark:hover:text-white transition-colors"
                                 onClick={() => { setView('ALBUM_DETAIL', currentSong.albumId); onClose(); }}
                             >
                                 {currentSong.album}
@@ -302,7 +302,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                     />
                                 </div>
-                                <div className="flex justify-between mt-2 text-xs font-mono text-neutral-600 dark:text-white/40">
+                                <div className="flex justify-between mt-2 text-xs font-mono text-neutral-600 dark:text-white/60">
                                     <span>{formatTime(currentTime)}</span>
                                     <span>{formatTime(duration)}</span>
                                 </div>
@@ -312,7 +312,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                             <div className="flex items-center justify-center gap-6 mb-8 w-full">
                                 <button
                                     onClick={toggleRepeat}
-                                    className={`p-3 rounded-lg transition-all ${repeatMode === 'OFF' ? 'text-neutral-500 dark:text-white/30 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/5' : 'text-neutral-900 dark:text-white bg-neutral-200 dark:bg-white/10'}`}
+                                    className={`p-3 rounded-lg transition-all ${repeatMode === 'OFF' ? 'text-neutral-500 dark:text-white/50 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/5' : 'text-neutral-900 dark:text-white bg-neutral-200 dark:bg-white/10'}`}
                                     aria-label={`Repeat mode: ${repeatMode}`}
                                 >
                                     {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
@@ -348,7 +348,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
 
                                 <button
                                     onClick={() => toggleLike(currentSong)}
-                                    className={`p-3 rounded-lg transition-all ${currentSong.starred ? 'text-red-500 bg-red-500/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                    className={`p-3 rounded-lg transition-all ${currentSong.starred ? 'text-red-500 bg-red-500/10' : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/5'}`}
                                     aria-label={currentSong.starred ? 'Unlike' : 'Like'}
                                 >
                                     <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
@@ -359,7 +359,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                             <div className="flex items-center gap-3 w-full max-w-xs mx-auto lg:mx-0 mb-6">
                                 <button
                                     onClick={() => setVolume(volume === 0 ? 0.5 : 0)}
-                                    className="p-2 text-white/40 hover:text-white transition-colors"
+                                    className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors dark:text-white/60 dark:hover:text-white"
                                     aria-label={volume === 0 ? 'Unmute' : 'Mute'}
                                 >
                                     {volume === 0 ? <VolumeX className="w-5 h-5" /> :
@@ -387,8 +387,8 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                             <button
                                 onClick={() => setShowSpeedPitchModal(!showSpeedPitchModal)}
                                 className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-all ${showSpeedPitchModal || playbackRate !== 1.0 || pitch !== 0
-                                    ? 'bg-white/10 text-white'
-                                    : 'bg-white/5 text-white/50 hover:text-white hover:bg-white/10'
+                                    ? 'bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white'
+                                    : 'bg-neutral-50 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200 dark:bg-white/5 dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10'
                                     }`}
                             >
                                 <Sliders className="w-4 h-4" />
@@ -404,18 +404,18 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
 
                             {/* Speed & Pitch Modal - Centered Overlay */}
                             {showSpeedPitchModal && (
-                                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md"
+                                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-neutral-900/40 dark:bg-black/80 backdrop-blur-md"
                                     onClick={() => setShowSpeedPitchModal(false)}
                                 >
                                     <div
-                                        className="relative w-full max-w-sm bg-neutral-950 rounded-2xl border border-white/15 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 transform transition-all scale-100 opacity-100"
+                                        className="relative w-full max-w-sm bg-white dark:bg-neutral-950 rounded-2xl border border-neutral-200 dark:border-white/15 shadow-[0_0_50px_rgba(0,0,0,0.5)] p-6 transform transition-all scale-100 opacity-100"
                                         onClick={(e) => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between mb-6">
-                                            <h3 className="text-lg font-bold text-white">Playback Settings</h3>
+                                            <h3 className="text-lg font-bold text-neutral-900 dark:text-white">Playback Settings</h3>
                                             <button
                                                 onClick={() => setShowSpeedPitchModal(false)}
-                                                className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                                className="p-2 rounded-lg text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 transition-all dark:text-white/60 dark:hover:text-white dark:hover:bg-white/10"
                                                 aria-label="Close playback settings"
                                             >
                                                 <X className="w-5 h-5" />
@@ -425,29 +425,29 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         {/* Speed Control */}
                                         <div className="mb-6">
                                             <div className="flex items-center justify-between mb-2">
-                                                <label className="text-xs font-semibold text-white/40 uppercase tracking-wide">Speed</label>
-                                                <span className="text-xs font-mono text-white/60">{playbackRate.toFixed(1)}x</span>
+                                                <label className="text-xs font-semibold text-neutral-500 dark:text-white/60 uppercase tracking-wide">Speed</label>
+                                                <span className="text-xs font-mono text-neutral-600 dark:text-white/60">{playbackRate.toFixed(1)}x</span>
                                             </div>
-                                            <div className="flex items-center justify-between bg-black/30 rounded-xl p-1">
+                                            <div className="flex items-center justify-between bg-neutral-200 dark:bg-black/30 rounded-xl p-1">
                                                 <button
                                                     onClick={() => {
                                                         const newSpeed = Math.max(0.5, Math.round((playbackRate - 0.1) * 10) / 10);
                                                         setPlaybackRate(newSpeed);
                                                         if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                                     }}
-                                                    className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 rounded-lg transition-all dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10"
                                                     aria-label="Decrease speed"
                                                 >
                                                     <Minus className="w-5 h-5" />
                                                 </button>
-                                                <div className="h-4 w-[1px] bg-white/10" />
+                                                <div className="h-4 w-[1px] bg-neutral-300 dark:bg-white/10" />
                                                 <button
                                                     onClick={() => {
                                                         const newSpeed = Math.min(2.0, Math.round((playbackRate + 0.1) * 10) / 10);
                                                         setPlaybackRate(newSpeed);
                                                         if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                                     }}
-                                                    className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 rounded-lg transition-all dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10"
                                                     aria-label="Increase speed"
                                                 >
                                                     <Plus className="w-5 h-5" />
@@ -458,21 +458,21 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         {/* Pitch Control */}
                                         <div className="mb-6">
                                             <div className="flex items-center justify-between mb-2">
-                                                <label className="text-xs font-semibold text-white/40 uppercase tracking-wide">Pitch</label>
-                                                <span className="text-xs font-mono text-white/60">{pitch > 0 ? '+' : ''}{pitch}</span>
+                                                <label className="text-xs font-semibold text-neutral-500 dark:text-white/60 uppercase tracking-wide">Pitch</label>
+                                                <span className="text-xs font-mono text-neutral-600 dark:text-white/60">{pitch > 0 ? '+' : ''}{pitch}</span>
                                             </div>
-                                            <div className="flex items-center justify-between bg-black/30 rounded-xl p-1">
+                                            <div className="flex items-center justify-between bg-neutral-200 dark:bg-black/30 rounded-xl p-1">
                                                 <button
                                                     onClick={() => setPitch(Math.max(-12, pitch - 1))}
-                                                    className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 rounded-lg transition-all dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10"
                                                     aria-label="Decrease pitch"
                                                 >
                                                     <Minus className="w-5 h-5" />
                                                 </button>
-                                                <div className="h-4 w-[1px] bg-white/10" />
+                                                <div className="h-4 w-[1px] bg-neutral-300 dark:bg-white/10" />
                                                 <button
                                                     onClick={() => setPitch(Math.min(12, pitch + 1))}
-                                                    className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    className="w-10 h-10 flex items-center justify-center text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 rounded-lg transition-all dark:text-white/50 dark:hover:text-white dark:hover:bg-white/10"
                                                     aria-label="Increase pitch"
                                                 >
                                                     <Plus className="w-5 h-5" />
@@ -481,12 +481,12 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         </div>
 
                                         {/* Mode Toggle */}
-                                        <div className="mb-6 p-1 bg-black/30 rounded-xl flex">
+                                        <div className="mb-6 p-1 bg-neutral-200 dark:bg-black/30 rounded-xl flex">
                                             <button
                                                 onClick={() => setPitchCorrection(true)}
                                                 className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all ${pitchCorrection
                                                     ? 'bg-white text-black shadow-lg'
-                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/60 dark:hover:text-white dark:hover:bg-white/5'
                                                     }`}
                                             >
                                                 Digital
@@ -495,14 +495,14 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                 onClick={() => setPitchCorrection(false)}
                                                 className={`flex-1 py-3 px-4 rounded-lg text-sm font-bold transition-all ${!pitchCorrection
                                                     ? 'bg-white text-black shadow-lg'
-                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                                    : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-300 dark:text-white/60 dark:hover:text-white dark:hover:bg-white/5'
                                                     }`}
                                             >
                                                 Analogue
                                             </button>
                                         </div>
                                         <div className="text-center mb-6">
-                                            <p className="text-xs text-white/40">
+                                            <p className="text-xs text-neutral-500 dark:text-white/60">
                                                 {pitchCorrection ? 'Independent speed & pitch control' : 'Speed affects pitch (like vinyl)'}
                                             </p>
                                         </div>
@@ -513,7 +513,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                 setPitch(0);
                                                 if (audioRef.current) audioRef.current.playbackRate = 1.0;
                                             }}
-                                            className="w-full py-3.5 text-sm font-bold text-white bg-white/10 hover:bg-white/20 rounded-xl transition-all"
+                                            className="w-full py-3.5 text-sm font-bold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 rounded-xl transition-all dark:text-white dark:bg-white/10 dark:hover:bg-white/20"
                                         >
                                             Reset to Default
                                         </button>
@@ -531,8 +531,8 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                             <div className="min-h-full flex flex-col items-center justify-center py-20 px-6 text-center">
                                 {loadingLyrics ? (
                                     <div className="flex flex-col items-center">
-                                        <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
-                                        <span className="text-white/40">Loading lyrics...</span>
+                                        <div className="w-10 h-10 border-4 border-neutral-300 dark:border-white border-t-transparent rounded-full animate-spin mb-4" />
+                                        <span className="text-neutral-600 dark:text-white/60">Loading lyrics...</span>
                                     </div>
                                 ) : syncedLyrics.length > 0 ? (
                                     <div className="space-y-6 w-full max-w-4xl">
@@ -543,8 +543,8 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                     key={i}
                                                     ref={isActive ? activeLineRef : null}
                                                     className={`transition-all duration-500 cursor-pointer leading-relaxed ${isActive
-                                                        ? 'text-3xl md:text-5xl font-bold text-white'
-                                                        : 'text-xl md:text-2xl font-medium text-white/25 hover:text-white/40'
+                                                        ? 'text-3xl md:text-5xl font-bold text-neutral-900 dark:text-white'
+                                                        : 'text-xl md:text-2xl font-medium text-neutral-500 dark:text-white/50 hover:text-neutral-700 dark:hover:text-white/70'
                                                         }`}
                                                     onClick={() => {
                                                         const audio = audioRef.current;
@@ -558,7 +558,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-lg text-white/40 max-w-2xl">
+                                    <div className="text-lg text-neutral-600 dark:text-white/60 max-w-2xl">
                                         {lyrics || "No lyrics found for this song."}
                                     </div>
                                 )}
@@ -572,36 +572,36 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                     <div className="flex-1 overflow-hidden px-4 md:px-8 pb-8">
                         <div className="max-w-3xl mx-auto h-full flex flex-col">
                             <div className="flex items-center justify-between py-4">
-                                <h2 className="text-lg font-bold text-white">Up Next</h2>
-                                <span className="text-sm text-white/40">{queue.length} songs</span>
+                                <h2 className="text-lg font-bold text-neutral-900 dark:text-white">Up Next</h2>
+                                <span className="text-sm text-neutral-600 dark:text-white/60">{queue.length} songs</span>
                             </div>
                             <div className="flex-1 overflow-y-auto custom-scrollbar">
                                 {queue.map((song, idx) => (
                                     <div
                                         key={`${song.id}-${idx}`}
                                         onClick={() => playSong(song, queue)}
-                                        className={`flex items-center p-3 rounded-lg transition-all cursor-pointer hover:bg-white/5 mb-1 ${idx === currentSongIndex ? 'bg-white/10' : ''
+                                        className={`flex items-center p-3 rounded-lg transition-all cursor-pointer hover:bg-neutral-100 dark:hover:bg-white/5 mb-1 ${idx === currentSongIndex ? 'bg-neutral-200 dark:bg-white/10' : ''
                                             }`}
                                     >
-                                        <div className="w-8 text-center font-mono text-sm mr-4 text-white/40">
+                                        <div className="w-8 text-center font-mono text-sm mr-4 text-neutral-500 dark:text-white/60">
                                             {idx === currentSongIndex && isPlaying ? (
                                                 <div className="flex justify-center gap-0.5">
-                                                    <div className="w-0.5 h-3 bg-white animate-pulse" />
-                                                    <div className="w-0.5 h-3 bg-white animate-pulse delay-75" />
-                                                    <div className="w-0.5 h-3 bg-white animate-pulse delay-150" />
+                                                    <div className="w-0.5 h-3 bg-neutral-900 dark:bg-white animate-pulse" />
+                                                    <div className="w-0.5 h-3 bg-neutral-900 dark:bg-white animate-pulse delay-75" />
+                                                    <div className="w-0.5 h-3 bg-neutral-900 dark:bg-white animate-pulse delay-150" />
                                                 </div>
                                             ) : idx + 1}
                                         </div>
-                                        <div className="w-12 h-12 rounded overflow-hidden bg-neutral-800 mr-4 shrink-0">
+                                        <div className="w-12 h-12 rounded overflow-hidden bg-neutral-200 dark:bg-neutral-800 mr-4 shrink-0">
                                             <img src={service.getCoverArtUrl(song.id, 100)} className="w-full h-full object-cover" alt="" />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <div className={`font-semibold truncate ${idx === currentSongIndex ? 'text-white' : 'text-white/80'}`}>
+                                            <div className={`font-semibold truncate ${idx === currentSongIndex ? 'text-neutral-900 dark:text-white' : 'text-neutral-700 dark:text-white/80'}`}>
                                                 {song.title}
                                             </div>
-                                            <div className="text-sm text-white/40 truncate">{song.artist}</div>
+                                            <div className="text-sm text-neutral-600 dark:text-white/60 truncate">{song.artist}</div>
                                         </div>
-                                        <span className="text-sm font-mono text-white/30 ml-4">
+                                        <span className="text-sm font-mono text-neutral-500 dark:text-white/50 ml-4">
                                             {formatTime(song.duration)}
                                         </span>
                                     </div>
@@ -638,12 +638,12 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 </div>
 
                                 <div className="flex items-center gap-4">
-                                    <span className="text-sm font-mono text-white/40 w-12 text-right">{formatTime(currentTime)}</span>
+                                    <span className="text-sm font-mono text-white/60 w-12 text-right">{formatTime(currentTime)}</span>
                                     <div className="flex-1 relative h-1.5 bg-white/10 rounded">
                                         <div className="absolute inset-y-0 left-0 bg-white rounded" style={{ width: `${progress}%` }} />
                                         <input type="range" min="0" max="100" step="0.01" value={progress} onChange={handleScrub} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                                     </div>
-                                    <span className="text-sm font-mono text-white/40 w-12">{formatTime(duration)}</span>
+                                    <span className="text-sm font-mono text-white/60 w-12">{formatTime(duration)}</span>
                                 </div>
                             </div>
                         </div>
@@ -653,3 +653,5 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
         </div >
     );
 };
+
+

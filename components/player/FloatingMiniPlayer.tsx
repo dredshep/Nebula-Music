@@ -84,8 +84,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
         >
             {/* Progress bar at top - clickable with hover expand */}
             <div
-                className={`relative cursor-pointer group transition-all duration-200 ${isHoverProgress ? 'h-3' : 'h-1.5'}`}
-                style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}
+                className={`relative cursor-pointer group transition-all duration-200 ${isHoverProgress ? 'h-3' : 'h-1.5'} bg-neutral-300 dark:bg-white/10`}
                 onClick={handleProgressClick}
                 onMouseEnter={() => setIsHoverProgress(true)}
                 onMouseLeave={() => setIsHoverProgress(false)}
@@ -118,14 +117,14 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
 
                 {/* Song Info */}
                 <div className="min-w-0 w-36 shrink-0">
-                    <h4 className="font-semibold text-neutral-900 dark:text-white text-sm truncate">{currentSong.title}</h4>
+                    <p className="font-semibold text-neutral-900 dark:text-white text-sm truncate">{currentSong.title}</p>
                     <p className="text-xs text-neutral-700 dark:text-white/50 truncate">{currentSong.artist}</p>
                 </div>
 
                 {/* Time display */}
-                <div className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-600 dark:text-white/40 shrink-0">
+                <div className="flex items-center gap-1.5 text-[10px] font-mono text-neutral-600 dark:text-white/60 shrink-0">
                     <span className="tabular-nums">{formatTime(currentTime)}</span>
-                    <span className="text-white/20">/</span>
+                    <span className="text-neutral-400 dark:text-white/50">/</span>
                     <span className="tabular-nums">{formatTime(duration)}</span>
                 </div>
 
@@ -140,7 +139,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                 >
                     <button
                         onClick={() => setVolume(volume === 0 ? 0.5 : 0)}
-                        className="p-1.5 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        className="p-1.5 text-neutral-600 dark:text-white/60 hover:text-neutral-900 dark:hover:text-white transition-colors"
                         aria-label={volume === 0 ? 'Unmute' : 'Mute'}
                     >
                         {volume === 0 ? <VolumeX className="w-4 h-4" /> :
@@ -148,9 +147,9 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                                 <Volume2 className="w-4 h-4" />}
                     </button>
                     <div className={`overflow-hidden transition-all duration-200 ${isHoverVolume ? 'w-16' : 'w-0'}`}>
-                        <div className="relative h-1 bg-white/10 rounded-full">
+                        <div className="relative h-1 bg-neutral-300 dark:bg-white/10 rounded-full">
                             <div
-                                className="absolute inset-y-0 left-0 bg-white/60 rounded-full"
+                                className="absolute inset-y-0 left-0 bg-neutral-600 dark:bg-white/60 rounded-full"
                                 style={{ width: `${volume * 100}%` }}
                             />
                             <input
@@ -169,7 +168,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                 {/* Like button */}
                 <button
                     onClick={() => toggleLike(currentSong)}
-                    className={`p-2 transition-colors active:scale-95 ${currentSong.starred ? 'text-red-500' : 'text-white/40 hover:text-white'}`}
+                    className={`p-2 transition-colors active:scale-95 ${currentSong.starred ? 'text-red-500' : 'text-neutral-600 hover:text-neutral-900 dark:text-white/60 dark:hover:text-white'}`}
                     aria-label={currentSong.starred ? 'Unlike' : 'Like'}
                 >
                     <Heart className={`w-4 h-4 ${currentSong.starred ? 'fill-current' : ''}`} />
@@ -179,7 +178,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                 <div className="flex items-center gap-1 shrink-0">
                     <button
                         onClick={prevSong}
-                        className="p-2 text-white/50 hover:text-white transition-colors active:scale-95"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors active:scale-95 dark:text-white/50 dark:hover:text-white"
                         aria-label="Previous track"
                     >
                         <SkipBack className="w-4 h-4" fill="currentColor" />
@@ -198,7 +197,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                     </button>
                     <button
                         onClick={nextSong}
-                        className="p-2 text-white/50 hover:text-white transition-colors active:scale-95"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors active:scale-95 dark:text-white/50 dark:hover:text-white"
                         aria-label="Next track"
                     >
                         <SkipForward className="w-4 h-4" fill="currentColor" />
@@ -206,14 +205,14 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                 </div>
 
                 {/* Divider */}
-                <div className="w-px h-8 bg-white/10" />
+                <div className="w-px h-8 bg-neutral-200 dark:bg-white/10" />
 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1 shrink-0">
                     {/* Restore Sidebar */}
                     <button
                         onClick={onRestoreSidebar}
-                        className="p-2 text-white/40 hover:text-white transition-colors active:scale-95"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors active:scale-95 dark:text-white/60 dark:hover:text-white"
                         title="Show sidebar"
                         aria-label="Show sidebar"
                     >
@@ -222,7 +221,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                     {/* Expand Full Screen */}
                     <button
                         onClick={onExpand}
-                        className="p-2 text-white/40 hover:text-white transition-colors active:scale-95"
+                        className="p-2 text-neutral-600 hover:text-neutral-900 transition-colors active:scale-95 dark:text-white/60 dark:hover:text-white"
                         title="Full screen player"
                         aria-label="Open full screen player"
                     >
@@ -233,3 +232,5 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
         </div>
     );
 };
+
+
