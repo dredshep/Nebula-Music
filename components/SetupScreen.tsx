@@ -139,7 +139,7 @@ export const SetupScreen: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-white/20 text-xs mt-6">
+        <p className="text-center text-white/60 text-xs mt-6">
           Nebula Music • Subsonic-compatible client
         </p>
       </div>

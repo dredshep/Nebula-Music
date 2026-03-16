@@ -196,6 +196,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                 <button
                     onClick={onClose}
                     className="w-10 h-10 rounded-lg bg-neutral-200 dark:bg-white/10 flex items-center justify-center hover:bg-neutral-300 dark:hover:bg-white/20 transition-all active:scale-95"
+                    aria-label="Close player"
                 >
                     <ChevronDown className="w-5 h-5 text-neutral-900 dark:text-white" />
                 </button>
@@ -223,12 +224,14 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                         onClick={cycleVisualizerMode}
                         className="w-10 h-10 rounded-lg bg-neutral-200 dark:bg-white/10 flex items-center justify-center hover:bg-neutral-300 dark:hover:bg-white/20 transition-all active:scale-95"
                         title={`Visualizer: ${visualizerMode}`}
+                        aria-label={`Change visualizer mode (current: ${visualizerMode})`}
                     >
                         <Activity className="w-5 h-5 text-neutral-900 dark:text-white" />
                     </button>
                     <button
                         onClick={() => setZenMode(!isZenMode)}
                         className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95 ${isZenMode ? 'bg-white text-black' : 'bg-neutral-200 dark:bg-white/10 hover:bg-neutral-300 dark:hover:bg-white/20 text-neutral-900 dark:text-white'}`}
+                        aria-label={isZenMode ? 'Exit zen mode' : 'Enter zen mode'}
                     >
                         {isZenMode ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -310,6 +313,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={toggleRepeat}
                                     className={`p-3 rounded-lg transition-all ${repeatMode === 'OFF' ? 'text-neutral-500 dark:text-white/30 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-white/5' : 'text-neutral-900 dark:text-white bg-neutral-200 dark:bg-white/10'}`}
+                                    aria-label={`Repeat mode: ${repeatMode}`}
                                 >
                                     {repeatMode === 'ONE' ? <Repeat1 className="w-5 h-5" /> : <Repeat className="w-5 h-5" />}
                                 </button>
@@ -317,6 +321,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={prevSong}
                                     className="p-4 text-neutral-700 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-all hover:scale-110 active:scale-95"
+                                    aria-label="Previous track"
                                 >
                                     <SkipBack className="w-8 h-8" fill="currentColor" />
                                 </button>
@@ -324,6 +329,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={togglePlay}
                                     className="w-20 h-20 rounded-lg bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                    aria-label={isPlaying ? 'Pause' : 'Play'}
                                 >
                                     {isPlaying ? (
                                         <Pause className="w-8 h-8" fill="currentColor" />
@@ -335,6 +341,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={nextSong}
                                     className="p-4 text-neutral-700 dark:text-white/70 hover:text-neutral-900 dark:hover:text-white transition-all hover:scale-110 active:scale-95"
+                                    aria-label="Next track"
                                 >
                                     <SkipForward className="w-8 h-8" fill="currentColor" />
                                 </button>
@@ -342,6 +349,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={() => toggleLike(currentSong)}
                                     className={`p-3 rounded-lg transition-all ${currentSong.starred ? 'text-red-500 bg-red-500/10' : 'text-white/30 hover:text-white hover:bg-white/5'}`}
+                                    aria-label={currentSong.starred ? 'Unlike' : 'Like'}
                                 >
                                     <Heart className={`w-5 h-5 ${currentSong.starred ? 'fill-current' : ''}`} />
                                 </button>
@@ -352,6 +360,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <button
                                     onClick={() => setVolume(volume === 0 ? 0.5 : 0)}
                                     className="p-2 text-white/40 hover:text-white transition-colors"
+                                    aria-label={volume === 0 ? 'Unmute' : 'Mute'}
                                 >
                                     {volume === 0 ? <VolumeX className="w-5 h-5" /> :
                                         volume < 0.5 ? <Volume1 className="w-5 h-5" /> :
@@ -407,6 +416,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                             <button
                                                 onClick={() => setShowSpeedPitchModal(false)}
                                                 className="p-2 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                                                aria-label="Close playback settings"
                                             >
                                                 <X className="w-5 h-5" />
                                             </button>
@@ -426,6 +436,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                         if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                                     }}
                                                     className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    aria-label="Decrease speed"
                                                 >
                                                     <Minus className="w-5 h-5" />
                                                 </button>
@@ -437,6 +448,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                         if (audioRef.current) audioRef.current.playbackRate = newSpeed;
                                                     }}
                                                     className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    aria-label="Increase speed"
                                                 >
                                                     <Plus className="w-5 h-5" />
                                                 </button>
@@ -453,6 +465,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                 <button
                                                     onClick={() => setPitch(Math.max(-12, pitch - 1))}
                                                     className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    aria-label="Decrease pitch"
                                                 >
                                                     <Minus className="w-5 h-5" />
                                                 </button>
@@ -460,6 +473,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                                 <button
                                                     onClick={() => setPitch(Math.min(12, pitch + 1))}
                                                     className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                                                    aria-label="Increase pitch"
                                                 >
                                                     <Plus className="w-5 h-5" />
                                                 </button>
@@ -608,16 +622,17 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                 <p className="text-lg text-white/50 mb-8">{currentSong.artist}</p>
 
                                 <div className="flex items-center justify-center gap-8 mb-6">
-                                    <button onClick={prevSong} className="p-4 text-white/50 hover:text-white transition">
+                                    <button onClick={prevSong} className="p-4 text-white/50 hover:text-white transition" aria-label="Previous track">
                                         <SkipBack className="w-7 h-7" fill="currentColor" />
                                     </button>
                                     <button
                                         onClick={togglePlay}
                                         className="w-16 h-16 bg-white text-black rounded-lg flex items-center justify-center hover:scale-105 transition shadow-xl"
+                                        aria-label={isPlaying ? 'Pause' : 'Play'}
                                     >
                                         {isPlaying ? <Pause className="w-7 h-7" fill="currentColor" /> : <Play className="w-7 h-7 ml-0.5" fill="currentColor" />}
                                     </button>
-                                    <button onClick={nextSong} className="p-4 text-white/50 hover:text-white transition">
+                                    <button onClick={nextSong} className="p-4 text-white/50 hover:text-white transition" aria-label="Next track">
                                         <SkipForward className="w-7 h-7" fill="currentColor" />
                                     </button>
                                 </div>

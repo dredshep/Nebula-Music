@@ -609,9 +609,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         audio.src = url;
         audio.load();
 
-        audio.playbackRate = playbackRate;
+        const pitchMultiplier = Math.pow(2, pitch / 12);
+        const finalRate = playbackRate * pitchMultiplier;
+        audio.playbackRate = finalRate;
         const a = audio as any;
         if (a.preservesPitch !== undefined) a.preservesPitch = pitchCorrection;
+        else if (a.mozPreservesPitch !== undefined) a.mozPreservesPitch = pitchCorrection;
+        else if (a.webkitPreservesPitch !== undefined) a.webkitPreservesPitch = pitchCorrection;
 
         if (isPlaying) {
           const playPromise = audio.play();

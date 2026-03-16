@@ -48,6 +48,7 @@ export const PlaylistModal: React.FC = () => {
             <button
               onClick={closePlaylistModal}
               className="p-2 rounded-lg hover:bg-white/10 text-white/50 hover:text-white transition"
+              aria-label="Close playlist modal"
             >
               <X className="w-5 h-5" />
             </button>
@@ -70,6 +71,7 @@ export const PlaylistModal: React.FC = () => {
                 disabled={!newPlaylistName.trim()}
                 className="px-4 py-2.5 bg-primary text-black font-semibold rounded-lg text-sm
                         hover:bg-primary/90 transition disabled:opacity-30 disabled:cursor-not-allowed"
+                aria-label="Create playlist"
               >
                 <Plus className="w-4 h-4" />
               </button>
@@ -79,8 +81,8 @@ export const PlaylistModal: React.FC = () => {
           {/* Playlist List */}
           <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
             {playlists.length === 0 ? (
-              <div className="text-center text-white/30 py-12">
-                <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-30" />
+              <div className="text-center text-white/60 py-12">
+                <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-60" />
                 <p className="text-sm">No playlists yet</p>
                 <p className="text-xs mt-1">Create one above</p>
               </div>

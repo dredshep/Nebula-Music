@@ -75,6 +75,7 @@ export const MobileNav: React.FC = () => {
           <button
             onClick={openSearchModal}
             className="flex flex-col items-center justify-center space-y-1 flex-1 h-full group relative interactive-press"
+            aria-label="Search"
           >
             <div className="w-14 h-10 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-2xl flex items-center justify-center group-active:scale-95 transition-all duration-200 ease-spring border border-white/15 shadow-glow-sm group-hover:shadow-glow glow-button">
               <Search className="w-5 h-5 text-white relative z-10" />

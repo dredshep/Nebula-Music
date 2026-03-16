@@ -132,6 +132,7 @@ export const Sidebar: React.FC = () => {
             <button
               onClick={openSearchModal}
               className="w-full flex items-center justify-center glass-subtle hover:bg-white/[0.08] border border-white/10 rounded-xl p-2.5 text-neutral-400 transition-all duration-300 hover:border-primary/30 hover:shadow-glow-sm interactive-press mb-6"
+              aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -209,6 +210,7 @@ export const Sidebar: React.FC = () => {
             text-neutral-400 hover:text-white transition-all duration-300 interactive-press
           `}
           title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <ChevronLeft className={`
             w-5 h-5 rotate-180-transition

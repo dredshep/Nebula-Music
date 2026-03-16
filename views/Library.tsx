@@ -70,6 +70,7 @@ const YearPicker: React.FC<{ value: string, onChange: (val: string) => void }> =
                     if (!isOpen) inputRef.current?.focus();
                     setIsOpen(!isOpen);
                 }}
+                aria-label="Toggle year picker"
             >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
@@ -80,9 +81,9 @@ const YearPicker: React.FC<{ value: string, onChange: (val: string) => void }> =
                     style={dropdownStyle}
                 >
                     <div className="flex items-center justify-between p-3 bg-white/5 border-b border-white/5">
-                        <button onClick={(e) => { e.preventDefault(); setViewYear(y => y - 12); }} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition"><ChevronLeft className="w-4 h-4" /></button>
+                        <button onClick={(e) => { e.preventDefault(); setViewYear(y => y - 12); }} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition" aria-label="Previous 12 years"><ChevronLeft className="w-4 h-4" /></button>
                         <span className="text-sm font-bold text-white">{startYear} - {startYear + 11}</span>
-                        <button onClick={(e) => { e.preventDefault(); setViewYear(y => y + 12); }} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition"><ChevronRight className="w-4 h-4" /></button>
+                        <button onClick={(e) => { e.preventDefault(); setViewYear(y => y + 12); }} className="p-1.5 hover:bg-white/10 rounded-lg text-neutral-400 hover:text-white transition" aria-label="Next 12 years"><ChevronRight className="w-4 h-4" /></button>
                     </div>
                     <div className="grid grid-cols-3 gap-2 p-3">
                         {years.map(y => (
@@ -177,7 +178,7 @@ const FilterBar: React.FC<{
                 className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-8 text-sm focus:border-white/20 focus:bg-white/10 focus:outline-none text-white transition-all placeholder-neutral-500"
             />
             {filter && (
-                <button onClick={() => setFilter('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition">
+                <button onClick={() => setFilter('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white p-1 rounded-full hover:bg-white/10 transition" aria-label="Clear search">
                     <X className="w-3.5 h-3.5" />
                 </button>
             )}
@@ -223,6 +224,7 @@ const FilterBar: React.FC<{
                         onClick={resetFilters}
                         className="p-2.5 rounded-xl bg-white/5 hover:bg-white/20 text-neutral-300 hover:text-white transition shadow-sm border border-white/5"
                         title="Clear Filters"
+                        aria-label="Clear filters"
                     >
                         <X className="w-4 h-4" />
                     </button>
@@ -360,7 +362,7 @@ export const LibraryView: React.FC = () => {
                         {isCreating ? (
                             <div className="flex items-center bg-neutral-800 rounded-xl overflow-hidden border border-white/10 animate-fade-in shadow-lg">
                                 <input autoFocus className="bg-transparent px-4 py-2.5 text-sm focus:outline-none text-white w-40" placeholder="Playlist Name" value={newPlName} onChange={(e) => setNewPlName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && newPlName.trim()) { createPlaylist(newPlName); setNewPlName(''); setIsCreating(false); } else if (e.key === 'Escape') setIsCreating(false); }} />
-                                <button onClick={() => setIsCreating(false)} className="px-3 text-neutral-400 hover:text-white border-l border-white/10 h-full transition-colors"><X className="w-4 h-4" /></button>
+                                <button onClick={() => setIsCreating(false)} className="px-3 text-neutral-400 hover:text-white border-l border-white/10 h-full transition-colors" aria-label="Cancel create playlist"><X className="w-4 h-4" /></button>
                             </div>
                         ) : (
                             <button onClick={() => setIsCreating(true)} className="flex items-center justify-center px-6 py-2.5 bg-primary text-black rounded-full text-sm font-bold hover:bg-white transition shadow-glow-sm hover:shadow-glow hover:scale-105 active:scale-95">
@@ -418,7 +420,7 @@ export const LibraryView: React.FC = () => {
                                                 <td className="p-4 hidden lg:table-cell cursor-pointer hover:text-white transition-colors text-sm" onClick={(e) => { e.stopPropagation(); if (song.albumId) setView('ALBUM_DETAIL', song.albumId); }}>{song.album}</td>
                                                 <td className="p-4 text-right font-mono text-xs tabular-nums cursor-pointer opacity-70 group-hover:opacity-100" onClick={() => playSong(song, displayItems as ISong[])}>{Math.floor(song.duration / 60)}:{song.duration % 60 < 10 ? '0' : ''}{song.duration % 60}</td>
                                                 <td className="p-4 text-right">
-                                                    <button onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }} className="text-neutral-500 hover:text-white p-2 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/10 rounded-full hover:scale-110" title="Add to Playlist">
+                                                    <button onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }} className="text-neutral-500 hover:text-white p-2 opacity-0 group-hover:opacity-100 transition-all hover:bg-white/10 rounded-full hover:scale-110" title="Add to Playlist" aria-label="Add to playlist">
                                                         <ListPlus className="w-4 h-4" />
                                                     </button>
                                                 </td>

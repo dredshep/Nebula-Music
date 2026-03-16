@@ -105,6 +105,7 @@ export const ArtistDetailView: React.FC = () => {
                                         onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                         className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary ml-2 opacity-0 group-hover:opacity-100 transition"
                                         title="Add to Playlist"
+                                        aria-label="Add to playlist"
                                    >
                                         <ListPlus className="w-4 h-4" />
                                    </button>
@@ -112,6 +113,7 @@ export const ArtistDetailView: React.FC = () => {
                                    <button 
                                         onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                         className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-white ml-2"
+                                        aria-label="More options"
                                    >
                                         <MoreVertical className="w-4 h-4" />
                                    </button>

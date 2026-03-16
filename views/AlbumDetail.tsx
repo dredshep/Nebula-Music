@@ -165,6 +165,7 @@ export const AlbumDetailView: React.FC = () => {
                                 <button
                                     className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
                                     title="Shuffle"
+                                    aria-label="Shuffle album"
                                     onClick={() => {
                                         if (album.songs) {
                                             const shuffled = [...album.songs].sort(() => Math.random() - 0.5);
@@ -178,6 +179,7 @@ export const AlbumDetailView: React.FC = () => {
                                     onClick={toggleAlbumLike}
                                     className={`p-2 rounded-lg transition ${album.starred ? 'bg-red-500/20 text-red-400' : 'bg-white/10 text-white hover:bg-white/20'}`}
                                     title={album.starred ? "Unlike" : "Like"}
+                                    aria-label={album.starred ? 'Unlike album' : 'Like album'}
                                 >
                                     <Heart className={`w-4 h-4 ${album.starred ? 'fill-current' : ''}`} />
                                 </button>
@@ -298,6 +300,7 @@ export const AlbumDetailView: React.FC = () => {
                                                     onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
                                                     className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
                                                     title={song.starred ? "Unlike" : "Like"}
+                                                    aria-label={song.starred ? 'Unlike song' : 'Like song'}
                                                 >
                                                     <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
                                                 </button>
@@ -305,6 +308,7 @@ export const AlbumDetailView: React.FC = () => {
                                                     onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                                     className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
                                                     title="Add to playlist"
+                                                    aria-label="Add to playlist"
                                                 >
                                                     <ListPlus className="w-4 h-4" />
                                                 </button>

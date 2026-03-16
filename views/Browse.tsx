@@ -41,6 +41,7 @@ const MixCard: React.FC<{
                 <button
                     onClick={(e) => { e.stopPropagation(); onPlay(); }}
                     className="absolute bottom-3 right-3 w-12 h-12 rounded-lg bg-white text-black flex items-center justify-center opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all shadow-xl hover:scale-105"
+                    aria-label="Play mix"
                 >
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                 </button>

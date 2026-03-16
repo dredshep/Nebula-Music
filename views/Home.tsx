@@ -66,6 +66,7 @@ const SongCard: React.FC<{ song: ISong; songs: ISong[]; index: number }> = ({ so
             <button
                 onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                 className="absolute top-3 right-3 p-2 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition hover:bg-white/20 backdrop-blur-sm"
+                aria-label="Add to playlist"
             >
                 <ListPlus className="w-4 h-4" />
             </button>
@@ -91,6 +92,7 @@ const SectionHeader: React.FC<{
                 <button
                     onClick={onRefresh}
                     className="p-2 rounded bg-neutral-200 dark:bg-white/5 hover:bg-neutral-300 dark:hover:bg-white/10 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition"
+                    aria-label={`Refresh ${title}`}
                 >
                     <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -189,6 +191,7 @@ const HeroSection: React.FC<{ songs: ISong[] }> = ({ songs }) => {
                         onClick={() => setCurrentIndex(idx)}
                         className={`h-1.5 rounded-full transition-all ${idx === currentIndex ? 'w-8 bg-primary' : 'w-2 bg-white/20 hover:bg-white/40'
                             }`}
+                        aria-label={`Show featured track ${idx + 1} of ${heroSongs.length}`}
                     />
                 ))}
             </div>
@@ -283,6 +286,7 @@ export const HomeView: React.FC = () => {
                         <button
                             onClick={async () => { setLoadingQuickPicks(true); await refreshQuickPicks(); setLoadingQuickPicks(false); }}
                             className="p-2 rounded bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition"
+                            aria-label="Refresh quick picks"
                         >
                             <RefreshCw className={`w-4 h-4 ${loadingQuickPicks ? 'animate-spin' : ''}`} />
                         </button>
@@ -299,13 +303,13 @@ export const HomeView: React.FC = () => {
                     <div className="flex border-b border-white/5 shrink-0">
                         <button
                             onClick={() => setActiveTab('played')}
-                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'played' ? 'bg-white/5 text-white' : 'text-white/40 hover:text-white'}`}
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'played' ? 'bg-white/5 text-white' : 'text-white/70 hover:text-white'}`}
                         >
                             Most Played Songs
                         </button>
                         <button
                             onClick={() => setActiveTab('recommended')}
-                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'recommended' ? 'bg-white/5 text-white' : 'text-white/40 hover:text-white'}`}
+                            className={`flex-1 py-3 text-xs font-bold uppercase tracking-wide transition ${activeTab === 'recommended' ? 'bg-white/5 text-white' : 'text-white/70 hover:text-white'}`}
                         >
                             For You
                         </button>
@@ -323,7 +327,7 @@ export const HomeView: React.FC = () => {
                                     />
                                 ))}
                                 {getMostPlayedSongs().length === 0 && (
-                                    <div className="text-center py-8 text-white/20 text-sm">
+                                    <div className="text-center py-8 text-white/60 text-sm">
                                         No stats yet.
                                     </div>
                                 )}

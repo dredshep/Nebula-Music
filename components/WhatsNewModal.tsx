@@ -38,6 +38,7 @@ export const WhatsNewModal: React.FC = () => {
           <button
             onClick={handleClose}
             className="absolute top-4 right-4 p-2 rounded-lg text-neutral-400 hover:text-white hover:bg-white/5 transition-colors z-10"
+            aria-label="Close what's new"
           >
             <X className="w-5 h-5" />
           </button>

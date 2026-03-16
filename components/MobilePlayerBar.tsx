@@ -63,6 +63,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
                         onClick={(e) => { e.stopPropagation(); togglePlay(); }}
                         className="w-10 h-10 rounded-full flex items-center justify-center active:scale-95 transition-transform"
                         style={{ backgroundColor: colors.primary, color: colors.text }}
+                        aria-label={isPlaying ? 'Pause' : 'Play'}
                     >
                         {isPlaying ? (
                             <Pause className="w-5 h-5 fill-current" />
@@ -74,6 +75,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
                     <button
                         onClick={(e) => { e.stopPropagation(); nextSong(); }}
                         className="p-2 text-white/60 hover:text-white active:scale-95 transition-all"
+                        aria-label="Next track"
                     >
                         <SkipForward className="w-5 h-5 fill-current" />
                     </button>
@@ -81,6 +83,7 @@ export const MobilePlayerBar: React.FC<MobilePlayerBarProps> = ({ onExpand }) =>
                     <button
                         onClick={(e) => { e.stopPropagation(); onExpand(); }}
                         className="p-2 text-white/40 hover:text-white active:scale-95 transition-all"
+                        aria-label="Open full screen player"
                     >
                         <ChevronUp className="w-5 h-5" />
                     </button>

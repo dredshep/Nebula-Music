@@ -104,6 +104,7 @@ export const SearchModal: React.FC = () => {
                     <button
                         onClick={handleClose}
                         className="p-2 rounded-xl hover:bg-white/10 text-neutral-500 hover:text-white transition-all duration-200 interactive-scale"
+                        aria-label="Close search"
                     >
                         <X className="w-5 h-5" />
                     </button>

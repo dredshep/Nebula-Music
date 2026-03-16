@@ -150,6 +150,7 @@ export const PlaylistDetailView: React.FC = () => {
                                         <button
                                             className="p-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition"
                                             title="Shuffle"
+                                            aria-label="Shuffle playlist"
                                             onClick={() => {
                                                 if (playlist.songs) {
                                                     const shuffled = [...playlist.songs].sort(() => Math.random() - 0.5);
@@ -177,6 +178,7 @@ export const PlaylistDetailView: React.FC = () => {
                                         onClick={() => { if (confirm('Are you sure you want to delete this playlist?')) deletePlaylist(playlist.id); }}
                                         className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition"
                                         title="Delete Playlist"
+                                        aria-label="Delete playlist"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -284,6 +286,7 @@ export const PlaylistDetailView: React.FC = () => {
                                                 onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
                                                 className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
                                                 title={song.starred ? "Unlike" : "Like"}
+                                                aria-label={song.starred ? 'Unlike song' : 'Like song'}
                                             >
                                                 <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
                                             </button>
@@ -291,6 +294,7 @@ export const PlaylistDetailView: React.FC = () => {
                                                 onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                                 className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
                                                 title="Add to playlist"
+                                                aria-label="Add to playlist"
                                             >
                                                 <ListPlus className="w-4 h-4" />
                                             </button>
@@ -299,8 +303,8 @@ export const PlaylistDetailView: React.FC = () => {
                                 );
                             })}
                             {(!playlist.songs || playlist.songs.length === 0) && (
-                                <div className="p-12 text-center text-white/40">
-                                    <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                                <div className="p-12 text-center text-white/60">
+                                    <ListMusic className="w-10 h-10 mx-auto mb-3 opacity-60" />
                                     <p className="text-sm">This playlist is empty.</p>
                                 </div>
                             )}

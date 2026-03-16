@@ -226,6 +226,7 @@ export const ArtistDetailView: React.FC = () => {
                                                 onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
                                                 className={`p-1.5 rounded hover:bg-white/10 transition ${song.starred ? 'text-red-400' : 'text-white/30 hover:text-white'}`}
                                                 title={song.starred ? "Unlike" : "Like"}
+                                                aria-label={song.starred ? 'Unlike song' : 'Like song'}
                                             >
                                                 <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
                                             </button>
@@ -233,6 +234,7 @@ export const ArtistDetailView: React.FC = () => {
                                                 onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
                                                 className="p-1.5 rounded hover:bg-white/10 text-white/30 hover:text-primary transition"
                                                 title="Add to playlist"
+                                                aria-label="Add to playlist"
                                             >
                                                 <ListPlus className="w-4 h-4" />
                                             </button>

@@ -141,6 +141,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                     <button
                         onClick={() => setVolume(volume === 0 ? 0.5 : 0)}
                         className="p-1.5 text-neutral-600 dark:text-white/40 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                        aria-label={volume === 0 ? 'Unmute' : 'Mute'}
                     >
                         {volume === 0 ? <VolumeX className="w-4 h-4" /> :
                             volume < 0.5 ? <Volume1 className="w-4 h-4" /> :
@@ -169,6 +170,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                 <button
                     onClick={() => toggleLike(currentSong)}
                     className={`p-2 transition-colors active:scale-95 ${currentSong.starred ? 'text-red-500' : 'text-white/40 hover:text-white'}`}
+                    aria-label={currentSong.starred ? 'Unlike' : 'Like'}
                 >
                     <Heart className={`w-4 h-4 ${currentSong.starred ? 'fill-current' : ''}`} />
                 </button>
@@ -178,6 +180,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                     <button
                         onClick={prevSong}
                         className="p-2 text-white/50 hover:text-white transition-colors active:scale-95"
+                        aria-label="Previous track"
                     >
                         <SkipBack className="w-4 h-4" fill="currentColor" />
                     </button>
@@ -185,6 +188,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                         onClick={togglePlay}
                         className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-105 active:scale-95"
                         style={{ backgroundColor: colors.primary }}
+                        aria-label={isPlaying ? 'Pause' : 'Play'}
                     >
                         {isPlaying ? (
                             <Pause className="w-4 h-4 text-black" fill="black" />
@@ -195,6 +199,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                     <button
                         onClick={nextSong}
                         className="p-2 text-white/50 hover:text-white transition-colors active:scale-95"
+                        aria-label="Next track"
                     >
                         <SkipForward className="w-4 h-4" fill="currentColor" />
                     </button>
@@ -210,6 +215,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                         onClick={onRestoreSidebar}
                         className="p-2 text-white/40 hover:text-white transition-colors active:scale-95"
                         title="Show sidebar"
+                        aria-label="Show sidebar"
                     >
                         <PanelRight className="w-4 h-4" />
                     </button>
@@ -218,6 +224,7 @@ export const FloatingMiniPlayer: React.FC<FloatingMiniPlayerProps> = ({ onExpand
                         onClick={onExpand}
                         className="p-2 text-white/40 hover:text-white transition-colors active:scale-95"
                         title="Full screen player"
+                        aria-label="Open full screen player"
                     >
                         <Maximize2 className="w-4 h-4" />
                     </button>
