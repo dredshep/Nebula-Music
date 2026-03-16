@@ -1,282 +1,360 @@
-
-
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useStore } from '../context/Store';
 import { IAlbum, ISong } from '../types';
-import { Play, Shuffle, Clock, Heart, ListMusic, ArrowLeft, ListPlus, BarChart2, Disc } from 'lucide-react';
-import { Visualizer } from '../components/Visualizer';
+import { Play, Shuffle, Heart, ArrowLeft, ListPlus, BarChart2, Disc, Pause, Info } from 'lucide-react';
+import { useAdaptiveColors } from '../hooks/useAdaptiveColors';
 
 export const AlbumDetailView: React.FC = () => {
-  const { viewData, setView, service, playSong, isPlaying, queue, currentSongIndex, openPlaylistModal, toggleLike } = useStore();
-  const [album, setAlbum] = useState<IAlbum | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
+    const { viewData, setView, service, playSong, isPlaying, queue, currentSongIndex, openPlaylistModal, toggleLike } = useStore();
+    const [album, setAlbum] = useState<IAlbum | null>(null);
+    const [relatedAlbums, setRelatedAlbums] = useState<IAlbum[]>([]);
+    const [showFullNotes, setShowFullNotes] = useState(false);
+    const [artistImage, setArtistImage] = useState<string>('');
 
-  useEffect(() => {
-    const load = async () => {
-      if (viewData) {
-        const data = await service.getAlbum(viewData);
-        setAlbum(data);
-      }
+    // Extract colors from album art for accent backgrounds
+    const albumArtUrl = album ? service.getCoverArtUrl(album.coverArt || album.id, 200) : undefined;
+    const { colors: albumColors } = useAdaptiveColors(albumArtUrl);
+
+    useEffect(() => {
+        const load = async () => {
+            if (viewData) {
+                const data = await service.getAlbum(viewData);
+                setAlbum(data);
+
+                if (data.artistId) {
+                    try {
+                        const { albums } = await service.getArtist(data.artistId);
+                        setRelatedAlbums(albums.filter(a => a.id !== data.id).slice(0, 6));
+
+                        // Fetch artist info for background image
+                        const artistInfo = await service.getArtistInfo(data.artistId, data.artist);
+                        if (artistInfo.image) {
+                            setArtistImage(artistInfo.image);
+                        }
+                    } catch (e) {
+                        console.warn('Could not load related albums or artist info');
+                    }
+                }
+            }
+        };
+        load();
+    }, [viewData, service]);
+
+    const hasMultiDisc = useMemo(() => {
+        return (album?.songs || []).some(s => (s.discNumber || 1) > 1);
+    }, [album]);
+
+    if (!album) return (
+        <div className="flex flex-col items-center justify-center h-full text-neutral-600 dark:text-white/60">
+            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+            <span className="text-sm">Loading Album...</span>
+        </div>
+    );
+
+    const formatTime = (s: number) => {
+        const m = Math.floor(s / 60);
+        const sec = s % 60;
+        return `${m}:${sec < 10 ? '0' + sec : sec}`;
     };
-    load();
-  }, [viewData, service]);
 
-  const hasMultiDisc = useMemo(() => {
-    return (album?.songs || []).some(s => (s.discNumber || 1) > 1);
-  }, [album]);
+    const formatTotalTime = (s: number) => {
+        const hrs = Math.floor(s / 3600);
+        const mins = Math.floor((s % 3600) / 60);
+        return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
+    };
 
-  if (!album) return <div className="p-10 text-white flex items-center"><div className="animate-spin mr-2"></div> Loading Album...</div>;
+    const getQualityBadge = (suffix?: string) => {
+        if (!suffix) return null;
+        const s = suffix.toUpperCase();
+        const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
+        return (
+            <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isLossless ? 'bg-yellow-500/20 text-yellow-400' : 'bg-neutral-200 text-neutral-600 dark:bg-white/10 dark:text-white/60'}`}>
+                {s}
+            </span>
+        );
+    };
 
-  const formatTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const sec = s % 60;
-    return `${m}:${sec < 10 ? '0' + sec : sec}`;
-  };
+    const toggleAlbumLike = async () => {
+        if (!album) return;
+        const newStatus = !album.starred;
+        setAlbum({ ...album, starred: newStatus });
+        await service.toggleStar(album.id, newStatus, 'album');
+    };
 
-  const formatTotalTime = (s: number) => {
-      const hrs = Math.floor(s / 3600);
-      const mins = Math.floor((s % 3600) / 60);
-      return hrs > 0 ? `${hrs} hr ${mins} min` : `${mins} min`;
-  };
+    const handleSongLike = (song: ISong) => {
+        toggleLike(song);
+        setAlbum(prev => prev ? { ...prev, songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s) } : null);
+    };
 
-  const getQualityBadge = (suffix?: string, bitrate?: number) => {
-      if (!suffix) return null;
-      const s = suffix.toUpperCase();
-      const isLossless = s === 'FLAC' || s === 'ALAC' || s === 'WAV';
-      
-      return (
-          <div className="flex items-center gap-2">
-              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold border ${isLossless ? 'border-yellow-500 text-yellow-500 bg-yellow-500/10' : 'border-neutral-600 text-neutral-400 bg-neutral-800'}`}>
-                  {s}
-              </span>
-              {bitrate && (
-                  <span className="text-[10px] text-neutral-500 font-mono">{bitrate}kbps</span>
-              )}
-          </div>
-      );
-  };
+    const currentSong = queue[currentSongIndex];
+    const isAlbumPlaying = currentSong?.albumId === album.id || currentSong?.album === album.name;
 
-  const toggleAlbumLike = async () => {
-      if (!album) return;
-      const newStatus = !album.starred;
-      setAlbum({ ...album, starred: newStatus });
-      await service.toggleStar(album.id, newStatus, 'album');
-  };
+    return (
+        <div className="min-h-full pb-32 w-full">
+            {/* Hero Header - full width */}
+            <div className="relative pt-4">
+                {/* Background with artist image and blur */}
+                <div className="absolute inset-x-0 top-0 h-[420px] overflow-hidden pointer-events-none">
+                    {artistImage ? (
+                        <img
+                            src={artistImage}
+                            className="absolute w-full h-full object-cover blur-2xl opacity-20 scale-110"
+                            alt=""
+                            onError={(e) => e.currentTarget.style.display = 'none'}
+                        />
+                    ) : (
+                        <img
+                            src={service.getCoverArtUrl(album.coverArt || album.id, 400)}
+                            className="absolute w-full h-full object-cover blur-3xl opacity-25 scale-150"
+                            alt=""
+                        />
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-neutral-200/90 to-neutral-200 dark:from-neutral-950/40 dark:via-neutral-950/85 dark:to-neutral-950" />
+                </div>
 
-  const handleSongLike = (song: ISong) => {
-      toggleLike(song);
-      setAlbum(prev => prev ? {
-          ...prev,
-          songs: prev.songs?.map(s => s.id === song.id ? { ...s, starred: !s.starred } : s)
-      } : null);
-  };
+                <div className="relative z-10 px-6 lg:px-10 pt-2 pb-10">
+                    {/* Back button */}
+                    <button
+                        onClick={() => setView('ALBUMS')}
+                        className="mb-5 flex items-center text-neutral-600 hover:text-neutral-900 transition text-sm font-medium group dark:text-white/50 dark:hover:text-white"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+                        Albums
+                    </button>
 
-  const currentSong = queue[currentSongIndex];
-  const isAlbumPlaying = currentSong?.albumId === album.id || currentSong?.album === album.name;
+                    <div className="flex flex-col md:flex-row gap-8">
+                        {/* Cover Art */}
+                        <div className="shrink-0 w-56 h-56 md:w-72 md:h-72 rounded-xl overflow-hidden shadow-2xl bg-neutral-200 dark:bg-neutral-900">
+                            <img
+                                src={service.getCoverArtUrl(album.coverArt || album.id, 500)}
+                                alt={album.name}
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
 
-  return (
-    <div className="flex flex-col min-h-full pb-10">
-      {/* Header / Top Section */}
-      <div className="relative px-8 pb-8 pt-4 md:px-12 md:pb-12 md:pt-8 flex flex-col md:flex-row items-center md:items-end gap-10 overflow-hidden">
-        
-        {/* Dynamic Background Blur */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-             <img src={service.getCoverArtUrl(album.coverArt || album.id, 600)} className="absolute w-full h-full object-cover blur-3xl opacity-20 scale-150" alt="" />
-             <div className="absolute inset-0 bg-gradient-to-b from-dark/80 via-dark/90 to-dark"></div>
-        </div>
+                        {/* Info */}
+                        <div className="flex-1 flex flex-col justify-end">
+                            <p className="text-[10px] font-bold text-neutral-600 dark:text-white/60 uppercase tracking-widest mb-1">Album</p>
+                            <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 dark:text-white mb-2 leading-tight">{album.name}</h1>
 
-        {/* Cover Art Container */}
-        <div className="relative z-10 group shrink-0">
-            {/* Visualizer Background */}
-            <div className="absolute -inset-4 rounded-3xl opacity-40 blur-xl bg-primary/20 transition-opacity duration-1000">
-                {isPlaying && isAlbumPlaying && <Visualizer className="w-full h-full opacity-50 scale-110" />}
-            </div>
-            
-            {/* The Cover Art - INCREASED SIZE */}
-            <div className="relative w-72 h-72 md:w-[400px] md:h-[400px] rounded-2xl shadow-2xl overflow-hidden border border-white/10 bg-neutral-900">
-                <img 
-                    src={service.getCoverArtUrl(album.coverArt || album.id, 600)} 
-                    alt={album.name} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 transform-gpu" 
-                />
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none"></div>
-            </div>
-        </div>
-
-        {/* Info */}
-        <div className="relative z-10 flex-1 text-center md:text-left">
-            <button onClick={() => setView('ALBUMS')} className="mb-4 flex items-center justify-center md:justify-start text-neutral-400 hover:text-white transition text-sm">
-                <ArrowLeft className="w-4 h-4 mr-1" /> Back to Albums
-            </button>
-            {/* Increased Font Size */}
-            <h1 className="text-5xl md:text-7xl font-black text-white mb-3 tracking-tight leading-none">{album.name}</h1>
-            
-            <div className="flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-4 text-neutral-300 mb-8">
-                <span 
-                    className="text-2xl text-primary cursor-pointer hover:underline font-bold"
-                    onClick={() => album.artistId && setView('ARTIST_DETAIL', album.artistId)}
-                >
-                    {album.artist}
-                </span>
-                <span className="hidden md:block w-1.5 h-1.5 bg-neutral-500 rounded-full"></span>
-                <span className="text-lg">{album.year}</span>
-                <span className="hidden md:block w-1.5 h-1.5 bg-neutral-500 rounded-full"></span>
-                <span className="uppercase text-xs border border-neutral-600 px-2 py-0.5 rounded text-neutral-400">{album.genre || 'Music'}</span>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5">
-                <button 
-                    onClick={() => album.songs && playSong(album.songs[0], album.songs)}
-                    className="px-10 py-4 bg-primary text-black text-lg font-bold rounded-full hover:bg-white transition shadow-xl shadow-primary/20 flex items-center transform hover:scale-105"
-                >
-                    <Play className="w-6 h-6 mr-2 fill-current" /> Play Album
-                </button>
-                <button className="px-6 py-4 bg-white/5 text-white font-medium rounded-full hover:bg-white/10 transition flex items-center border border-white/10">
-                    <Shuffle className="w-6 h-6 mr-2" /> Shuffle
-                </button>
-                <button 
-                    onClick={toggleAlbumLike}
-                    className={`px-6 py-4 font-medium rounded-full transition flex items-center border ${album.starred ? 'bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500/20' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
-                >
-                    <Heart className={`w-6 h-6 mr-2 ${album.starred ? 'fill-current' : ''}`} /> {album.starred ? 'Liked' : 'Like'}
-                </button>
-            </div>
-            
-            <div className="mt-8 flex items-center justify-center md:justify-start gap-8 text-sm font-mono text-neutral-500 uppercase tracking-widest">
-                <span className="flex items-center"><ListMusic className="w-4 h-4 mr-2" /> {album.songCount} Tracks</span>
-                <span className="flex items-center"><Clock className="w-4 h-4 mr-2" /> {formatTotalTime(album.duration)}</span>
-            </div>
-        </div>
-      </div>
-
-      {/* Album Information Box (Notes) */}
-      {album.info?.notes && (
-          <div className="px-4 md:px-12 mb-8 animate-fade-in">
-              <div className="bg-neutral-900/40 border border-white/5 p-6 rounded-2xl backdrop-blur-md relative">
-                  <h3 className="text-lg font-bold text-white mb-3 flex items-center">
-                      About
-                      {album.info.musicBrainzId && <span className="ml-2 text-[10px] bg-white/10 px-2 py-0.5 rounded text-neutral-400">MB</span>}
-                  </h3>
-                  <div className={`text-neutral-300 leading-relaxed text-sm whitespace-pre-line transition-all duration-300 ${!showInfo ? 'line-clamp-3 max-h-24 overflow-hidden' : ''}`}>
-                      {album.info.notes}
-                  </div>
-                  <div className="flex items-center justify-between mt-3">
-                      <button 
-                        onClick={() => setShowInfo(!showInfo)}
-                        className="text-xs font-bold text-primary hover:text-white transition"
-                      >
-                        {showInfo ? 'Read Less' : 'Read More'}
-                      </button>
-                      {album.info.lastFmUrl && (
-                        <a href={album.info.lastFmUrl} target="_blank" rel="noreferrer" className="text-xs text-neutral-500 hover:text-white transition flex items-center">
-                            Last.fm &rarr;
-                        </a>
-                      )}
-                  </div>
-              </div>
-          </div>
-      )}
-
-      {/* Tracklist */}
-      <div className="px-4 md:px-12 flex-1">
-          <div className="bg-neutral-900/30 border border-white/5 rounded-2xl overflow-hidden backdrop-blur-md">
-            <table className="w-full text-left text-sm text-neutral-400">
-                <thead className="bg-black/20 text-neutral-500 uppercase tracking-wider text-xs border-b border-white/5">
-                    <tr>
-                        <th className="p-4 font-medium w-12 text-center">#</th>
-                        <th className="p-4 font-medium">Title</th>
-                        <th className="p-4 font-medium">Artist</th>
-                        <th className="p-4 font-medium hidden lg:table-cell">Quality</th>
-                        <th className="p-4 font-medium hidden lg:table-cell text-right">Plays</th>
-                        <th className="p-4 font-medium text-right">Duration</th>
-                        <th className="p-4 w-12"></th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                    {album.songs?.map((song, idx) => {
-                        const isCurrent = currentSong?.id === song.id;
-                        const discNumber = song.discNumber || 1;
-                        const prevDisc = idx > 0 ? (album.songs![idx-1].discNumber || 1) : 0;
-                        const showDiscHeader = hasMultiDisc && discNumber !== prevDisc;
-
-                        return (
-                            <React.Fragment key={song.id}>
-                                {showDiscHeader && (
-                                     <tr className="bg-white/5 border-b border-white/5">
-                                        <td colSpan={7} className="px-4 py-2 text-xs font-bold text-neutral-300 uppercase tracking-wider">
-                                            <div className="flex items-center">
-                                                <Disc className="w-3 h-3 mr-2" /> Disc {discNumber}
-                                            </div>
-                                        </td>
-                                     </tr>
-                                )}
-                                <tr 
-                                    className={`group transition-colors hover:bg-white/5 ${isCurrent ? 'bg-white/10' : ''}`}
+                            <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-600 dark:text-white/60 mb-4">
+                                <button
+                                    className="hover:text-neutral-900 transition font-medium dark:hover:text-white"
+                                    onClick={() => album.artistId && setView('ARTIST_DETAIL', album.artistId)}
                                 >
-                                    <td className="p-4 text-center cursor-pointer relative" onClick={() => album.songs && playSong(song, album.songs)}>
-                                        <div className="flex items-center justify-center w-8 h-8 mx-auto relative">
-                                            {isCurrent && isPlaying ? (
-                                                <div className="w-3 h-3 bg-primary rounded-full animate-pulse"></div>
-                                            ) : (
-                                                <>
-                                                    <span className="font-mono text-neutral-600 text-sm absolute inset-0 flex items-center justify-center transition-opacity duration-200 group-hover:opacity-0">
-                                                        {idx + 1}
-                                                    </span>
-                                                    <Play className="w-4 h-4 text-white absolute inset-0 m-auto opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none" />
-                                                </>
+                                    {album.artist}
+                                </button>
+                                {album.year && (
+                                    <>
+                                        <span className="text-neutral-400 dark:text-white/50">•</span>
+                                        <span>{album.year}</span>
+                                    </>
+                                )}
+                                <span className="text-neutral-400 dark:text-white/50">•</span>
+                                <span>{album.songCount} songs, {formatTotalTime(album.duration)}</span>
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2">
+                                <button
+                                    onClick={() => album.songs && playSong(album.songs[0], album.songs)}
+                                    className="flex items-center gap-2 px-5 py-2 bg-neutral-900 text-white font-bold rounded-lg hover:bg-neutral-800 transition text-sm dark:bg-white dark:text-black dark:hover:bg-primary dark:hover:text-white"
+                                >
+                                    {isPlaying && isAlbumPlaying ? <Pause className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                                    {isPlaying && isAlbumPlaying ? 'Pause' : 'Play'}
+                                </button>
+                                <button
+                                    className="p-2 bg-neutral-200 text-neutral-700 rounded-lg hover:bg-neutral-300 hover:text-neutral-900 transition dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+                                    title="Shuffle"
+                                    aria-label="Shuffle album"
+                                    onClick={() => {
+                                        if (album.songs) {
+                                            const shuffled = [...album.songs].sort(() => Math.random() - 0.5);
+                                            playSong(shuffled[0], shuffled);
+                                        }
+                                    }}
+                                >
+                                    <Shuffle className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={toggleAlbumLike}
+                                    className={`p-2 rounded-lg transition ${album.starred ? 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400' : 'bg-neutral-200 text-neutral-700 hover:bg-neutral-300 hover:text-neutral-900 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'}`}
+                                    title={album.starred ? "Unlike" : "Like"}
+                                    aria-label={album.starred ? 'Unlike album' : 'Like album'}
+                                >
+                                    <Heart className={`w-4 h-4 ${album.starred ? 'fill-current' : ''}`} />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Separator */}
+            <div className="px-6 lg:px-10">
+                <div className="border-t border-neutral-200 dark:border-white/10 my-2" />
+            </div>
+
+            {/* Main Content - full width */}
+            <div className="px-6 lg:px-10 pt-4">
+                {/* About Section */}
+                {album.info?.notes && (
+                    <div className="mb-8 mt-4">
+                        <div
+                            className="flex items-start gap-3 p-4 bg-neutral-100 border border-neutral-200 rounded-lg cursor-pointer hover:bg-neutral-200 transition dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/[0.07]"
+                            onClick={() => setShowFullNotes(!showFullNotes)}
+                        >
+                            <Info className="w-4 h-4 text-neutral-500 dark:text-white/60 shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <h3 className="text-xs font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-1">About</h3>
+                                <p className={`text-sm text-neutral-700 dark:text-white/70 leading-relaxed ${!showFullNotes ? 'line-clamp-2' : ''}`}>
+                                    {album.info.notes}
+                                </p>
+                                {album.info.notes.length > 120 && (
+                                    <span className="text-xs text-primary mt-1 inline-block">
+                                        {showFullNotes ? 'Show less' : 'Read more'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Track List Section - with album-colored accent */}
+                <section
+                    className="mb-8 rounded-xl overflow-hidden"
+                    style={{
+                        background: `linear-gradient(135deg, ${albumColors.surface} 0%, transparent 100%)`,
+                    }}
+                >
+                    <div className="p-4">
+                        <h2 className="text-sm font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-3">Tracks</h2>
+                        <div className="border border-neutral-300 dark:border-white/10 rounded-lg overflow-hidden" style={{ borderColor: albumColors.primaryMuted }}>
+                            {album.songs?.map((song, idx) => {
+                                const isCurrent = currentSong?.id === song.id;
+                                const discNumber = song.discNumber || 1;
+                                const prevDisc = idx > 0 ? (album.songs![idx - 1].discNumber || 1) : 0;
+                                const showDiscHeader = hasMultiDisc && discNumber !== prevDisc;
+
+                                return (
+                                    <React.Fragment key={song.id}>
+                                        {showDiscHeader && (
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-neutral-200 dark:bg-white/5 text-xs font-bold text-neutral-700 dark:text-white/50 uppercase tracking-wide border-b border-neutral-300 dark:border-white/10">
+                                                <Disc className="w-3.5 h-3.5 text-primary" />
+                                                Disc {discNumber}
+                                            </div>
+                                        )}
+                                        <div
+                                            className={`group flex items-center gap-4 px-5 py-4 cursor-pointer transition border-b border-neutral-200 dark:border-white/5 last:border-0 hover:bg-neutral-100 dark:hover:bg-white/5 ${isCurrent ? 'bg-neutral-100 dark:bg-white/5' : ''}`}
+                                            onClick={() => album.songs && playSong(song, album.songs)}
+                                        >
+                                            {/* Track number / Play */}
+                                            <div className="w-7 text-center relative shrink-0">
+                                                {isCurrent && isPlaying ? (
+                                                    <div className="flex gap-0.5 items-end justify-center h-4">
+                                                        <div className="w-0.5 bg-primary animate-pulse h-2"></div>
+                                                        <div className="w-0.5 bg-primary animate-pulse h-3"></div>
+                                                        <div className="w-0.5 bg-primary animate-pulse h-4"></div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <span className={`text-xs font-mono group-hover:opacity-0 transition ${isCurrent ? 'text-primary' : 'text-neutral-600 dark:text-white/60'}`}>
+                                                            {idx + 1}
+                                                        </span>
+                                                        <Play className="w-3.5 h-3.5 text-neutral-900 dark:text-white absolute inset-0 m-auto opacity-0 group-hover:opacity-100 transition fill-current" />
+                                                    </>
+                                                )}
+                                            </div>
+
+                                            {/* Title & Artist */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className={`text-sm font-medium truncate transition ${isCurrent ? 'text-primary' : 'text-neutral-900 dark:text-white group-hover:text-neutral-900 dark:group-hover:text-white'}`}>
+                                                    {song.title}
+                                                </p>
+                                                {song.artist !== album.artist && (
+                                                    <p className="text-xs text-neutral-600 dark:text-white/60 truncate">{song.artist}</p>
+                                                )}
+                                            </div>
+
+
+
+                                            {/* Play count */}
+                                            {song.playCount && song.playCount > 0 && (
+                                                <div className="hidden md:flex items-center gap-1 text-[10px] text-neutral-500 dark:text-white/50 font-mono shrink-0">
+                                                    <BarChart2 className="w-3 h-3" />
+                                                    {song.playCount}
+                                                </div>
                                             )}
+
+                                            {/* Duration */}
+                                            <span className="text-xs text-neutral-500 dark:text-white/60 font-mono w-10 text-right shrink-0">
+                                                {formatTime(song.duration)}
+                                            </span>
+
+                                            {/* Actions - always visible */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                {/* Quality badge - moved here */}
+                                                <div className="shrink-0">
+                                                    {getQualityBadge(song.suffix)}
+                                                </div>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
+                                                    className={`p-1.5 rounded hover:bg-neutral-200 transition dark:hover:bg-white/10 ${song.starred ? 'text-red-400' : 'text-neutral-500 hover:text-neutral-900 dark:text-white/50 dark:hover:text-white'}`}
+                                                    title={song.starred ? "Unlike" : "Like"}
+                                                    aria-label={song.starred ? 'Unlike song' : 'Like song'}
+                                                >
+                                                    <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
+                                                    className="p-1.5 rounded hover:bg-neutral-200 text-neutral-500 hover:text-primary transition dark:hover:bg-white/10 dark:text-white/50"
+                                                    title="Add to playlist"
+                                                    aria-label="Add to playlist"
+                                                >
+                                                    <ListPlus className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
-                                    </td>
-                                    <td className="p-4 cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
-                                        <div className="flex items-center">
-                                            <span className={`font-medium text-base ${isCurrent ? 'text-primary' : 'text-white'}`}>{song.title}</span>
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Related Albums */}
+                {relatedAlbums.length > 0 && (
+                    <section className="mb-8">
+                        <div className="border-t border-neutral-200 dark:border-white/10 pt-6 mb-4" />
+                        <h2 className="text-sm font-semibold text-neutral-700 dark:text-white/60 uppercase tracking-wide mb-4">More by {album.artist}</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+                            {relatedAlbums.map((related) => (
+                                <div
+                                    key={related.id}
+                                    className="group cursor-pointer"
+                                    onClick={() => setView('ALBUM_DETAIL', related.id)}
+                                >
+                                    <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-200 dark:bg-neutral-900 mb-2">
+                                        <img
+                                            src={service.getCoverArtUrl(related.coverArt || related.id, 200)}
+                                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                            loading="lazy"
+                                            alt={related.name}
+                                        />
+                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                                            <Play className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition fill-current" />
                                         </div>
-                                    </td>
-                                    <td className="p-4 text-neutral-500">
-                                        <span 
-                                            className="cursor-pointer hover:text-white hover:underline"
-                                            onClick={(e) => { e.stopPropagation(); if(song.artistId) setView('ARTIST_DETAIL', song.artistId); }}
-                                        >
-                                            {song.artist}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 hidden lg:table-cell">
-                                        {getQualityBadge(song.suffix, song.bitRate)}
-                                    </td>
-                                    <td className="p-4 hidden lg:table-cell text-right text-neutral-500 text-xs">
-                                        <div className="flex items-center justify-end gap-1" title="Play Count">
-                                            <BarChart2 className="w-3 h-3" />
-                                            {song.playCount || 0}
-                                        </div>
-                                    </td>
-                                    <td className="p-4 text-right font-mono cursor-pointer" onClick={() => album.songs && playSong(song, album.songs)}>
-                                        {formatTime(song.duration)}
-                                    </td>
-                                    <td className="p-4 text-right flex items-center justify-end gap-2">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); handleSongLike(song); }}
-                                            className={`p-2 rounded-full hover:bg-white/10 transition opacity-0 group-hover:opacity-100 ${song.starred ? 'text-red-500 opacity-100' : 'text-neutral-500 hover:text-white'}`}
-                                            title={song.starred ? "Unlike" : "Like"}
-                                        >
-                                            <Heart className={`w-4 h-4 ${song.starred ? 'fill-current' : ''}`} />
-                                        </button>
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); openPlaylistModal(song); }}
-                                            className="p-2 rounded-full hover:bg-white/10 text-neutral-500 hover:text-primary transition opacity-0 group-hover:opacity-100 mr-1"
-                                            title="Add to Playlist"
-                                        >
-                                            <ListPlus className="w-4 h-4" />
-                                        </button>
-                                    </td>
-                                </tr>
-                            </React.Fragment>
-                        );
-                    })}
-                </tbody>
-            </table>
-          </div>
-      </div>
-    </div>
-  );
+                                    </div>
+                                    <h3 className="text-xs font-medium text-neutral-900 dark:text-white truncate">{related.name}</h3>
+                                    <p className="text-[10px] text-neutral-600 dark:text-white/60">{related.year}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+            </div>
+        </div>
+    );
 };
+
+
+

@@ -38,9 +38,9 @@ export interface IAlbum {
   songs?: ISong[]; // Extended for detail view
   starred?: boolean;
   info?: {
-      notes?: string;
-      musicBrainzId?: string;
-      lastFmUrl?: string;
+    notes?: string;
+    musicBrainzId?: string;
+    lastFmUrl?: string;
   }
 }
 
@@ -67,12 +67,12 @@ export interface IPlaylist {
 }
 
 export interface HomeData {
-    randomSongs: ISong[];
-    recentAlbums: IAlbum[];
-    newestAlbums: IAlbum[];
-    exploreAlbums: IAlbum[];
-    recommendedTracks: ISong[];
-    lastFetched: number;
+  randomSongs: ISong[];
+  recentAlbums: IAlbum[];
+  newestAlbums: IAlbum[];
+  exploreAlbums: IAlbum[];
+  recommendedTracks: ISong[];
+  lastFetched: number;
 }
 
 export interface SubsonicCredentials {
@@ -95,6 +95,7 @@ export interface AppSettings {
   theme: {
     primaryColor: string; // hex
     secondaryColor: string; // hex
+    backgroundColor: string; // hex - for background tint
   };
   sidebar: {
     showHome: boolean;
@@ -105,6 +106,23 @@ export interface AppSettings {
     showPlaylists: boolean;
   };
   shortcuts: ShortcutBindings;
+  eq: {
+    enabled: boolean;
+    preset: 'flat' | 'rock' | 'pop' | 'jazz' | 'classical' | 'electronic' | 'bass-boost' | 'treble-boost' | 'vocal' | 'custom';
+    bands: {
+      '32': number;
+      '64': number;
+      '125': number;
+      '250': number;
+      '500': number;
+      '1k': number;
+      '2k': number;
+      '4k': number;
+      '8k': number;
+      '16k': number;
+    };
+  };
+  miniPlayerMode: 'floating' | 'sidebar'; // which mini-player style to show
 }
 
 export type PlaybackMode = 'normal' | 'shuffle';
@@ -120,13 +138,15 @@ export interface AppState {
   isPlaying: boolean;
   volume: number;
   playbackRate: number;
+  pitch: number; // Semitones adjustment for audio pitch
   pitchCorrection: boolean; // If false, speed affects pitch (vinyl mode)
   repeatMode: RepeatMode;
   visualizerMode: VisualizerMode;
   credentials: SubsonicCredentials | null;
   isDemoMode: boolean;
+  isInitialized: boolean;
   settings: AppSettings;
-  
+
   // Playlist Logic
   playlists: IPlaylist[];
   modalOpen: boolean;
@@ -136,7 +156,7 @@ export interface AppState {
   searchResults: { artists: IArtist[], albums: IAlbum[], songs: ISong[] };
   isSearching: boolean;
   lastSearchQuery: string;
-  
+
   // Zen Mode State (Global to allow shortcuts)
   isZenMode: boolean;
   setZenMode: (enabled: boolean) => void;

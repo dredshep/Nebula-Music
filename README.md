@@ -1,77 +1,208 @@
-<div align="center">
-  <br />
-  <img src="./logo.svg" alt="Nebula Music Logo" width="120" height="120" />
-  <h1>Nebula Music</h1>
-  <p>A high-fidelity, glassmorphic music client for the modern web.</p>
-</div>
+# Nebula Music
 
-Nebula Music is a modern web music client designed for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Built with performance, aesthetics, and user experience in mind, it mimics the feel of native desktop applications while fully supporting mobile devices.
+A high-fidelity music client for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Version 2.0 introduces a full UI refresh with light-first surfaces, improved contrast, and a cleaner, more consistent player experience across the app.
 
-## Features
+## Table of Contents
 
-*   **Modern UI/UX**: Glassmorphism design, smooth transitions, and animated backgrounds.
-*   **Mobile-First Experience**: 
-    *   Dedicated bottom navigation bar for mobile devices.
-    *   Touch-optimized library tabs and controls.
-    *   Responsive layouts optimized for Phones, Tablets (Portrait/Landscape), and Desktops.
-*   **Smart Search**: 
-    *   Spotlight-style command palette (`Cmd+K`) for instant access.
-    *   Semantic search across Artists, Albums, and Songs.
-    *   Real-time results as you type.
-*   **Audio Engine**: 
-    *   Pitch control (Vinyl Mode).
-    *   Playback speed adjustment.
-    *   Integrated Volume control.
-    *   **High-Performance Visualizers**: Robust, high-DPI capable rendering engine supporting multiple modes (Bars, Wave, Circle, Mirror, Spectrum, Particles, Hexagon).
-*   **Enhanced Player**:
-    *   Synchronized Lyrics view.
-    *   Immersive "Zen Mode" visualizer.
-    *   Queue management.
-*   **Library Management**:
-    *   Browse by Artists, Albums, Songs.
-    *   Manage Playlists (Create, Delete, Reorder via Drag & Drop).
-    *   Favorites/Starring system.
-*   **Discovery**:
-    *   Rotating Featured Hero section.
-    *   Random suggested mixes (Flow State, Nostalgia Trip, Daily Mix).
-    *   Most Played tracking (Local).
-    *   Recent & Frequent album views.
-*   **Subsonic Integration**: Full support for standard Subsonic API authentication.
-*   **Offline Ready**: Intelligent caching of API responses and images via IndexedDB.
+- [Key Features](#key-features)
+- [Changelog](#changelog)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Configuration and Environment](#configuration-and-environment)
+- [Using Nebula](#using-nebula)
+- [Architecture](#architecture)
+- [Keyboard Shortcuts](#keyboard-shortcuts)
+- [Available Scripts](#available-scripts)
+- [Deployment](#deployment)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## Key Features
+
+- UI Refresh (v2.0): Light-first surfaces, refined panels, and consistent styling across Home, Browse, Library, Player, and Modals.
+- Theme System: System preference on first launch, explicit Light/Dark selection in Settings, and CSS-variable driven theming.
+- Audio Engine: Playback speed control, per-song pitch persistence, and pitch correction (vinyl mode support).
+- Visualizers: Web Audio API visualizer modes (Bars, Wave, Circle, Mirror, Spectrum, Particles, Hexagon).
+- Player Experience: Expandable full-screen player, sidebar or floating mini-player, and mobile bottom player bar.
+- Search: Spotlight-style modal search with real-time results across artists, albums, and songs.
+- Library Management: Artists, albums, songs, playlists, likes, and queue management.
+- Discovery: Featured hero, random mixes, recent/newest albums, and most played tracking.
+- Offline-Ready Caching: IndexedDB caching for API responses, settings, and local play stats.
+- Accessibility Improvements: Stronger contrast for secondary text, larger touch targets, and semantic heading fixes.
 
 ## Changelog
 
-### v1.4
+### v2.0 (2026-03-16)
+- Full UI refresh with light-first surfaces and refined panels.
+- Theme system now respects system preference on first launch with explicit Light/Dark selection in Settings.
+- Accessibility polish: higher contrast secondary text, larger touch targets, and semantic heading order fixes.
+- Playback polish with per-song pitch persistence and clearer speed and pitch handling.
+- Visual consistency pass across Home, Browse, Library, Player, and modals.
 
-**Redesigned Expanded Player:** Now features a sleek side-by-side layout on larger screens with significantly larger album art.
+### v1.4 (2024-05-24)
+- Expanded player layout refinements and larger album art on wide screens.
+- Mini player enhancements with seekable progress bar and time display.
+- Additional metadata in the expanded player (genre, year, quality).
+- Visual spacing and animation improvements.
 
-**Mini Player Update:** Added a fully seekable progress bar with hover controls and a dedicated time display.
-
-**Metadata Detail:** Expanded player now displays detailed track info including Genre, Year, and Audio Quality specifics.
-
-**Visual Polish:** Improved animations and layout spacing for a more immersive listening experience.
-
+### v1.3 (2024-05-22)
+- Smarter transcoding rules for M4A and ALAC playback.
+- Dynamic viewport sizing for better mobile stability.
+- Persistent library filters (sort, genre, year).
+- Hero stability fixes and artist parallax improvements.
 
 ## Tech Stack
 
-*   **Framework**: React 18
-*   **Build Tool**: Vite
-*   **Styling**: Tailwind CSS
-*   **Icons**: Lucide React
-*   **Visualization**: Web Audio API + HTML5 Canvas
-*   **Storage**: IndexedDB (via custom wrapper)
+- Language: TypeScript
+- Framework: React 18
+- Build Tooling: Vite 5
+- Styling: Tailwind CSS 3
+- Audio: HTMLAudioElement + Web Audio API
+- Storage: IndexedDB (custom wrapper in services/db.ts)
+- Icons: Lucide React
 
-## Local Development
+## Prerequisites
 
-1.  Install dependencies:
-    ```bash
-    npm install
-    ```
-2.  Start the development server:
-    ```bash
-    npm run dev
-    ```
-3.  Open `http://localhost:3000` in your browser.
+- Node.js 18 or newer
+- npm (package-lock.json is included)
+
+## Getting Started
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Start the development server:
+
+```bash
+npm run dev
+```
+
+3. Open the app:
+
+```text
+http://localhost:3000
+```
+
+## Configuration and Environment
+
+No environment variables are required for local development. Subsonic credentials are entered in the UI and stored locally in IndexedDB.
+
+Local storage details:
+- IndexedDB settings store: theme, EQ, shortcuts, and cached API responses
+- IndexedDB stats store: most played tracking per server
+- localStorage: lightweight play history snapshots and last-seen version for the What's New modal
+
+## Using Nebula
+
+1. Launch the app and connect your Subsonic server.
+1. Enter your server URL, username, and password. The app stores a token + salt, not the raw password.
+1. Explore Home, Browse, Library, and Player screens. Toggle Light/Dark in Settings.
+1. Optional: Click "Try Demo Mode" to explore the UI with mock data.
+
+## Architecture
+
+### Directory Structure
+
+```text
+nebula-music(1)/
+|-- components/           # Reusable UI building blocks
+|   |-- layout/           # App frame and top bar
+|   |-- navigation/       # Nav drawer and mobile nav
+|   |-- player/           # Now playing, mini player, player panels
+|   `-- ui/               # Shared UI primitives
+|-- constants/            # EQ presets and constants
+|-- context/              # ThemeContext and Store state
+|-- hooks/                # UI-focused hooks (adaptive colors, artist images)
+|-- services/             # Subsonic API client and IndexedDB wrapper
+|-- views/                # Route-level screens (Home, Browse, Library, Player, Settings)
+|-- App.tsx               # App shell and routing logic
+|-- index.tsx             # App bootstrap and error boundary
+|-- index.css             # Global styles, custom utilities, theme overrides
+`-- index.html            # Vite entry HTML (fonts, meta tags)
+```
+
+### App State and Data Flow
+
+1. React components call actions from context/Store.tsx.
+1. Store actions delegate to services/subsonicService.ts for network calls.
+1. Responses are cached in IndexedDB (services/db.ts) to reduce network chatter.
+1. Store state updates re-render views and player surfaces.
+
+### Audio Pipeline
+
+1. HTMLAudioElement lives in StoreProvider and is shared app-wide.
+1. Playback rate and pitch are combined into a final playbackRate value.
+1. Web Audio API AnalyserNode is created lazily and drives visualizers.
+1. Media Session API keeps OS-level playback controls and metadata in sync.
+
+### Theme System
+
+- ThemeContext determines light or dark mode based on saved preference.
+- On first launch, the app uses prefers-color-scheme.
+- The html element gets the dark class only in dark mode and a data-theme attribute for future overrides.
+- CSS variables are written to :root for consistent color usage.
+
+### Storage and Caching
+
+- IndexedDB stores settings, cached API responses, and per-server play stats.
+- localStorage stores quick play history lists and the last-seen app version.
+
+## Keyboard Shortcuts
+
+| Action | Default Shortcut |
+| --- | --- |
+| Play/Pause | Space |
+| Previous Track | ArrowLeft |
+| Next Track | ArrowRight |
+| Toggle Repeat | L |
+| Cycle Visualizer | V |
+| Toggle Zen Mode | Z |
+
+Shortcuts are configurable in Settings.
+
+## Available Scripts
+
+| Command | Description |
+| --- | --- |
+| npm run dev | Start the Vite dev server on port 3000 |
+| npm run build | Build production assets to dist/ |
+| npm run preview | Preview the production build locally |
+
+## Deployment
+
+### Vercel
+
+1. Import the repository into Vercel.
+1. Framework preset: Vite.
+1. Build command: npm run build
+1. Output directory: dist
+1. Deploy. Vercel will serve the static build.
+
+### Static Hosting
+
+You can host the dist/ folder on any static host (Netlify, S3, Cloudflare Pages). Build locally using npm run build and upload dist/.
+
+## Troubleshooting
+
+### Cannot connect to server
+
+- Ensure your server URL is correct and includes https:// when available.
+- Confirm your Subsonic server is reachable from the browser.
+- Check for CORS restrictions on the server.
+
+### Audio plays but cannot seek
+
+- Some formats require transcoding. SubsonicService forces transcoding for problematic formats like ALAC and M4A.
+- If you self-host, confirm your server supports streaming with proper Content-Length headers.
+
+### Theme does not persist
+
+- Ensure localStorage and IndexedDB are not blocked by the browser.
+- Clear site data if you recently switched between demo and live credentials.
 
 ## License
 
