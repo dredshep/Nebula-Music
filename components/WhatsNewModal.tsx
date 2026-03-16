@@ -61,6 +61,9 @@ export const WhatsNewModal: React.FC = () => {
           <h3 className="text-base font-semibold text-neutral-900 dark:text-white mb-6 flex items-center justify-center">
             {currentLog.title}
           </h3>
+          <p className="text-[11px] uppercase tracking-widest text-neutral-500 dark:text-neutral-400 text-center mb-6">
+            Released {currentLog.date}
+          </p>
           <ul className="space-y-4">
             {currentLog.changes.map((change, index) => (
               <li
