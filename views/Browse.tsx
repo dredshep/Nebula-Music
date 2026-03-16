@@ -97,8 +97,8 @@ const AlbumCard: React.FC<{
                     </div>
                 )}
             </div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white text-sm truncate mb-1">{album.name}</h4>
-            <p className="text-xs text-neutral-600 dark:text-white/40 truncate">{album.artist}</p>
+            <h3 className="font-semibold text-neutral-900 dark:text-white text-sm truncate mb-1">{album.name}</h3>
+            <p className="text-xs text-neutral-600 dark:text-white/70 truncate">{album.artist}</p>
         </div>
     );
 };

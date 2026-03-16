@@ -26,8 +26,8 @@ const AlbumCard: React.FC<{ album: IAlbum; onClick: () => void }> = ({ album, on
                     <Play className="w-5 h-5 fill-current ml-0.5" />
                 </div>
             </div>
-            <h4 className="font-semibold text-neutral-900 dark:text-white text-sm truncate mb-1">{album.name}</h4>
-            <p className="text-xs text-neutral-600 dark:text-white/40 truncate">{album.artist}</p>
+            <h3 className="font-semibold text-neutral-900 dark:text-white text-sm truncate mb-1">{album.name}</h3>
+            <p className="text-xs text-neutral-600 dark:text-white/70 truncate">{album.artist}</p>
         </div>
     );
 };
@@ -58,7 +58,7 @@ const SongCard: React.FC<{ song: ISong; songs: ISong[]; index: number }> = ({ so
 
             {/* Song info */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
-                <h4 className="font-semibold text-white text-sm truncate">{song.title}</h4>
+                <h3 className="font-semibold text-white text-sm truncate">{song.title}</h3>
                 <p className="text-xs text-white/50 truncate mt-1">{song.artist}</p>
             </div>
 
