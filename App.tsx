@@ -149,17 +149,19 @@ const AppContent: React.FC = () => {
         }
       >
         {/* Top Bar */}
-        <TopBar onMenuClick={() => setIsNavOpen(true)} />
+        <header>
+          <TopBar onMenuClick={() => setIsNavOpen(true)} />
+        </header>
 
         {/* Scrollable Content */}
-        <section
+        <main
           ref={mainRef}
           className="flex-1 overflow-y-auto custom-scrollbar"
         >
           <div className={`min-h-full ${isPlayerVisible ? 'pb-24 lg:pb-8' : 'pb-8'}`}>
             <ViewComponent />
           </div>
-        </section>
+        </main>
 
         {/* Mobile Player Bar (shows on mobile when something is playing) */}
         <MobilePlayerBar onExpand={() => setIsExpanded(true)} />
