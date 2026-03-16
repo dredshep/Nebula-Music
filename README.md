@@ -40,13 +40,13 @@ A high-fidelity music client for Subsonic-compatible servers (Navidrome, Gonic, 
 - Playback polish with per-song pitch persistence and clearer speed and pitch handling.
 - Visual consistency pass across Home, Browse, Library, Player, and modals.
 
-### v1.4 (2025-12-24)
+### v1.4 (2026-01-27)
 - Expanded player layout refinements and larger album art on wide screens.
 - Mini player enhancements with seekable progress bar and time display.
 - Additional metadata in the expanded player (genre, year, quality).
 - Visual spacing and animation improvements.
 
-### v1.3 (2025-11-22)
+### v1.3 (2026-01-23)
 - Smarter transcoding rules for M4A and ALAC playback.
 - Dynamic viewport sizing for better mobile stability.
 - Persistent library filters (sort, genre, year).
