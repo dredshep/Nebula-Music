@@ -73,7 +73,6 @@ export const NavDrawer: React.FC<NavDrawerProps> = ({ isOpen, onClose }) => {
                     ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
                 `}
                 onClick={onClose}
-                aria-hidden="true"
             />
 
             {/* Drawer */}
