@@ -1,6 +1,6 @@
 # Nebula Music
 
-A high-fidelity, glassmorphic music client for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Version 2.0 introduces a full UI refresh with light-first surfaces, improved contrast, and a cleaner, more consistent player experience across the app.
+A high-fidelity music client for Subsonic-compatible servers (Navidrome, Gonic, Airsonic, etc.). Version 2.0 introduces a full UI refresh with light-first surfaces, improved contrast, and a cleaner, more consistent player experience across the app.
 
 ## Table of Contents
 
@@ -20,7 +20,7 @@ A high-fidelity, glassmorphic music client for Subsonic-compatible servers (Navi
 
 ## Key Features
 
-- UI Refresh (v2.0): Light-first surfaces, refined glass panels, and consistent styling across Home, Browse, Library, Player, and Modals.
+- UI Refresh (v2.0): Light-first surfaces, refined panels, and consistent styling across Home, Browse, Library, Player, and Modals.
 - Theme System: System preference on first launch, explicit Light/Dark selection in Settings, and CSS-variable driven theming.
 - Audio Engine: Playback speed control, per-song pitch persistence, and pitch correction (vinyl mode support).
 - Visualizers: Web Audio API visualizer modes (Bars, Wave, Circle, Mirror, Spectrum, Particles, Hexagon).
@@ -34,7 +34,7 @@ A high-fidelity, glassmorphic music client for Subsonic-compatible servers (Navi
 ## Changelog
 
 ### v2.0 (2026-03-16)
-- Full UI refresh with light-first surfaces and refined glass panels.
+- Full UI refresh with light-first surfaces and refined panels.
 - Theme system now respects system preference on first launch with explicit Light/Dark selection in Settings.
 - Accessibility polish: higher contrast secondary text, larger touch targets, and semantic heading order fixes.
 - Playback polish with per-song pitch persistence and clearer speed and pitch handling.
