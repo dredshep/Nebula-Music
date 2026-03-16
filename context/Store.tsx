@@ -116,7 +116,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [pitchCorrection, setPitchCorrection] = useState(true);
   const [repeatMode, setRepeatMode] = useState<RepeatMode>('OFF');
   const [pitch, setPitchState] = useState(0);
-  const [pitchBySongId, setPitchBySongId] = useState<Record<string, number>>({});
   const [visualizerMode, setVisualizerMode] = useState<VisualizerMode>('BARS');
   const [isZenMode, setZenMode] = useState(false);
 
@@ -573,17 +572,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setPitch = useCallback((val: number) => {
     setPitchState(val);
-    const songId = queue[currentSongIndex]?.id;
-    if (!songId) return;
-    setPitchBySongId(prev => (prev[songId] === val ? prev : { ...prev, [songId]: val }));
-  }, [queue, currentSongIndex]);
-
-  useEffect(() => {
-    const songId = queue[currentSongIndex]?.id;
-    if (!songId) return;
-    const savedPitch = pitchBySongId[songId] ?? 0;
-    setPitchState(prev => (prev === savedPitch ? prev : savedPitch));
-  }, [currentSongIndex, pitchBySongId, queue]);
+  }, []);
 
   // Apply pitch shifting via playbackRate
   useEffect(() => {
