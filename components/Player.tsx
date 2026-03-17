@@ -95,7 +95,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
         const fetchLyrics = async () => {
             if (activeTab === 'lyrics' && currentSong) {
                 setLoadingLyrics(true);
-                const text = await service.getLyrics(currentSong.artist, currentSong.title, currentSong.album, currentSong.duration);
+                const text = await service.getLyrics(currentSong.artist, currentSong.title, currentSong.album, currentSong.duration, currentSong.id);
                 const parsed = parseLyrics(text);
                 if (parsed.length > 0) { setSyncedLyrics(parsed); setLyrics(''); }
                 else { setSyncedLyrics([]); setLyrics(text || "No lyrics found."); }
