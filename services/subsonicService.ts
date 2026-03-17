@@ -434,8 +434,8 @@ export class SubsonicService {
 
   async getLyrics(artist: string, title: string, album?: string, duration?: number, id?: string): Promise<string> {
     if (this.isDemo) return `[00:00.50] (Instrumental Intro)\n[00:04.00] Standing on the edge of the neon light\n[00:08.00] Watching code flow through the night\n[00:12.00] Digital dreams in a binary stream\n[00:16.00] Waking up from a silicon dream`;
-    const cacheKey = `lyrics_${artist}_${title}_${duration || 0}`;
-    const cached = await db.getCachedResponse(cacheKey, 10080);
+    const cacheKey = `lyrics_${id || ''}_${artist}_${title}_${duration || 0}`;
+    const cached = await db.getCachedResponse(cacheKey, 1440);
     if (cached) return cached;
     let lyrics = '';
     if (id) {
