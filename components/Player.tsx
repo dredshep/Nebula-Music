@@ -558,7 +558,7 @@ export const Player: React.FC<PlayerProps> = ({ isExpanded, onClose }) => {
                                         })}
                                     </div>
                                 ) : (
-                                    <div className="text-lg text-neutral-600 dark:text-white/60 max-w-2xl">
+                                    <div className="text-lg text-neutral-600 dark:text-white/60 max-w-2xl whitespace-pre-line">
                                         {lyrics || "No lyrics found for this song."}
                                     </div>
                                 )}

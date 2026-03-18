@@ -438,6 +438,7 @@ export class SubsonicService {
     const cached = await db.getCachedResponse(cacheKey, 1440);
     if (cached) return cached;
     let lyrics = '';
+    let unsyncedFallback = '';
     if (id) {
       try {
         const res = await fetch(this.buildUrl('getLyricsBySongId.view', { id }));
@@ -456,7 +457,7 @@ export class SubsonicService {
               })
               .join('\n');
           } else if (Array.isArray(synced.line)) {
-            lyrics = (synced.line as { value: string }[]).map(l => l.value).join('\n');
+            unsyncedFallback = (synced.line as { value: string }[]).map(l => l.value).join('\n');
           }
         }
       } catch (e) { }
@@ -505,6 +506,7 @@ export class SubsonicService {
         lyrics = data['subsonic-response'].lyrics?.value;
       } catch (e) { }
     }
+    if (!lyrics && unsyncedFallback) lyrics = unsyncedFallback;
     if (lyrics) { await db.cacheResponse(cacheKey, lyrics); return lyrics; }
     return "";
   }
